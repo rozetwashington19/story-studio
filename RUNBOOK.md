@@ -41,7 +41,10 @@ Formula (measured from the reference videos):
 - Write `notes.md`: premise, characters (name, look), sets needed, one-sentence logline.
 
 Then run `python3 engine/voice.py episodes/NNN-slug` (≈12–15 min; run it with nohup and poll) → prints duration.
-Adjust the script if outside 2:05–2:40. Spot-check 3–4 lines in `out/lines/` for mispronunciations; regenerate if a line is garbled.
+Adjust the script if outside 2:05–2:40. voice.py speaks each line in context with the previous one (smoother flow), trims tails
+cleanly (no ringing), and checks every line with Whisper (`~/models/sherpa-onnx-whisper-base.en`, from setup.sh). Read the
+`CHECK:` lines it prints: most are spelling quirks ("Juneau", "10"), but if a line is garbled or contains a word from the
+previous line, redo just those lines solo: `ONLY=51,55 python3 engine/voice.py episodes/NNN-slug` (keeps all other lines).
 
 ## 3. Write `bubbles.json`
 `{"<line number>": ["Bubble text", x 0–1, y 0–1]}` — x is the bubble center, y the top edge

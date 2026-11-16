@@ -13,6 +13,10 @@ if [ ! -f ~/models/sherpa-onnx-zipvoice-distill-zh-en-emilia/fm_decoder.onnx ]; 
   curl -sSL -o /tmp/zv.tar.bz2 https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-zipvoice-distill-zh-en-emilia.tar.bz2
   tar xjf /tmp/zv.tar.bz2 -C ~/models && rm /tmp/zv.tar.bz2
 fi
+if [ ! -f ~/models/sherpa-onnx-whisper-base.en/base.en-encoder.int8.onnx ]; then   # ASR check of narration lines
+  curl -sSL -o /tmp/wh.tar.bz2 https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-base.en.tar.bz2
+  tar xjf /tmp/wh.tar.bz2 -C ~/models && rm /tmp/wh.tar.bz2
+fi
 pip install --break-system-packages -q librosa 2>&1 | grep -v -i warn || true
 command -v ffmpeg >/dev/null || { echo "ffmpeg missing"; exit 1; }
 ls /usr/bin/google-chrome /usr/bin/chromium /usr/bin/chromium-browser 2>/dev/null | head -1 || python3 -m playwright install chromium
