@@ -10,7 +10,7 @@ export const SHOTS_A = [
     const walkers = [
       { o: EX[0], x0: -7.5, x1: -3.6, z: 0.6, dir: 90, ph: 0 },
       { o: EX[1], x0: 6.5, x1: 3.0, z: 2.2, dir: -90, ph: 1.3 },
-      { o: EX[3], x0: -1.5, x1: -0.3, z: -1.6, dir: 15, ph: 2.1, wave: true },
+      { o: EX[3], x0: 1.6, x1: 1.6, z: -1.6, dir: 15, ph: 2.1, wave: true },
     ].map(w => { const A = add(S, makeAvatar({ ...w.o, face: w.wave ? 'grin' : 'smile' }), [w.x0, 0, w.z], w.dir);
       const sh = floorShadow(S, w.o, [w.x0, w.z]); sh.root.rotation.y = w.dir * D; return { ...w, A, sh }; });
     return (t, dur) => {
@@ -81,7 +81,7 @@ export const SHOTS_A = [
   // 7 "Dad says he loves Mom's meatloaf."
   (S, cam) => {
     dining(S);
-    const dad = add(S, makeAvatar({ ...DAD, face: 'grin' }), [0.3, 0, -4.9], 0);
+    const dad = add(S, makeAvatar({ ...DAD, face: 'grin', name: 'dad' }), [0.3, 0, -5.8], 0);
     return (t, dur) => {
       camPath(cam, t / dur, [0.6, 4.7, 4.8], [0.5, 4.5, 3.2], [0.3, 3.9, -4.8], [0.3, 4.1, -4.8], 30);
       const k = [[0, { rFwd: 30 }], [0.35, { rFwd: 30 }], [0.7, { rFwd: 125, rUp: 15, nod: -6 }], [1.1, { rFwd: 110, rUp: 12, nod: 4 }], [1.4, { rFwd: 125, rUp: 15, nod: -6 }]];
@@ -91,12 +91,12 @@ export const SHOTS_A = [
   // 8 "His shadow is spitting it into a napkin."
   (S, cam) => {
     dining(S);
-    const dad = add(S, makeAvatar({ ...DAD, face: 'grin' }), [-1.6, 0, -4.9], 12);
+    const dad = add(S, makeAvatar({ ...DAD, face: 'grin', name: 'dad' }), [-1.6, 0, -5.8], 12);
     const sh = wallShadow(S, DAD, [2.8, -8.97], { profile: true, size: 1.2 });
     const nap = box(S, [1.0, 0.9, 0.02], [0, 0, -8.96], shadowMatWall, { r: 0, cast: false }); nap.renderOrder = 2;
     return (t, dur) => {
       camPath(cam, t / dur, [-0.6, 4.5, 5.8], [0.2, 4.3, 4.4], [0.4, 4.0, -6], [1.2, 4.0, -6.5], 26);
-      dad.pose(addPose({ rFwd: 30, lUp: 4 }, idle(t, 1)));
+      dad.pose(addPose({ rFwd: 0, lUp: 4 }, idle(t, 1)));
       const sp = track([[0, { rFwd: 40 }], [0.3, { rFwd: 40 }], [0.75, { lean: 35, nod: 40, rFwd: 120, rUp: 8 }]], t);
       sh.pose(addPose(sp, { turn: t > 0.8 ? Math.sin(t * 25) * 6 : 0, lean: t > 0.8 ? Math.sin(t * 12) * 4 : 0 }));
       const v = ease((t - 0.6) / 0.3);
@@ -130,13 +130,13 @@ export const SHOTS_A = [
     box(S, [60, 0.3, 30], [0, -0.15, 6], repeatMat(T.concrete(0xb9b2a7), 15, 8), { r: 0, cast: false });
     box(S, [40, 12, 1], [0, 6, -6.5], repeatMat(T.facade(0x8a5a86), 5, 2), { r: 0, cast: false });
     const aw = std({ color: 0xcc3b33 });
-    box(S, [12, 0.2, 3.4], [0, 6.2, -4.6], aw, { r: 0.05, rot: [-10 * D, 0, 0] });
-    for (let i = 0; i < 6; i++) box(S, [2, 0.6, 0.1], [-5 + i * 2, 5.85, -2.95], i % 2 ? std({ color: 0xffffff }) : aw, { r: 0 });
-    const ppl = [[-3.4, EX[0]], [-0.1, EX[2]], [3.2, EX[3]]].map(([x, o], i) => ({ A: add(S, makeAvatar({ ...o, face: i === 1 ? 'neutral' : 'worried' }), [x, 0, -5.2], 0), x, i }));
+    box(S, [16, 0.2, 3.4], [0, 6.6, -4.6], aw, { r: 0.05, rot: [-10 * D, 0, 0] });
+    for (let i = 0; i < 8; i++) box(S, [2, 0.6, 0.1], [-7 + i * 2, 6.25, -2.95], i % 2 ? std({ color: 0xffffff }) : aw, { r: 0 });
+    const ppl = [[-4.4, EX[0]], [0, EX[2]], [4.4, EX[3]]].map(([x, o], i) => ({ A: add(S, makeAvatar({ ...o, face: i === 1 ? 'neutral' : 'worried' }), [x, 0, -4.8], 0), x, i }));
     // a sunny bench in foreground nobody uses
     box(S, [4, 0.3, 1.2], [5, 1.4, 3], std({ map: T.planks(0x9a6a40) })); box(S, [0.3, 1.4, 1], [3.4, 0.7, 3], std({ color: 0x333333 })); box(S, [0.3, 1.4, 1], [6.6, 0.7, 3], std({ color: 0x333333 }));
     return (t, dur) => {
-      camPath(cam, t / dur, [-2.5, 3.6, 10], [1.5, 3.6, 9.5], [-1, 3.6, -5], [0.8, 3.6, -5], 26);
+      camPath(cam, t / dur, [-2.0, 3.8, 12.5], [1.5, 3.8, 12], [-1, 3.6, -5], [0.8, 3.6, -5], 24);
       for (const p of ppl) {
         p.A.pose(addPose(POSES.rest, { turn: Math.sin(t * 2.2 + p.i * 2) * 40, rUp: 2, nod: -4 }));
         p.A.root.position.x = p.x + Math.sin(t * 1.5 + p.i) * 0.15;
@@ -168,7 +168,8 @@ export const SHOTS_A = [
   // 14 "And three days ago,"
   (S, cam) => {
     bedroom(S);
-    const leo = makeAvatar({ ...LEO, face: 'smile', blob: false }); leo.root.position.set(-3.5, 2.35, -0.9); leo.root.rotation.x = -90 * D; S.add(leo.root);
+    const leo = makeAvatar({ ...LEO, face: 'smile', blob: false, name: 'leo' }); leo.root.position.set(-3.5, 2.45, -0.9); leo.root.rotation.x = -90 * D; S.add(leo.root);
+    S.userData.allowContact = [['leo', 'box 4.1x0.9x4.6*'], ['leo', 'box 2.6x0.5x1.2*'], ['leo', 'box 3.8x0.6x6.8*']];   // under the blanket, head on the pillow
     box(S, [4.1, 0.9, 4.6], [-3.5, 2.55, -2.3], std({ map: T.plaster(0x3f6fb8) }), { r: 0.3 });
     return (t, dur) => {
       camPath(cam, t / dur, [1.2, 7.8, 0.5], [0.6, 7.4, -0.5], [-3.5, 2.4, -4.8], [-3.5, 2.5, -5.2], 30);
@@ -178,7 +179,8 @@ export const SHOTS_A = [
   // 15 "my shadow got up and walked away."
   (S, cam) => {
     bedroom(S);
-    const leo = makeAvatar({ ...LEO, face: 'shock', blob: false }); leo.root.position.set(-3.5, 2.35, -0.9); leo.root.rotation.x = -90 * D; S.add(leo.root);
+    const leo = makeAvatar({ ...LEO, face: 'shock', blob: false, name: 'leo' }); leo.root.position.set(-3.5, 2.45, -0.9); leo.root.rotation.x = -90 * D; S.add(leo.root);
+    S.userData.allowContact = [['leo', 'box 4.1x0.9x4.6*'], ['leo', 'box 2.6x0.5x1.2*'], ['leo', 'box 3.8x0.6x6.8*']];
     box(S, [4.1, 0.9, 4.6], [-3.5, 2.55, -2.3], std({ map: T.plaster(0x3f6fb8) }), { r: 0.3 });
     const mat = shadowMatWall.clone();
     const sh = wallShadow(S, LEO, [-1.0, -8.97], { profile: true, size: 1.12, mat });
