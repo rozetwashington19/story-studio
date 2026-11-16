@@ -1,7 +1,7 @@
 # Story Studio
 
 Automated 3D Roblox-style story shorts ("In this world…" format), rendered with three.js in headless Chrome,
-narrated with a local Kokoro TTS voice. One new episode per day.
+narrated in the owner's own voice, cloned locally with ZipVoice (Kokoro as fallback). One new episode per day.
 
 - `RUNBOOK.md` — the daily procedure (start here).
 - `KIT.md` — toolkit API for writing shots.

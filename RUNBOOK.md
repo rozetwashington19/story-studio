@@ -3,7 +3,12 @@
 Goal: one new, original ~2:20 vertical (1080×1920) 3D Roblox-style story short per day, in the
 "In this world…" format. New premise, new characters every day. **Narration only, no music.**
 
-Total time budget ≈ 2.5 h: setup 5 min · story 15 min · shots 40 min · previews/fixes 20 min · render ~80 min · delivery 5 min.
+Total time budget ≈ 2.75 h: setup 8 min · story 15 min · narration 15 min · shots 40 min · previews/fixes 20 min · render ~80 min · delivery 5 min.
+
+**Narrator voice:** the series is narrated in the owner's own voice, cloned locally by `engine/voice.py` from
+`engine/voice/narrator_ref.wav`. Never replace or edit that reference. Pace is deliberately relaxed (owner: "don't make it
+too fast") — keep `VOICE_TEMPO` at its default 1.08. The Kokoro fallback is used only if the clone model fails; if that
+happens, say so in the final message.
 Long renders: run them in the background with `nohup … &` and poll the log with `sleep 590; tail -1 log` in
 foreground calls (each foreground call is capped at 10 minutes). Never end your turn while a render is running.
 
@@ -30,12 +35,13 @@ Formula (measured from the reference videos):
 6. A search or problem escalates; a discovery.
 7. Emotional reveal (what the rule was really about for the narrator), a sacrifice or choice.
 8. Resolution + a callback to an earlier gag + a short final line that lands emotionally.
-- 75–85 lines, 520–560 words → about 2:15–2:25. One line = one shot. Keep lines short (≤ 12 words).
+- 70–80 lines, 460–500 words → about 2:15–2:35 at the narrator's pace. One line = one shot. Keep lines short (≤ 12 words).
 - First-person kid narrator. Dialogue goes in "double quotes" and also gets a speech bubble.
 - End a line with ` [pause]` for a dramatic beat (use ~8–12 times: big reveals, sad moments, final line).
 - Write `notes.md`: premise, characters (name, look), sets needed, one-sentence logline.
 
-Then run `python3 engine/voice.py episodes/NNN-slug` → prints duration. Adjust the script if outside 2:05–2:35.
+Then run `python3 engine/voice.py episodes/NNN-slug` (≈12–15 min; run it with nohup and poll) → prints duration.
+Adjust the script if outside 2:05–2:40. Spot-check 3–4 lines in `out/lines/` for mispronunciations; regenerate if a line is garbled.
 
 ## 3. Write `bubbles.json`
 `{"<line number>": ["Bubble text", x 0–1, y 0–1]}` — x is the bubble center, y the top edge
