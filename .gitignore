@@ -1,0 +1,4 @@
+node_modules/
+episodes/*/out/
+engine/faces/index.json
+__pycache__/

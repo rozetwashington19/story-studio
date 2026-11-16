@@ -1,0 +1,62 @@
+{
+ "5": [
+  "I LOVE Mondays!!",
+  0.5,
+  0.17
+ ],
+ "7": [
+  "Mmm! Delicious!",
+  0.5,
+  0.15
+ ],
+ "9": [
+  "Looks cool, right?",
+  0.5,
+  0.06
+ ],
+ "18": [
+  "Leo, did you finish your homework?",
+  0.5,
+  0.1
+ ],
+ "19": [
+  "Yep!",
+  0.5,
+  0.08
+ ],
+ "20": [
+  "Who ate the last cookie?",
+  0.5,
+  0.1
+ ],
+ "21": [
+  "Not me!",
+  0.5,
+  0.07
+ ],
+ "22": [
+  "My dog ate my homework!",
+  0.38,
+  0.12
+ ],
+ "30": [
+  "Knock knock!",
+  0.5,
+  0.12
+ ],
+ "33": [
+  "Leo, are you okay?",
+  0.5,
+  0.08
+ ],
+ "34": [
+  "I'm fine.",
+  0.5,
+  0.08
+ ],
+ "54": [
+  "I'm totally fine!",
+  0.32,
+  0.14
+ ]
+}
