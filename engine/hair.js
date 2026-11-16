@@ -6,8 +6,9 @@
 // Head-local space: head center (0,0,0), front = +Z, top of head y=0.61, eyes y≈0.13, brows y≈0.28.
 // Keep fringes above y≈0.32 across the face (|angle| < 50°) so faces stay readable.
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
+export const COILY = ['afro', 'curly', 'puffs', 'braids'];   // these get the coily (non-streaky) texture
 export const HAIR_STYLES = ['short', 'swoop', 'spiky', 'buzz', 'mohawk', 'curly', 'afro', 'bun', 'ponytail', 'pigtails',
   'long', 'bob', 'braids', 'puffs'];
 
@@ -24,7 +25,8 @@ const sOfY = y => y >= CY ? FLAT + RR * Math.acos(Math.min(1, (y - CY) / RR)) : 
 export const byAngle = (f, s, b) => th => { const c = Math.cos(th); return c >= 0 ? s + (f - s) * c * c : s + (b - s) * c * c; };
 
 // Hair surface. opts: line(th)->hairline y, thick(th,y), flare(th,y)->extra horizontal radius, edge {amp,n,front}, rows
-function shell({ line, thick = () => 0.08, flare = () => 0, edge = null, NT = 96, NV = 30 }) {
+// clumps: {n (even), depth} raised hair clumps with grooves between them; swirl: grooves sweep sideways toward the hairline
+function shell({ line, thick = () => 0.08, flare = () => 0, edge = null, clumps = { n: 16, depth: 0.035 }, swirl = 0, NT = 128, NV = 34 }) {
   const pos = [], uv = [], idx = [];
   for (let i = 0; i <= NT; i++) {
     const th = -Math.PI + (i / NT) * Math.PI * 2;   // seam at the back
@@ -34,8 +36,9 @@ function shell({ line, thick = () => 0.08, flare = () => 0, edge = null, NT = 96
     for (let j = 0; j <= NV; j++) {
       const s = smax * Math.pow(j / NV, 0.85); const [r, y, nr, ny] = prof(s);
       const t = thick(th, y) * (0.35 + 0.65 * sm(0, 0.12, smax - s) + 0.0);   // thinner right at the hairline edge
-      const R = r + t * nr + flare(th, y), Y = y + t * ny;
-      pos.push(R * Math.sin(th), Y, R * Math.cos(th)); uv.push(i / NT * 4, s * 1.4);
+      const tw = th + swirl * s, ridge = clumps ? clumps.depth * (1 - Math.pow(Math.abs(Math.sin(clumps.n * tw / 2)), 0.7)) * sm(0.05, 0.3, s) : 0;
+      const R = r + (t + ridge) * nr + flare(th, y), Y = y + (t + ridge) * ny;
+      pos.push(R * Math.sin(th), Y, R * Math.cos(th)); uv.push(i / NT * 1.5, s * 1.4);
     }
   }
   for (let i = 0; i < NT; i++) for (let j = 0; j < NV; j++) {
@@ -87,14 +90,14 @@ export function hairGeometry(style, { seed = 1 } = {}) {
   switch (style) {
     case 'short': {     // boy cut: side part, choppy fringe swept to one side
       G.push(shell({ line: th => byAngle(0.40, -0.06, -0.52)(th) + side * 0.06 * Math.sin(th) * Math.max(0, Math.cos(th)),
-        thick: (th, y) => 0.07 + 0.09 * sm(0.2, 0.6, y), edge: { amp: 0.09, n: 11, front: true } }));
+        thick: (th, y) => 0.07 + 0.09 * sm(0.2, 0.6, y), edge: { amp: 0.09, n: 11, front: true }, clumps: { n: 14, depth: 0.045 }, swirl: side * 0.5 }));
       for (let k = 0; k < 4; k++) fringeLock(-side * (38 - k * 14), 30 + R() * 14, 0.15 + R() * 0.04, 0.12 + R() * 0.08);
       break;
     }
-    case 'swoop': {     // big front quiff swept up and back, short sides
+    case 'swoop': {     // short sides + one big quiff that rises off the forehead and sweeps back
       G.push(shell({ line: byAngle(0.42, -0.06, -0.5), thick: (th, y) => 0.05 + 0.06 * sm(0.3, 0.6, y) }));
-      for (let k = -2; k <= 2; k++) { const th = k * 14 * D;
-        G.push(lock([onHead(th, 0.40, 0.06), [Math.sin(th) * 0.55, 0.95 + R() * 0.08, 0.62], [Math.sin(th) * 0.45 + side * 0.12, 1.02, 0.05], [side * 0.2 + Math.sin(th) * 0.3, 0.82, -0.45]], 0.2 + R() * 0.04, { flat: 0.55, bulge: 0.35, taper: 1.4 })); }
+      for (let k = -1; k <= 1; k++) { const th = k * 18 * D, x = Math.sin(th) * 0.5;
+        G.push(lock([onHead(th, 0.42, 0.06), [x, 0.92, 0.5], [x * 0.8 + side * 0.08, 1.06, 0.05], [x * 0.6 + side * 0.15, 0.86, -0.42]], 0.27 - Math.abs(k) * 0.03, { flat: 0.6, bulge: 0.45, taper: 1.5, tip: 0.05 })); }
       break;
     }
     case 'spiky': {     // anime spikes radiating from the crown
@@ -109,12 +112,13 @@ export function hairGeometry(style, { seed = 1 } = {}) {
       break;
     }
     case 'buzz': {
-      G.push(shell({ line: byAngle(0.44, 0.04, -0.46), thick: () => 0.03 }));
+      G.push(shell({ line: byAngle(0.44, 0.04, -0.46), thick: () => 0.03, clumps: { n: 30, depth: 0.012 } }));
       break;
     }
-    case 'mohawk': {
-      G.push(shell({ line: byAngle(0.44, 0.04, -0.46), thick: () => 0.025 }));
-      for (let k = 0; k < 6; k++) { const z = 0.45 - k * 0.2; const b = [0, k ? 0.66 : 0.5, z]; G.push(lock([b, [0, 0.95 + 0.06 * Math.sin(k), z - 0.12], [0, 1.18, z - 0.42]], 0.2, { flat: 0.35, taper: 1.2 })); }
+    case 'mohawk': {    // buzzed sides + a thick crest of overlapping locks swept back
+      G.push(shell({ line: byAngle(0.44, 0.04, -0.46), thick: () => 0.025, clumps: null }));
+      for (let k = 0; k < 6; k++) { const z = 0.32 - k * 0.17, y0 = 0.56 + Math.min(k, 1) * 0.06;
+        G.push(lock([[0, y0, z], [0, 0.98 - k * 0.02, z - 0.08], [0, 1.08 - k * 0.03, z - 0.38], [0, 0.95 - k * 0.04, z - 0.62]], 0.24, { flat: 0.42, bulge: 0.3, taper: 1.2, tip: 0.03 })); }
       break;
     }
     case 'curly': {     // short curls: thin shell covered in little balls
@@ -125,13 +129,23 @@ export function hairGeometry(style, { seed = 1 } = {}) {
       }
       break;
     }
-    case 'afro': {
-      const bump = (th, y) => 0.03 * Math.sin(9 * th + 1) * Math.sin(17 * y);
-      G.push(shell({ line: byAngle(0.38, -0.05, -0.5), thick: (th, y) => 0.22 + 0.2 * sm(0.0, 0.6, y) + bump(th, y), flare: (th, y) => 0.12 * sm(0.62, -0.1, y) }));
+    case 'afro': {      // a lumpy sphere around the head; the face opening is carved by pulling vertices inside the head
+      let g = new THREE.IcosahedronGeometry(1, 30); g.deleteAttribute('normal'); g.deleteAttribute('uv'); g = mergeVertices(g);
+      const P = g.attributes.position, line = byAngle(0.37, -0.12, -0.5), C = [0, 0.3, -0.1], uvs = [];
+      for (let i = 0; i < P.count; i++) {
+        const vx = P.getX(i), vy = P.getY(i), vz = P.getZ(i);
+        const n = 1 + 0.045 * Math.sin(9 * vx + 2 * vy) * Math.sin(8 * vz + 1) + 0.035 * Math.sin(13 * vy + 3 * vx) * Math.cos(11 * vz) + 0.02 * Math.sin(21 * vx * vz + 5 * vy);
+        let x = C[0] + vx * 1.02 * n, y = C[1] + vy * 0.9 * n, z = C[2] + vz * 0.98 * n;
+        const th = Math.atan2(x, z);
+        const w = sm(line(th) + 0.07, line(th) - 0.05, y);   // 0 above the hairline -> 1 below: tuck smoothly inside the head
+        x *= 1 - 0.45 * w; z = z * (1 - 0.45 * w) - 0.05 * w; y = Math.max(y, -0.5 * w + y * (1 - w));
+        P.setXYZ(i, x, y, z); uvs.push(Math.atan2(vx, vz) / Math.PI + 1, vy + 1);
+      }
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.computeVertexNormals(); G.push(g);
       break;
     }
     case 'bun': {       // sleek top bun with a band and face-framing wisps
-      G.push(shell({ line: byAngle(0.44, -0.06, -0.52), thick: () => 0.05 }));
+      G.push(shell({ line: byAngle(0.44, -0.06, -0.52), thick: () => 0.05, clumps: { n: 22, depth: 0.02 }, swirl: 0.0 }));
       G.push(ball([0, 0.86, -0.22], 0.36, 1, 0.85, 1, 20));
       G.push(ring([0, 0.66, -0.2], 0.24, 0.06, [Math.PI / 2 - 0.35, 0, 0]));
       for (const s of [-1, 1]) G.push(lock([onHead(s * 58 * D, 0.32, 0.07), onHead(s * 62 * D, 0.0, 0.1), onHead(s * 60 * D, -0.3, 0.12)], 0.07, { flat: 0.6 }));
@@ -157,7 +171,7 @@ export function hairGeometry(style, { seed = 1 } = {}) {
         return 0.30 - sm(42 * D, 80 * D, a) * 0.95 - sm(-0.1, -1, c) * 0.55; };
       G.push(shell({ line, thick: (th, y) => 0.07 + 0.05 * sm(0.2, 0.6, y),
         flare: (th, y) => { const back = sm(0.1, -0.9, Math.cos(th)); return sm(-0.4, -1.3, y) * (0.12 + 0.45 * back); },
-        edge: { amp: 0.1, n: 15 } }));
+        edge: { amp: 0.1, n: 15 }, clumps: { n: 20, depth: 0.04 } }));
       for (const s of [-1, 1]) G.push(lock([onHead(s * 8 * D, 0.6, 0.1), onHead(s * 30 * D, 0.42, 0.13), onHead(s * 46 * D, 0.1, 0.12), onHead(s * 52 * D, -0.3, 0.14)], 0.15, { flat: 0.5 }));
       break;
     }

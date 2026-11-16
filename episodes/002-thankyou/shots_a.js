@@ -418,7 +418,7 @@ export const SHOTS_A = [
     homeStairs(S);
     const pm = std({ color: 0xd82a3a, roughness: 0.5 });
     const petals = [[-6.6, 2.13, 1.0], [-7.2, 2.83, 0.0], [-6.5, 3.53, -1.0]].map(([x, y, z], i) => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 8), pm); m.scale.set(1, 0.22, 0.7); m.position.set(x, y, z); m.rotation.y = i; S.add(m); return m; });
-    const j = mk(S, JUNO, 'juno', 'shock', [-2.9, 0, -1.8], -90);
+    const j = mk(S, JUNO, 'juno', 'shock', [-2.5, 0, -1.8], -90);
     return (t, dur) => {
       camPath(cam, t / dur, [2.0, 4.6, 7.5], [1.4, 4.4, 6.8], [-5.0, 2.6, 0.6], [-5.4, 2.6, 0.2], 28);
       j.pose({ lean: 18, nod: 25, rFwd: 40, lUp: 6 });

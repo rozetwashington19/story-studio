@@ -27,6 +27,8 @@ Sculpted, one merged mesh per avatar. Styles (`HAIR_STYLES`): `short` (side-swep
 Give every character in an episode a different style + color; vary the narrator's look from previous episodes.
 New styles: add a `case` in `hairGeometry()` using `shell({line, thick, flare, edge})`, `lock(points, r)`, `cone`, `ball`, `ring`
 (head-local: front +Z, top y=0.61, brows y≈0.28 — keep fringes above y≈0.32 across the face).
+Textures: streaky glossy clumps by default; `COILY` styles (afro curly puffs braids) get a coily texture.
+Check changes with `python3 tools/hair_lineup.py out.jpg [style …]` (all styles front/back + full-res close-ups).
 
 ## Shadows / silhouettes
 `wallShadow(S, opts, [x, z], {profile, size, mat})` flat black figure on a wall facing +Z (put z just in front of the wall);

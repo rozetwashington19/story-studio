@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { hairGeometry, hashStr } from './hair.js';
+import { hairGeometry, hashStr, COILY } from './hair.js';
 export { HAIR_STYLES } from './hair.js';
 
 export const D = Math.PI / 180;
@@ -105,46 +105,68 @@ function faceSkinTex(skinHex, face) {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; t.wrapS = THREE.RepeatWrapping;
   return (faceSkinCache[key] = t);
 }
-// Hair: strand texture + matching bump map. Cached per color.
+// Hair: stylized Roblox-like texture - soft clump bands with dark grooves, a few fine strands, and a glossy
+// highlight ring (wavy streaks) that sits across the crown on hair shells. Matching bump map. Cached per color.
 const hairCache = {};
-function hairMaterial(col) {
-  if (hairCache[col]) return hairCache[col];
+function hairMaterial(col, kind = 'straight') {
+  const key = col + kind; if (hairCache[key]) return hairCache[key];
+  if (kind === 'coily') return (hairCache[key] = coilyMaterial(col));
   const W = 512, Hh = 512;
-  const mk = (bump) => { const c = document.createElement('canvas'); c.width = W; c.height = Hh; return [c, c.getContext('2d')]; };
+  const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = Hh; return [c, c.getContext('2d')]; };
   const [cc, x] = mk(), [bc, b] = mk();
-  x.fillStyle = hex(col); x.fillRect(0, 0, W, Hh); b.fillStyle = '#808080'; b.fillRect(0, 0, W, Hh);
-  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  // broad clumps
-  for (let i = 0; i < 26; i++) {
-    const cx = rnd() * W, wid = 14 + rnd() * 26, f = 0.82 + rnd() * 0.32;
-    const g = x.createLinearGradient(cx - wid, 0, cx + wid, 0);
-    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.5, shade(col, f)); g.addColorStop(1, 'rgba(0,0,0,0)');
-    x.fillStyle = g; x.globalAlpha = 0.55; x.fillRect(cx - wid, 0, wid * 2, Hh);
-    const gb = b.createLinearGradient(cx - wid, 0, cx + wid, 0);
-    gb.addColorStop(0, '#808080'); gb.addColorStop(0.5, f > 1 ? '#b0b0b0' : '#5a5a5a'); gb.addColorStop(1, '#808080');
-    b.fillStyle = gb; b.fillRect(cx - wid, 0, wid * 2, Hh);
+  const lum = new THREE.Color(col); const L = (lum.r + lum.g + lum.b) / 3; const hiK = L < 0.12 ? 3.2 : L < 0.3 ? 1.9 : 1.45;
+  x.fillStyle = shade(col, 0.92); x.fillRect(0, 0, W, Hh); b.fillStyle = '#808080'; b.fillRect(0, 0, W, Hh);
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  // clump bands: each a soft rounded stripe, lighter in the middle, dark groove at its edges
+  let px = 0;
+  while (px < W) {
+    const wid = 26 + rnd() * 30, f = 0.95 + rnd() * 0.25;
+    const g = x.createLinearGradient(px, 0, px + wid, 0);
+    g.addColorStop(0, shade(col, 0.55)); g.addColorStop(0.25, shade(col, f)); g.addColorStop(0.6, shade(col, f * 1.08)); g.addColorStop(1, shade(col, 0.6));
+    x.fillStyle = g; x.fillRect(px, 0, wid, Hh);
+    const gb = b.createLinearGradient(px, 0, px + wid, 0);
+    gb.addColorStop(0, '#303030'); gb.addColorStop(0.45, '#c8c8c8'); gb.addColorStop(1, '#383838');
+    b.fillStyle = gb; b.fillRect(px, 0, wid, Hh); px += wid;
+  }
+  // a few fine strands for detail (much subtler than before)
+  for (let i = 0; i < 260; i++) {
+    const x0 = rnd() * W, len = 80 + rnd() * 240, y0 = rnd() * Hh - 60, sway = (rnd() - 0.5) * 10, light = rnd() < 0.5;
+    x.strokeStyle = light ? shade(col, 1.25) : shade(col, 0.55); x.globalAlpha = 0.12 + rnd() * 0.15; x.lineWidth = 0.8 + rnd();
+    x.beginPath(); x.moveTo(x0, y0); x.bezierCurveTo(x0 + sway, y0 + len * 0.33, x0 - sway, y0 + len * 0.66, x0, y0 + len); x.stroke();
+  }
+  // glossy highlight ring: short wavy streaks in a band around v≈0.55
+  for (let i = 0; i < 70; i++) {
+    const x0 = rnd() * W, y0 = Hh * (0.47 + rnd() * 0.12), len = 30 + rnd() * 50;
+    const g = x.createLinearGradient(0, y0, 0, y0 + len);
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, shade(col, hiK) ); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.strokeStyle = g; x.globalAlpha = 0.35 + rnd() * 0.35; x.lineWidth = 3 + rnd() * 5; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(x0, y0); x.quadraticCurveTo(x0 + (rnd() - 0.5) * 8, y0 + len / 2, x0, y0 + len); x.stroke();
   }
   x.globalAlpha = 1;
-  // fine strands (gently wavy, mostly vertical)
-  for (let i = 0; i < 900; i++) {
-    const x0 = rnd() * W, len = 60 + rnd() * 220, y0 = rnd() * Hh - 40, sway = (rnd() - 0.5) * 18, light = rnd() < 0.45;
-    const colS = light ? shade(col, 1.35 + rnd() * 0.4) : shade(col, 0.45 + rnd() * 0.25);
-    x.strokeStyle = colS; x.globalAlpha = 0.18 + rnd() * 0.3; x.lineWidth = 0.8 + rnd() * 1.6;
-    x.beginPath(); x.moveTo(x0, y0); x.bezierCurveTo(x0 + sway, y0 + len * 0.33, x0 - sway, y0 + len * 0.66, x0 + sway * 0.5, y0 + len); x.stroke();
-    b.strokeStyle = light ? '#d0d0d0' : '#303030'; b.globalAlpha = 0.25; b.lineWidth = x.lineWidth;
-    b.beginPath(); b.moveTo(x0, y0); b.bezierCurveTo(x0 + sway, y0 + len * 0.33, x0 - sway, y0 + len * 0.66, x0 + sway * 0.5, y0 + len); b.stroke();
-  }
-  // sheen: light strands added on top so even near-black hair shows texture
-  for (let i = 0; i < 260; i++) {
-    const x0 = rnd() * W, len = 80 + rnd() * 200, y0 = rnd() * Hh - 40, sway = (rnd() - 0.5) * 16;
-    x.strokeStyle = 'rgb(255,236,214)'; x.globalAlpha = 0.07 + rnd() * 0.1; x.lineWidth = 1 + rnd() * 1.5;
-    x.beginPath(); x.moveTo(x0, y0); x.bezierCurveTo(x0 + sway, y0 + len * 0.33, x0 - sway, y0 + len * 0.66, x0 + sway * 0.5, y0 + len); x.stroke();
-  }
-  x.globalAlpha = 1; b.globalAlpha = 1;
   const map = new THREE.CanvasTexture(cc); map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 16; map.repeat.set(2, 1);
   const bump = new THREE.CanvasTexture(bc); bump.wrapS = bump.wrapT = THREE.RepeatWrapping; bump.repeat.set(2, 1);
-  const m = new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: 1.6, roughness: 0.42, metalness: 0.0, side: THREE.DoubleSide });
-  return (hairCache[col] = m);
+  const m = new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: 1.2, roughness: 0.38, metalness: 0.0, side: THREE.DoubleSide });
+  return (hairCache[key] = m);
+}
+// coily texture for afro / curly / puffs / braids: dense little coils instead of streaks
+function coilyMaterial(col) {
+  const W = 512; const mk = () => { const c = document.createElement('canvas'); c.width = c.height = W; return [c, c.getContext('2d')]; };
+  const [cc, x] = mk(), [bc, b] = mk(); x.fillStyle = shade(col, 0.8); x.fillRect(0, 0, W, W); b.fillStyle = '#606060'; b.fillRect(0, 0, W, W);
+  let seed = 5; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const lum = new THREE.Color(col); const hiK = (lum.r + lum.g + lum.b) / 3 < 0.12 ? 2.6 : 1.4;
+  for (let i = 0; i < 2600; i++) {
+    const cx = rnd() * W, cy = rnd() * W, r = 3 + rnd() * 6, f = 0.7 + rnd() * 0.5;
+    for (const [ox, oy] of [[0, 0], [W, 0], [-W, 0], [0, W], [0, -W]]) {
+      const g = x.createRadialGradient(cx + ox - r * 0.3, cy + oy - r * 0.3, 0, cx + ox, cy + oy, r);
+      g.addColorStop(0, shade(col, f * hiK * 0.8)); g.addColorStop(0.6, shade(col, f)); g.addColorStop(1, shade(col, 0.45));
+      x.fillStyle = g; x.beginPath(); x.arc(cx + ox, cy + oy, r, 0, 7); x.fill();
+      const gb = b.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r); gb.addColorStop(0, '#e0e0e0'); gb.addColorStop(1, '#303030');
+      b.fillStyle = gb; b.beginPath(); b.arc(cx + ox, cy + oy, r, 0, 7); b.fill();
+    }
+  }
+  const map = new THREE.CanvasTexture(cc); map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 16; map.repeat.set(4, 3);
+  const bump = new THREE.CanvasTexture(bc); bump.wrapS = bump.wrapT = THREE.RepeatWrapping; bump.repeat.set(4, 3);
+  return new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: 2.2, roughness: 0.62, metalness: 0.0, side: THREE.DoubleSide });
 }
 function capGeometry(R, H, rr, from) {   // top part of a slightly bigger head shape, for hair
   const pts = []; const n = 14;
@@ -183,7 +205,7 @@ export function makeAvatar(o = {}) {
   const shirtM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ map: sideTex, roughness: 0.85 });
   const shirtFront = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ map: shirtTex, roughness: 0.85 });
   const pantsM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ map: pantsTex, roughness: 0.85 });
-  const hairM = shadow ? o.shadowMat : hairMaterial(o.hairCol ?? 0x3a2410);
+  const hairM = shadow ? o.shadowMat : hairMaterial(o.hairCol ?? 0x3a2410, COILY.includes(o.hair) ? 'coily' : 'straight');
   const hatM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ color: o.hatCol ?? 0x1a1a1e, roughness: 0.6 });
   const cast = !shadow && !!o.cast;
 
