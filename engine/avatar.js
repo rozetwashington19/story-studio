@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { hairGeometry, hashStr, COILY } from './hair.js';
-export { HAIR_STYLES } from './hair.js';
+import { hairGeometry, beardGeometry, hashStr, COILY } from './hair.js';
+export { HAIR_STYLES, HAIR_COLORS, BEARDS } from './hair.js';
 
 export const D = Math.PI / 180;
 const loader = new THREE.TextureLoader();
@@ -90,8 +90,9 @@ function headGeometry({ R, H, rr } = HEAD) {
 // Skin texture with the face painted on (cylindrical mapping like a real Roblox head). Cached per skin+face.
 const faceSkinCache = {};
 const FACE_U = 0.27, FACE_V = 0.86, FACE_VC = 0.515;    // face width/height in UV units, vertical center
-function faceSkinTex(skinHex, face) {
-  const key = skinHex + '|' + face;
+// details: { wrinkles (older characters), freckles, rosy } painted under the expression, so every face keeps them
+function faceSkinTex(skinHex, face, det = {}) {
+  const key = skinHex + '|' + face + '|' + (det.wrinkles ? 'w' : '') + (det.freckles ? 'f' : '') + (det.rosy ? 'r' : '');
   if (faceSkinCache[key]) return faceSkinCache[key];
   const c = document.createElement('canvas'); c.width = 2048; c.height = 1024; const x = c.getContext('2d');
   x.fillStyle = hex(skinHex); x.fillRect(0, 0, c.width, c.height);
@@ -100,7 +101,21 @@ function faceSkinTex(skinHex, face) {
   if (img) {
     const w = FACE_U * c.width, h = FACE_V * c.height;
     x.imageSmoothingQuality = 'high';
-    x.drawImage(img, (0.5 - FACE_U / 2) * c.width, (1 - FACE_VC - FACE_V / 2) * c.height, w, h);
+    const fx = (0.5 - FACE_U / 2) * c.width, fy = (1 - FACE_VC - FACE_V / 2) * c.height;
+    x.save(); x.translate(fx, fy); x.scale(w / 512, h / 512);   // draw details in the 512x512 face-image space
+    const dk = shade(skinHex, 0.72); x.strokeStyle = dk; x.lineCap = 'round';
+    if (det.rosy) for (const cx of [128, 384]) { const g = x.createRadialGradient(cx, 275, 0, cx, 275, 48); g.addColorStop(0, 'rgba(235,110,120,0.35)'); g.addColorStop(1, 'rgba(235,110,120,0)'); x.fillStyle = g; x.fillRect(cx - 50, 225, 100, 100); }
+    if (det.freckles) { x.fillStyle = shade(skinHex, 0.68); let sd = 3; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+      for (const cx of [150, 362]) for (let i = 0; i < 9; i++) { x.beginPath(); x.arc(cx + (r() - 0.5) * 70, 262 + (r() - 0.5) * 36, 3.5 + r() * 2.5, 0, 7); x.fill(); } }
+    if (det.wrinkles) {
+      x.globalAlpha = 0.75; x.lineWidth = 5;
+      for (const [y, half] of [[58, 70], [82, 85]]) { x.beginPath(); x.moveTo(256 - half, y + 4); x.quadraticCurveTo(256, y - 6, 256 + half, y + 4); x.stroke(); }
+      for (const [cx, sgn] of [[112, -1], [400, 1]]) for (const a of [-0.35, 0, 0.35]) { x.beginPath(); x.moveTo(cx, 200 + a * 20); x.lineTo(cx + sgn * 26, 200 + a * 46); x.stroke(); }
+      for (const [cx, sgn] of [[180, -1], [332, 1]]) { x.beginPath(); x.moveTo(cx, 265); x.quadraticCurveTo(cx + sgn * 26, 305, cx + sgn * 8, 350); x.stroke(); }
+      x.globalAlpha = 1;
+    }
+    x.restore();
+    x.drawImage(img, fx, fy, w, h);
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; t.wrapS = THREE.RepeatWrapping;
   return (faceSkinCache[key] = t);
@@ -218,15 +233,21 @@ export function makeAvatar(o = {}) {
   // neck/head
   const neck = new THREE.Group(); neck.position.y = 2; body.add(neck); A.neck = neck;
   // face is painted into the head's own skin texture: no separate decal, so no seams, z-fighting or flicker
-  A.faceMat = shadow ? null : new THREE.MeshStandardMaterial({ map: faceSkinTex(skinHex, o.face || 'smile'), roughness: 0.55 });
+  const det = { wrinkles: o.wrinkles, freckles: o.freckles, rosy: o.rosy };
+  A.faceMat = shadow ? null : new THREE.MeshStandardMaterial({ map: faceSkinTex(skinHex, o.face || 'smile', det), roughness: 0.55 });
   const headM = mesh(headGeometry(), shadow ? o.shadowMat : A.faceMat, cast); headM.position.y = 0.64; neck.add(headM); A.headMesh = headM;
   A.face = o.face || 'smile';
-  A.setFace = n => { if (A.faceMat && faceTex[n] && n !== A.face) { A.face = n; A.faceMat.map = faceSkinTex(skinHex, n); A.faceMat.needsUpdate = true; } };
+  A.setFace = n => { if (A.faceMat && faceTex[n] && n !== A.face) { A.face = n; A.faceMat.map = faceSkinTex(skinHex, n, det); A.faceMat.needsUpdate = true; } };
   // hair / hats (children of head mesh)
   // sculpted hair (engine/hair.js): one merged mesh per avatar; hairSeed (default: from name) varies part side / spikes
   if (o.hair) {
     const hg = hairGeometry(o.hair, { seed: o.hairSeed ?? hashStr(o.name || o.hair) });
     if (hg) { const hm = mesh(hg, hairM, cast); headM.add(hm); A.hairMesh = hm; }
+  }
+  // facial hair: beard 'stubble'|'mustache'|'goatee'|'full'|'walrus' (color: beardCol, else hairCol)
+  if (o.beard) {
+    const bg = beardGeometry(o.beard); const bm = shadow ? o.shadowMat : hairMaterial(o.beardCol ?? o.hairCol ?? 0x3a2410, 'straight');
+    if (bg) { const m = mesh(bg, o.beard === 'stubble' && !shadow ? Object.assign(bm.clone(), { transparent: true, opacity: 0.28, depthWrite: false, color: new THREE.Color(0x555555) }) : bm, cast); headM.add(m); A.beardMesh = m; }
   }
   if (o.hat) {
     const brim = mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.08, 40), o.hair ? hatM : hairM, cast); brim.position.y = 0.66; headM.add(brim);

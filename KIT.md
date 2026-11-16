@@ -21,14 +21,22 @@ Library: `POSES.rest hips armsup wave point shrug slump shock spit sprawl`, `SIT
 Helpers: `addPose(a,b)` sum, `lerpPose(a,b,t)`, `track([[t0,pose],[t1,pose],…], t, easeFn)` keyframes,
 `idle(t,k,seed)`, `walk(t,speed,amp)`, `sob(t,k)` crying shake, `ease`, `snap` (fast-out).
 
-## Hair (`engine/hair.js`)
-Sculpted, one merged mesh per avatar. Styles (`HAIR_STYLES`): `short` (side-swept fringe) `swoop` (quiff) `spiky` `buzz` `mohawk`
-`curly` `afro` `bun` `ponytail` `pigtails` `long` (curtain bangs, falls past shoulders) `bob` `braids` `puffs`, or `null` (bald).
-Give every character in an episode a different style + color; vary the narrator's look from previous episodes.
-New styles: add a `case` in `hairGeometry()` using `shell({line, thick, flare, edge})`, `lock(points, r)`, `cone`, `ball`, `ring`
-(head-local: front +Z, top y=0.61, brows y≈0.28 — keep fringes above y≈0.32 across the face).
-Textures: streaky glossy clumps by default; `COILY` styles (afro curly puffs braids) get a coily texture.
-Check changes with `python3 tools/hair_lineup.py out.jpg [style …]` (all styles front/back + full-res close-ups).
+## Hair, facial hair and age (`engine/hair.js`)
+Sculpted, one merged mesh per avatar. `hair:` style, `hairCol:` color (`HAIR_COLORS.black darkbrown brown auburn ginger blonde
+platinum saltpepper gray silver white`), `beard:` `stubble` `mustache` `goatee` `full` `walrus` (`beardCol` optional),
+face details `wrinkles: true` (forehead lines, crow's feet, smile lines), `freckles: true`, `rosy: true` (pink cheeks).
+Pick by age group — give every character in an episode a different style + color:
+| age | hair styles | extras |
+|---|---|---|
+| baby / toddler | `tuft` | `rosy` |
+| kids (6–12) | `short` `spiky` `curly` `pigtails` `puffs` `ponytail` `bob` `braids` `swoop` | `freckles`, `rosy` |
+| teens | `swoop` `spiky` `mohawk` `long` `ponytail` `braids` `buzz` `afro` | — |
+| adults | `slick` `crew` `receding` `bun` `lowbun` `long` `bob` `afro` `buzz` `braids` | `stubble` `mustache` `goatee` `full`; a few gray strands = `saltpepper` |
+| elderly | `balding` `combover` `perm` `lowbun` `bun` `slick` `bob` (gray/silver/white) | `wrinkles`, `full` `walrus` `mustache` |
+New styles: add a `case` in `hairGeometry()` using `shell({line, upper, thick, flare, edge, clumps, swirl})`, `lock(points, r)`, `cone`,
+`ball`, `ring` (head-local: front +Z, top y=0.61, brows y≈0.28, mouth y≈-0.13 — keep fringes above y≈0.32 and beards below -0.22 in front).
+Textures: streaky glossy clumps by default; `COILY` styles (afro curly puffs braids perm) get a coily texture.
+Check: `python3 tools/hair_lineup.py out.jpg [style …]` (`SET=new` = age-group set) and `python3 tools/face_lineup.py out.jpg face@style+beard+color+wfr …`.
 
 ## Shadows / silhouettes
 `wallShadow(S, opts, [x, z], {profile, size, mat})` flat black figure on a wall facing +Z (put z just in front of the wall);
@@ -58,4 +66,6 @@ Set `S.userData.look = 'night'` or `'flash'` (flashback). Post: bloom, split-ton
 ## Faces
 Faces are painted into the head's skin texture (cylindrical mapping, seam at the back of the head) — never add face decals/planes.
 `A.setFace(name)` swaps the expression instantly.
-`engine/faces/*.png` are loaded automatically. Current: smile grin shock sad smirk neutral worried cry teary fakesmile determined softsmile.
+`engine/faces/*.png` are loaded automatically. Current (33): smile grin shock sad smirk neutral worried cry teary fakesmile determined softsmile
+wink awe blush angry laugh scared sleepy sleeping love starstruck confused thinking nervous mischief proud bored disgusted silly pout relieved delighted.
+New faces: draw with PIL like `tools/faces4.py`. Swap expressions mid-shot with `A.setFace()` for reactions (e.g. smile -> shock -> laugh).

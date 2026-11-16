@@ -71,8 +71,10 @@ Split into `shots_a.js` / `shots_b.js` if long. Lessons learned (follow these):
   Put reusable new sets/helpers into `engine/kit.js` or `engine/sets2.js` so future episodes can use them.
 - New faces: draw with PIL like `tools/faces2.py` (512×512 transparent PNG, eyes ≈ y 200, mouth ≈ y 330),
   save to `engine/faces/<name>.png`. Existing: smile grin shock sad smirk neutral worried cry teary fakesmile determined softsmile.
-- New characters: vary skin (tan, light, brown, yellow, pale), shirt colors/styles, pants, hair style (14 styles, see KIT.md —
-  no two characters in an episode share a style) and hair color, and hats. Give the narrator a distinct look from previous episodes.
+- New characters: vary skin (tan, light, brown, yellow, pale), shirt colors/styles, pants, hair style and hair color (see the
+  age table in KIT.md — no two characters in an episode share a style), and hats. Make ages read at a glance: grandparents get
+  gray/white hair + `wrinkles` (+ beard/mustache for grandpas), dads/teachers adult styles, kids `freckles`/`rosy`.
+- Use the full range of expressions (33 faces, KIT.md); switch faces mid-shot for reactions instead of holding one face. Give the narrator a distinct look from previous episodes.
 
 ## 4b. No clipping (mandatory)
 Characters must never pass through each other or through objects. Rules:

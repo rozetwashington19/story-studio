@@ -8,8 +8,9 @@
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
-export const COILY = ['afro', 'curly', 'puffs', 'braids'];   // these get the coily (non-streaky) texture
-export const HAIR_STYLES = ['short', 'swoop', 'spiky', 'buzz', 'mohawk', 'curly', 'afro', 'bun', 'ponytail', 'pigtails',
+export const COILY = ['afro', 'curly', 'puffs', 'braids', 'perm'];   // these get the coily (non-streaky) texture
+// by age (KIT.md): toddler 'tuft'; adults 'slick' 'crew' 'receding' 'lowbun'; elderly 'balding' 'combover' 'perm' (+ gray HAIR_COLORS, beards)
+export const HAIR_STYLES = ['tuft', 'slick', 'crew', 'receding', 'lowbun', 'balding', 'combover', 'perm', 'short', 'swoop', 'spiky', 'buzz', 'mohawk', 'curly', 'afro', 'bun', 'ponytail', 'pigtails',
   'long', 'bob', 'braids', 'puffs'];
 
 const HR = 0.62, RR = 0.34, CY = 0.27, FLAT = HR - RR, TOP = 0.61, ARC = RR * Math.PI / 2;
@@ -22,20 +23,24 @@ function prof(s) {
 }
 const sOfY = y => y >= CY ? FLAT + RR * Math.acos(Math.min(1, (y - CY) / RR)) : FLAT + ARC + (CY - y);
 // blend a value by angle: f = front (θ=0), s = side (±90°), b = back (180°)
+export const HAIR_COLORS = { black: 0x141010, darkbrown: 0x2a1708, brown: 0x6a3a1a, auburn: 0x8a3a1a, ginger: 0xc0502a,
+  blonde: 0xd9a441, platinum: 0xe8dcb0, saltpepper: 0x6e6a66, gray: 0x9a9a9a, silver: 0xc4c4c8, white: 0xeeeeea };
+export const BEARDS = ['stubble', 'mustache', 'goatee', 'full', 'walrus'];
 export const byAngle = (f, s, b) => th => { const c = Math.cos(th); return c >= 0 ? s + (f - s) * c * c : s + (b - s) * c * c; };
 
 // Hair surface. opts: line(th)->hairline y, thick(th,y), flare(th,y)->extra horizontal radius, edge {amp,n,front}, rows
 // clumps: {n (even), depth} raised hair clumps with grooves between them; swirl: grooves sweep sideways toward the hairline
-function shell({ line, thick = () => 0.08, flare = () => 0, edge = null, clumps = { n: 16, depth: 0.035 }, swirl = 0, NT = 128, NV = 34 }) {
+// upper(th): optional top edge (y) -> the hair is a band between upper and line (balding horseshoe, beards); upper <= line = no hair there
+function shell({ line, upper = null, thick = () => 0.08, flare = () => 0, edge = null, clumps = { n: 16, depth: 0.035 }, swirl = 0, NT = 128, NV = 34 }) {
   const pos = [], uv = [], idx = [];
   for (let i = 0; i <= NT; i++) {
     const th = -Math.PI + (i / NT) * Math.PI * 2;   // seam at the back
     let hl = line(th);
     if (edge) { const w = edge.front ? sm(-0.2, 0.6, Math.cos(th)) : 1; hl -= edge.amp * w * Math.pow(1 - Math.abs(Math.sin(edge.n * th / 2)), 3); }
-    const smax = sOfY(hl);
+    let smax = sOfY(hl); const s0 = upper ? Math.min(smax, sOfY(Math.min(upper(th), TOP))) : 0;
     for (let j = 0; j <= NV; j++) {
-      const s = smax * Math.pow(j / NV, 0.85); const [r, y, nr, ny] = prof(s);
-      const t = thick(th, y) * (0.35 + 0.65 * sm(0, 0.12, smax - s) + 0.0);   // thinner right at the hairline edge
+      const s = s0 + (smax - s0) * (upper ? j / NV : Math.pow(j / NV, 0.85)); const [r, y, nr, ny] = prof(s);
+      const t = thick(th, y) * (0.35 + 0.65 * sm(0, 0.12, smax - s)) * (upper ? sm(0, 0.1, s - s0) : 1);   // thinner right at the hairline edge
       const tw = th + swirl * s, ridge = clumps ? clumps.depth * (1 - Math.pow(Math.abs(Math.sin(clumps.n * tw / 2)), 0.7)) * sm(0.05, 0.3, s) : 0;
       const R = r + (t + ridge) * nr + flare(th, y), Y = y + (t + ridge) * ny;
       pos.push(R * Math.sin(th), Y, R * Math.cos(th)); uv.push(i / NT * 1.5, s * 1.4);
@@ -193,8 +198,60 @@ export function hairGeometry(style, { seed = 1 } = {}) {
       for (const s of [-1, 1]) { G.push(ball([s * 0.5, 0.82, -0.1], 0.36, 1, 0.9, 1, 16)); G.push(ring([s * 0.42, 0.6, -0.08], 0.17, 0.05, [Math.PI / 2, 0, -s * 0.5])); }
       break;
     }
+    case 'tuft': {      // baby / toddler: bald with one curl on top
+      G.push(ball([0, 0.6, 0.08], 0.14, 1.2, 0.35, 1.0, 12));   // little patch the curl grows from
+      G.push(lock([[0, 0.6, 0.15], [0, 0.82, 0.12], [side * 0.12, 0.9, -0.02], [side * 0.14, 0.78, -0.06], [side * 0.04, 0.74, 0.02]], 0.1, { flat: 0.7, taper: 1.2, bulge: 0.2 }));
+      break;
+    }
+    case 'slick': {     // grown-up slicked-back side part, slightly high forehead
+      G.push(shell({ line: th => byAngle(0.47, -0.04, -0.5)(th) + side * 0.03 * Math.sin(th) * Math.max(0, Math.cos(th)),
+        thick: (th, y) => 0.05 + 0.07 * sm(0.25, 0.6, y), clumps: { n: 12, depth: 0.03 }, swirl: -side * 0.35 }));
+      G.push(lock([onHead(side * 30 * D, 0.5, 0.08), onHead(side * 5 * D, 0.62, 0.12), onHead(-side * 30 * D, 0.62, 0.1), onHead(-side * 70 * D, 0.5, 0.07)], 0.16, { flat: 0.4, bulge: 0.3 }));
+      break;
+    }
+    case 'crew': {      // neat adult short cut with a small front flick
+      G.push(shell({ line: byAngle(0.45, -0.04, -0.5), thick: (th, y) => 0.04 + 0.05 * sm(0.3, 0.6, y), clumps: { n: 18, depth: 0.025 } }));
+      for (let k = -1; k <= 1; k++) G.push(lock([onHead(k * 14 * D, 0.47, 0.05), [Math.sin(k * 14 * D) * 0.5, 0.74, 0.5], [Math.sin(k * 14 * D) * 0.45, 0.78, 0.3]], 0.13, { flat: 0.5, taper: 1.3, bulge: 0.3 }));
+      break;
+    }
+    case 'receding': {  // adult: M-shaped receding hairline, short
+      const line = th => byAngle(0.5, -0.04, -0.5)(th) + 0.13 * Math.pow(Math.abs(Math.sin(th)), 1.2) * Math.max(0, Math.cos(th)) * 1.6 - 0.05 * Math.max(0, Math.cos(3 * th)) * (Math.abs(th) < 20 * D ? 1 : 0);
+      G.push(shell({ line, thick: (th, y) => 0.04 + 0.04 * sm(0.3, 0.6, y), clumps: { n: 16, depth: 0.025 }, swirl: side * 0.2 }));
+      break;
+    }
+    case 'lowbun': {    // mom / grandma: soft waves into a low bun at the nape
+      G.push(shell({ line: th => byAngle(0.42, -0.08, -0.48)(th) + side * 0.05 * Math.sin(th) * Math.max(0, Math.cos(th)),
+        thick: (th, y) => 0.06 + 0.04 * sm(0.3, 0.6, y), clumps: { n: 14, depth: 0.04 }, swirl: side * 0.6 }));
+      G.push(ball([0, -0.12, -0.78], 0.32, 1.15, 0.9, 0.85, 18)); G.push(ring([0, -0.06, -0.62], 0.2, 0.05, [0.2, 0, 0]));
+      break;
+    }
+    case 'balding': {   // grandpa: horseshoe of hair around the sides and back, bald on top
+      const a0 = 62 * D;
+      G.push(shell({ line: byAngle(0.0, -0.08, -0.52), upper: th => { const a = Math.abs(th); return a < a0 ? -2 : 0.1 + 0.2 * sm(95 * D, 180 * D, a) - 0.25 * (1 - sm(a0, a0 + 0.35, a)); },
+        thick: () => 0.07, clumps: { n: 20, depth: 0.03 } }));
+      break;
+    }
+    case 'combover': {  // grandpa: horseshoe + a few long strands combed over the bald top
+      const a0 = 62 * D;
+      G.push(shell({ line: byAngle(0.0, -0.08, -0.52), upper: th => { const a = Math.abs(th); return a < a0 ? -2 : 0.1 + 0.2 * sm(95 * D, 180 * D, a) - 0.25 * (1 - sm(a0, a0 + 0.35, a)); },
+        thick: () => 0.07, clumps: { n: 20, depth: 0.03 } }));
+      for (let k = 0; k < 4; k++) { const z = 0.25 - k * 0.17;
+        G.push(lock([[side * 0.64, 0.2, z], [side * 0.42, 0.6, z], [-side * 0.1, 0.65, z + 0.02], [-side * 0.5, 0.56, z]], 0.06, { flat: 0.35, tip: 0.02, bulge: 0.1 })); }
+      break;
+    }
+    case 'perm': {      // grandma: short rounded perm of tight curls
+      G.push(shell({ line: byAngle(0.42, -0.05, -0.45), thick: (th, y) => 0.14 + 0.06 * sm(0.2, 0.6, y), clumps: null }));
+      for (let k = 0; k < 90; k++) {
+        const th = R() * Math.PI * 2, y = -0.3 + R() * 0.95; if (y > 0.6 || (Math.cos(th) > 0.5 && y < 0.42) || (Math.abs(Math.cos(th)) < 0.5 && y < -0.05)) continue;
+        G.push(ball(onHead(th, Math.min(y, 0.58), 0.2), 0.1 + R() * 0.04, 1, 1, 1, 8));
+      }
+      break;
+    }
     default: return null;
   }
+  return finish(G);
+}
+function finish(G) {
   const geos = G.map(g => {
     if (!g.attributes.normal) g.computeVertexNormals();
     if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
@@ -202,4 +259,25 @@ export function hairGeometry(style, { seed = 1 } = {}) {
     for (const at of ['position', 'normal', 'uv']) k.setAttribute(at, n.attributes[at]); return k;
   });
   return mergeGeometries(geos);
+}
+
+// Facial hair (head-local). Mouth sits at y≈-0.13 on the face, so beards stay below y≈-0.22 in front.
+export function beardGeometry(kind, { seed = 1 } = {}) {
+  const G = [], f = 22 * D;
+  const stache = (r = 0.05, droop = 0.04, w = 26) => G.push(lock([onHead(-w * D, -0.03 - droop, 0.03), onHead(-w * 0.45 * D, -0.005, 0.05), onHead(0, 0.005, 0.055),
+    onHead(w * 0.45 * D, -0.005, 0.05), onHead(w * D, -0.03 - droop, 0.03)], r, { flat: 0.5, taper: 0.01, bulge: 0.4, tip: 0.025 }));
+  switch (kind) {
+    case 'stubble': G.push(shell({ line: th => Math.abs(th) < 95 * D ? -0.6 : 2, upper: th => { const a = Math.abs(th); return a > 95 * D ? -2 : a < 30 * D ? -0.22 : -0.22 + 0.17 * sm(30 * D, 80 * D, a); },
+        thick: () => 0.012, clumps: null, NV: 16 })); break;
+    case 'mustache': stache(); break;
+    case 'walrus': stache(0.085, 0.07, 30); break;
+    case 'goatee': stache(0.045, 0.03, 22);
+      G.push(shell({ line: th => Math.abs(th) < 18 * D ? -0.7 : 2, upper: th => Math.abs(th) < 18 * D ? -0.27 : -2, thick: () => 0.05, clumps: { n: 40, depth: 0.02 }, NV: 16 })); break;
+    case 'full': stache(0.05, 0.04);     // chin-strap beard: along the jaw, pointed at the chin, mouth left clear
+      G.push(shell({ line: th => { const a = Math.abs(th); return a < 85 * D ? -0.6 - 0.16 * Math.pow(Math.cos(th), 3) : 2; },
+        upper: th => { const a = Math.abs(th); return a > 85 * D ? -2 : a < 28 * D ? -0.26 : -0.26 + 0.2 * sm(28 * D, 80 * D, a); },
+        thick: () => 0.055, flare: (th, y) => -0.05 * sm(-0.55, -0.75, y), clumps: { n: 40, depth: 0.018 }, NV: 18 })); break;
+    default: return null;
+  }
+  return finish(G);
 }
