@@ -6,6 +6,7 @@ export * from './avatar.js';
 import { T, std, box, dayLight, interiorLight, street, wall, room, repeatMat } from './sets.js';
 export * from './sets.js';
 export * from './sets2.js';
+export * from './sets3.js';
 
 export const LEO = { skin: 'tan', shirt: 0xc0262b, shirtStyle: 'hoodie', pants: 0x24304f, hair: 'short', hairCol: 0x2a1708 };
 export const TEACH = { skin: 'brown', shirt: 0x1d1d22, shirtStyle: 'blazer', pants: 0x1d1d22, pantsStyle: 'plain', hair: 'bun', hairCol: 0x1a0f08 };
