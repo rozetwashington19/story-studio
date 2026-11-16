@@ -7,7 +7,7 @@ Avatar: 5.3 tall. Head center y≈4.64, torso y 2–4, legs 0–2. Sitting on th
 `makeAvatar(opts)` → `A` with `A.root` (Group), joints `A.body A.neck A.armR A.armL A.legR A.legL`, `A.headMesh`,
 `A.pose(p)`, `A.setFace(name)`, `A.blob` (contact shadow).
 opts: `skin` ('tan'|'light'|'brown'|'yellow'|'pale'), `shirt` (hex), `shirtStyle` ('plain'|'hoodie'|'shirt'|'blazer'|'tee'),
-`pants` (hex), `pantsStyle` ('jeans'|'plain'), `hair` ('short'|'bun'|'spiky'|'long'|null), `hairCol`, `hat` (bool, top hat),
+`pants` (hex), `pantsStyle` ('jeans'|'plain'), `hair` ('short'|'bun'|'spiky'|'long'|null), `hairCol` (hair gets a strand texture + bump automatically), `hat` (bool, top hat), `hatCol`,
 `face`, `blob` (false = no contact shadow), `cast` (cast real shadows).
 `add(S, A, [x,y,z], rotYdeg)` places it. Presets: `LEO TEACH DAD COUS EX[0..4]` (episode 001 — make new ones).
 
@@ -45,4 +45,6 @@ textures `T.brick T.planks T.tiles T.concrete T.asphalt T.plaster T.facade T.cha
 Set `S.userData.look = 'night'` or `'flash'` (flashback). Post: bloom, split-tone grade, vignette, grain (engine/main.html).
 
 ## Faces
+Faces are painted into the head's skin texture (cylindrical mapping, seam at the back of the head) — never add face decals/planes.
+`A.setFace(name)` swaps the expression instantly.
 `engine/faces/*.png` are loaded automatically. Current: smile grin shock sad smirk neutral worried cry teary fakesmile determined softsmile.

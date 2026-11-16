@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 
 export const D = Math.PI / 180;
 const loader = new THREE.TextureLoader();
@@ -65,21 +64,92 @@ export function fabricTex(col, style = 'plain') {
 }
 
 // ---------- head: classic rounded cylinder ----------
-function headGeometry(R = 0.62, H = 1.22, rr = 0.34, scale = 1) {
-  const pts = []; const n = 10;
-  pts.push(new THREE.Vector2(0, -H / 2));
+export const HEAD = { R: 0.62, H: 1.22, rr: 0.34 };
+function headGeometry({ R, H, rr } = HEAD) {
+  const pts = []; const n = 12;
+  pts.push(new THREE.Vector2(0.0001, -H / 2));
   for (let i = 0; i <= n; i++) { const a = -Math.PI / 2 + (i / n) * Math.PI / 2; pts.push(new THREE.Vector2(R - rr + rr * Math.cos(a), -H / 2 + rr + rr * Math.sin(a))); }
+  const yA = -H / 2 + rr, yB = H / 2 - rr;           // straight side, subdivided so the face texture bends smoothly
+  for (let i = 1; i < 12; i++) pts.push(new THREE.Vector2(R, yA + (yB - yA) * i / 12));
   for (let i = 0; i <= n; i++) { const a = (i / n) * Math.PI / 2; pts.push(new THREE.Vector2(R - rr + rr * Math.cos(a), H / 2 - rr + rr * Math.sin(a))); }
-  pts.push(new THREE.Vector2(0, H / 2));
-  const g = new THREE.LatheGeometry(pts.map(p => p.multiplyScalar(scale)), 64);
-  g.computeVertexNormals(); return g;
+  pts.push(new THREE.Vector2(0.0001, H / 2));
+  // phiStart = PI puts the lathe seam at the BACK of the head (u = 0.5 is the front, +Z)
+  const g = new THREE.LatheGeometry(pts, 96, Math.PI, Math.PI * 2);
+  const pos = g.attributes.position, uv = g.attributes.uv;
+  for (let i = 0; i < pos.count; i++) uv.setY(i, (pos.getY(i) + H / 2) / H);   // v = height, so the face isn't stretched
+  uv.needsUpdate = true; g.computeVertexNormals();
+  // weld normals across the seam (first and last ring are the same vertices)
+  const nrm = g.attributes.normal, rows = pts.length;
+  for (let j = 0; j < rows; j++) { const a = j, b = 96 * rows + j;
+    const x = (nrm.getX(a) + nrm.getX(b)) / 2, y = (nrm.getY(a) + nrm.getY(b)) / 2, z = (nrm.getZ(a) + nrm.getZ(b)) / 2;
+    nrm.setXYZ(a, x, y, z); nrm.setXYZ(b, x, y, z); }
+  return g;
+}
+// Skin texture with the face painted on (cylindrical mapping like a real Roblox head). Cached per skin+face.
+const faceSkinCache = {};
+const FACE_U = 0.27, FACE_V = 0.86, FACE_VC = 0.515;    // face width/height in UV units, vertical center
+function faceSkinTex(skinHex, face) {
+  const key = skinHex + '|' + face;
+  if (faceSkinCache[key]) return faceSkinCache[key];
+  const c = document.createElement('canvas'); c.width = 2048; c.height = 1024; const x = c.getContext('2d');
+  x.fillStyle = hex(skinHex); x.fillRect(0, 0, c.width, c.height);
+  noise(x, c.width, c.height, 0.08, 0.035);
+  const img = faceTex[face] && faceTex[face].image;
+  if (img) {
+    const w = FACE_U * c.width, h = FACE_V * c.height;
+    x.imageSmoothingQuality = 'high';
+    x.drawImage(img, (0.5 - FACE_U / 2) * c.width, (1 - FACE_VC - FACE_V / 2) * c.height, w, h);
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; t.wrapS = THREE.RepeatWrapping;
+  return (faceSkinCache[key] = t);
+}
+// Hair: strand texture + matching bump map. Cached per color.
+const hairCache = {};
+function hairMaterial(col) {
+  if (hairCache[col]) return hairCache[col];
+  const W = 512, Hh = 512;
+  const mk = (bump) => { const c = document.createElement('canvas'); c.width = W; c.height = Hh; return [c, c.getContext('2d')]; };
+  const [cc, x] = mk(), [bc, b] = mk();
+  x.fillStyle = hex(col); x.fillRect(0, 0, W, Hh); b.fillStyle = '#808080'; b.fillRect(0, 0, W, Hh);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  // broad clumps
+  for (let i = 0; i < 26; i++) {
+    const cx = rnd() * W, wid = 14 + rnd() * 26, f = 0.82 + rnd() * 0.32;
+    const g = x.createLinearGradient(cx - wid, 0, cx + wid, 0);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.5, shade(col, f)); g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.globalAlpha = 0.55; x.fillRect(cx - wid, 0, wid * 2, Hh);
+    const gb = b.createLinearGradient(cx - wid, 0, cx + wid, 0);
+    gb.addColorStop(0, '#808080'); gb.addColorStop(0.5, f > 1 ? '#b0b0b0' : '#5a5a5a'); gb.addColorStop(1, '#808080');
+    b.fillStyle = gb; b.fillRect(cx - wid, 0, wid * 2, Hh);
+  }
+  x.globalAlpha = 1;
+  // fine strands (gently wavy, mostly vertical)
+  for (let i = 0; i < 900; i++) {
+    const x0 = rnd() * W, len = 60 + rnd() * 220, y0 = rnd() * Hh - 40, sway = (rnd() - 0.5) * 18, light = rnd() < 0.45;
+    const colS = light ? shade(col, 1.35 + rnd() * 0.4) : shade(col, 0.45 + rnd() * 0.25);
+    x.strokeStyle = colS; x.globalAlpha = 0.18 + rnd() * 0.3; x.lineWidth = 0.8 + rnd() * 1.6;
+    x.beginPath(); x.moveTo(x0, y0); x.bezierCurveTo(x0 + sway, y0 + len * 0.33, x0 - sway, y0 + len * 0.66, x0 + sway * 0.5, y0 + len); x.stroke();
+    b.strokeStyle = light ? '#d0d0d0' : '#303030'; b.globalAlpha = 0.25; b.lineWidth = x.lineWidth;
+    b.beginPath(); b.moveTo(x0, y0); b.bezierCurveTo(x0 + sway, y0 + len * 0.33, x0 - sway, y0 + len * 0.66, x0 + sway * 0.5, y0 + len); b.stroke();
+  }
+  // sheen: light strands added on top so even near-black hair shows texture
+  for (let i = 0; i < 260; i++) {
+    const x0 = rnd() * W, len = 80 + rnd() * 200, y0 = rnd() * Hh - 40, sway = (rnd() - 0.5) * 16;
+    x.strokeStyle = 'rgb(255,236,214)'; x.globalAlpha = 0.07 + rnd() * 0.1; x.lineWidth = 1 + rnd() * 1.5;
+    x.beginPath(); x.moveTo(x0, y0); x.bezierCurveTo(x0 + sway, y0 + len * 0.33, x0 - sway, y0 + len * 0.66, x0 + sway * 0.5, y0 + len); x.stroke();
+  }
+  x.globalAlpha = 1; b.globalAlpha = 1;
+  const map = new THREE.CanvasTexture(cc); map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 16; map.repeat.set(2, 1);
+  const bump = new THREE.CanvasTexture(bc); bump.wrapS = bump.wrapT = THREE.RepeatWrapping; bump.repeat.set(2, 1);
+  const m = new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: 2.6, roughness: 0.45, metalness: 0.0 });
+  return (hairCache[col] = m);
 }
 function capGeometry(R, H, rr, from) {   // top part of a slightly bigger head shape, for hair
-  const pts = []; const n = 10;
+  const pts = []; const n = 14;
   pts.push(new THREE.Vector2(R, from));
   for (let i = 0; i <= n; i++) { const a = (i / n) * Math.PI / 2; pts.push(new THREE.Vector2(R - rr + rr * Math.cos(a), H / 2 - rr + rr * Math.sin(a))); }
   pts.push(new THREE.Vector2(0, H / 2));
-  return new THREE.LatheGeometry(pts, 64);
+  return new THREE.LatheGeometry(pts, 96, Math.PI, Math.PI * 2);
 }
 
 const SKIN = { tan: 0xd9a066, light: 0xf2c9a0, brown: 0x8a5a3a, yellow: 0xf5cd30, pale: 0xf0d5c0 };
@@ -102,14 +172,16 @@ function blob() {
 
 export function makeAvatar(o = {}) {
   const shadow = o.shadow;
-  const skinM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ color: SKIN[o.skin || 'tan'], roughness: 0.55 });
+  const skinHex = SKIN[o.skin || 'tan'];
+  const skinM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ color: skinHex, roughness: 0.55 });
   const shirtTex = shadow ? null : fabricTex(o.shirt ?? 0xcc2222, o.shirtStyle || 'plain');
   const sideTex = shadow ? null : fabricTex(o.shirt ?? 0xcc2222, 'plain');
   const pantsTex = shadow ? null : fabricTex(o.pants ?? 0x222233, o.pantsStyle || 'jeans');
   const shirtM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ map: sideTex, roughness: 0.85 });
   const shirtFront = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ map: shirtTex, roughness: 0.85 });
   const pantsM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ map: pantsTex, roughness: 0.85 });
-  const hairM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ color: o.hairCol ?? 0x3a2410, roughness: 0.7 });
+  const hairM = shadow ? o.shadowMat : hairMaterial(o.hairCol ?? 0x3a2410);
+  const hatM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ color: o.hatCol ?? 0x1a1a1e, roughness: 0.6 });
   const cast = !shadow && !!o.cast;
 
   const A = { root: new THREE.Group() };
@@ -120,15 +192,11 @@ export function makeAvatar(o = {}) {
   torso.position.y = 1; torso.castShadow = cast; torso.receiveShadow = true; body.add(torso);
   // neck/head
   const neck = new THREE.Group(); neck.position.y = 2; body.add(neck); A.neck = neck;
-  const headM = mesh(headGeometry(), skinM, cast); headM.position.y = 0.64; neck.add(headM); A.headMesh = headM;
-  if (!shadow) {
-    // face decal projected onto the curved front of the head (head mesh is at local origin when projecting)
-    const tmp = new THREE.Mesh(headM.geometry, skinM); tmp.updateMatrixWorld();
-    const dg = new DecalGeometry(tmp, new THREE.Vector3(0, 0, 0.62), new THREE.Euler(0, 0, 0), new THREE.Vector3(1.05, 1.05, 1.0));
-    A.faceMat = new THREE.MeshStandardMaterial({ map: faceTex[o.face || 'smile'], transparent: true, roughness: 0.5, polygonOffset: true, polygonOffsetFactor: -4, depthWrite: false });
-    const dm = new THREE.Mesh(dg, A.faceMat); dm.position.y = 0.02; headM.add(dm);
-  }
-  A.setFace = n => { if (A.faceMat && faceTex[n]) A.faceMat.map = faceTex[n]; };
+  // face is painted into the head's own skin texture: no separate decal, so no seams, z-fighting or flicker
+  A.faceMat = shadow ? null : new THREE.MeshStandardMaterial({ map: faceSkinTex(skinHex, o.face || 'smile'), roughness: 0.55 });
+  const headM = mesh(headGeometry(), shadow ? o.shadowMat : A.faceMat, cast); headM.position.y = 0.64; neck.add(headM); A.headMesh = headM;
+  A.face = o.face || 'smile';
+  A.setFace = n => { if (A.faceMat && faceTex[n] && n !== A.face) { A.face = n; A.faceMat.map = faceSkinTex(skinHex, n); A.faceMat.needsUpdate = true; } };
   // hair / hats (children of head mesh)
   if (o.hair === 'short' || o.hair === 'bun' || o.hair === 'spiky' || o.hair === 'long') {
     const cap = mesh(capGeometry(0.67, 1.32, 0.36, 0.3), hairM, cast); headM.add(cap);
@@ -137,6 +205,9 @@ export function makeAvatar(o = {}) {
     }
     if (o.hair === 'short' || o.hair === 'long') {
       const fr = mesh(rbox(0.95, 0.26, 0.3, 0.1), hairM, cast); fr.position.set(-0.15, 0.5, 0.42); fr.rotation.z = -8 * D; headM.add(fr);
+      // layered tufts for a swept, chunkier silhouette
+      [[0.28, 0.66, 0.3, 0.7, -14], [-0.32, 0.68, 0.22, 0.6, 10], [0.05, 0.72, -0.1, 0.8, -4]].forEach(([x, y, z, w, rz]) => {
+        const t = mesh(rbox(w, 0.22, 0.55, 0.1), hairM, cast); t.position.set(x, y, z); t.rotation.set(-12 * D, 0, rz * D); headM.add(t); });
     }
     if (o.hair === 'bun') { const b = mesh(new THREE.SphereGeometry(0.42, 24, 16), hairM, cast); b.position.set(0, 0.75, -0.45); headM.add(b); }
     if (o.hair === 'spiky') {
@@ -145,8 +216,8 @@ export function makeAvatar(o = {}) {
     }
   }
   if (o.hat) {
-    const brim = mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.08, 40), hairM, cast); brim.position.y = 0.66; headM.add(brim);
-    const crown = mesh(new THREE.CylinderGeometry(0.66, 0.7, 1.25, 40), hairM, cast); crown.position.y = 1.3; headM.add(crown);
+    const brim = mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.08, 40), o.hair ? hatM : hairM, cast); brim.position.y = 0.66; headM.add(brim);
+    const crown = mesh(new THREE.CylinderGeometry(0.66, 0.7, 1.25, 40), o.hair ? hatM : hairM, cast); crown.position.y = 1.3; headM.add(crown);
   }
   // arms: shoulder pivots at top of torso
   for (const [k, x] of [['armR', -1.5], ['armL', 1.5]]) {

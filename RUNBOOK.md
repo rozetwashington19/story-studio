@@ -73,6 +73,8 @@ python3 engine/render.py episodes/NNN-slug stills 12 13 40   # specific lines
 Crop the sheet into rows (Pillow) and look at every frame. Fix: characters cut off / out of frame, camera inside
 geometry, black or blown-out faces, unreadable silhouettes, bubble covering a face, wrong set for the line,
 console `PAGEERROR`s. Re-preview fixed shots. Up to 3 fix rounds.
+For close-ups, also check 2–3 frames at full resolution: `python3 engine/render.py episodes/NNN-slug frame <line> 0.5` → `out/frame_<line>.png`
+(look for face artifacts, hair detail, caption/bubble overlap).
 
 ## 6. Render
 ```

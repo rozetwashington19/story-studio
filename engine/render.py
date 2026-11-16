@@ -1,5 +1,6 @@
 """Render an episode with three.js in headless Chrome.
   python3 engine/render.py episodes/NNN-slug stills [line numbers...]   -> out/preview.jpg (2 frames per shot, 8 per row)
+  python3 engine/render.py episodes/NNN-slug frame 12 0.5            -> out/frame_12.png (full-res check of one shot)
   python3 engine/render.py episodes/NNN-slug video                      -> out/episode.mp4 (+ compressed out/final.mp4)
 Narration only, no music (user preference)."""
 import sys, os, time, subprocess, base64, io, glob
@@ -28,7 +29,10 @@ try:
         n = pg.evaluate("window.NSHOTS")
         if n != len(E.timing): print(f"WARNING: {n} shots but {len(E.timing)} script lines")
         grab = lambda i, lt, d: Image.open(io.BytesIO(base64.b64decode(pg.evaluate(f"renderShot({i},{lt},{d})").split(",")[1])))
-        if MODE == "stills":
+        if MODE == "frame":   # full-resolution single frame: frame <line> <fraction 0-1>
+            k = int(sys.argv[3]); f = float(sys.argv[4]) if len(sys.argv) > 4 else 0.5; s, e = E.spans[k - 1]; t = s + (e - s) * f
+            E.overlay(grab(k - 1, t - s, e - s), t, k - 1).save(os.path.join(OUT, f"frame_{k}.png")); print("frame ->", os.path.join(OUT, f"frame_{k}.png"))
+        elif MODE == "stills":
             ids = [int(x) for x in sys.argv[3:]] or list(range(1, len(E.timing) + 1)); ims = []
             for k in ids:
                 s, e = E.spans[k - 1]
