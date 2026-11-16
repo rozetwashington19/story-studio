@@ -19,7 +19,7 @@ foreground calls (each foreground call is capped at 10 minutes). Never end your 
 Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked example: script.txt, bubbles.json, shots_a.js, shots_b.js).
 
 ## 1. Pick a premise
-- Read `episodes/INDEX.md`. Never reuse a premise, main character name, or core twist listed there.
+- `git pull` first (another run may have added an episode since you cloned), then read `episodes/INDEX.md`. Never reuse a premise, main character name, or core twist listed there.
 - A premise is one impossible rule about the world that is visual and has emotional potential
   (examples of the *kind*: "every word costs money", "rumors come true", "the sea drains every 100 years",
   "your shadow shows how you really feel"). Do not copy the example premises.
@@ -114,4 +114,8 @@ Sanity check: `ffprobe` duration ≈ narration duration; extract a 30-frame cont
 - Send `out/final.mp4` to the user with a one-line caption: title + logline.
 - Add a line to `episodes/INDEX.md`: `NNN | date | title | premise | narrator name | logline`.
 - Commit the episode source (script, bubbles, notes, shots, any new faces/sets — not `out/`) and push.
+  Two episodes are made per day by separate runs, so before pushing: `git fetch --depth=50 origin main` and
+  `git rebase origin/main`. If another run already added an episode with your number, rename your folder to the next free
+  number, fix its INDEX line, and also make sure your premise isn't the one it just added (if it is, say so in the final message).
+  Resolve INDEX.md conflicts by keeping both lines.
 - Final message: the logline and 1–2 honest notes about any weak shots.
