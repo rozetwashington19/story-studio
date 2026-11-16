@@ -113,7 +113,12 @@ export function seg(t, dur, cuts) {
   const b = [0, ...cuts.map(c => c * dur), dur];
   for (let i = 0; i < b.length - 1; i++) if (t < b[i + 1] || i === b.length - 2) return [i, (t - b[i]) / (b[i + 1] - b[i])];
 }
-export const sitGround = (A) => { A.root.position.y = -1.45; };
+export const sitGround = (A) => { A.root.position.y = -1.5; };
+// Sit on a seat whose TOP surface is at seatTopY: thighs rest on it, torso bottom at seatTopY + 0.5.
+// The seat must extend at least 2 units in front of the character (legs stick forward 2 units).
+export const sitOn = (A, seatTopY) => { A.root.position.y = seatTopY - 1.5; };
+// Minimum centre-to-centre spacing between two avatars so they never clip:
+export const SPACING = { sideBySide: 4.3, armsOut: 6.5, facing: 2.6, facingArmsForward: 4.6 };
 export const SIT = { rLeg: 90, lLeg: 90 };
 export const HUDDLE = { rLeg: 80, lLeg: 80, rFwd: 55, lFwd: 55, nod: 35, lean: 10 };
 export const HUG = { rFwd: 85, lFwd: 85, rUp: -22, lUp: -22, nod: 12 };

@@ -170,6 +170,7 @@ function blob() {
   m.rotation.x = -Math.PI / 2; m.position.y = 0.03; m.renderOrder = 1; return m;
 }
 
+let avatarCount = 0;
 export function makeAvatar(o = {}) {
   const shadow = o.shadow;
   const skinHex = SKIN[o.skin || 'tan'];
@@ -233,6 +234,14 @@ export function makeAvatar(o = {}) {
     lg.castShadow = cast; lg.receiveShadow = true; lg.position.y = -1; hp.add(lg);
   }
   if (!shadow && o.blob !== false) { A.blob = blob(); A.root.add(A.blob); }
+  // tag parts for the collision checker (engine/clips.js)
+  A.name = o.name || `avatar${++avatarCount}`;
+  if (!shadow) {
+    const tag = (grp, part) => grp.traverse(m => { if (m.isMesh && !m.userData.part) { m.userData.avatar = A.name; m.userData.part = part; } });
+    tag(A.armR, 'right arm'); tag(A.armL, 'left arm'); tag(A.legR, 'right leg'); tag(A.legL, 'left leg');
+    A.headMesh.traverse(m => { if (m.isMesh && m !== A.headMesh) { m.userData.avatar = A.name; m.userData.part = 'hair/hat'; } });
+    tag(A.neck, 'head'); tag(A.body, 'torso');
+  }
   A.pose = p => setPose(A, p);
   return A;
 }

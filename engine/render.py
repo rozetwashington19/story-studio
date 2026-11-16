@@ -1,5 +1,6 @@
 """Render an episode with three.js in headless Chrome.
   python3 engine/render.py episodes/NNN-slug stills [line numbers...]   -> out/preview.jpg (2 frames per shot, 8 per row)
+  python3 engine/render.py episodes/NNN-slug clips [lines...]         -> collision report (must be 0 before rendering)
   python3 engine/render.py episodes/NNN-slug frame 12 0.5            -> out/frame_12.png (full-res check of one shot)
   python3 engine/render.py episodes/NNN-slug video                      -> out/episode.mp4 (+ compressed out/final.mp4)
 Narration only, no music (user preference)."""
@@ -29,7 +30,16 @@ try:
         n = pg.evaluate("window.NSHOTS")
         if n != len(E.timing): print(f"WARNING: {n} shots but {len(E.timing)} script lines")
         grab = lambda i, lt, d: Image.open(io.BytesIO(base64.b64decode(pg.evaluate(f"renderShot({i},{lt},{d})").split(",")[1])))
-        if MODE == "frame":   # full-resolution single frame: frame <line> <fraction 0-1>
+        if MODE == "clips":   # collision check: 7 sample times per shot -> out/clips.txt
+            ids = [int(x) for x in sys.argv[3:]] or list(range(1, len(E.timing) + 1)); report = []
+            for k in ids:
+                s, e = E.spans[k - 1]; found = {}
+                for f in (0.0, 0.15, 0.3, 0.5, 0.7, 0.85, 0.99):
+                    for h in pg.evaluate(f"clipsAt({k-1},{(e-s)*f},{e-s})"): found.setdefault(h, f)
+                for h, f in found.items(): report.append(f"line {k:3d} @{f:.0%}: {h}")
+            open(os.path.join(OUT, "clips.txt"), "w").write("\n".join(report) + "\n")
+            print("\n".join(report)); print(f"CLIPS: {len(report)} problems in {len(set(l[:8] for l in report))} shots -> out/clips.txt")
+        elif MODE == "frame":   # full-resolution single frame: frame <line> <fraction 0-1>
             k = int(sys.argv[3]); f = float(sys.argv[4]) if len(sys.argv) > 4 else 0.5; s, e = E.spans[k - 1]; t = s + (e - s) * f
             E.overlay(grab(k - 1, t - s, e - s), t, k - 1).save(os.path.join(OUT, f"frame_{k}.png")); print("frame ->", os.path.join(OUT, f"frame_{k}.png"))
         elif MODE == "stills":

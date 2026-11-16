@@ -3,6 +3,7 @@
 <script type="module">
 import * as THREE from 'three';
 import {loadFaces} from './avatar.js';
+import {findClips} from './clips.js';
 
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
@@ -49,5 +50,6 @@ window.renderShot=(i,lt,dur)=>{
   if(i!==cur){ if(S) disposeScene(S); S=new THREE.Scene(); upd=SHOTS[i](S,cam); cur=i; }
   upd(lt,dur); rp.scene=S; gp.uniforms.time.value=lt+i*7.3; gp.uniforms.night.value=S.userData.look==='night'?1:0; gp.uniforms.flash.value=S.userData.look==='flash'?1:0; comp.render(); return cv.toDataURL('image/jpeg',0.93);
 };
+window.clipsAt=(i,lt,dur)=>{ if(i!==cur){ if(S) disposeScene(S); S=new THREE.Scene(); upd=SHOTS[i](S,cam); cur=i; } upd(lt,dur); return findClips(S); };
 window.NSHOTS=SHOTS.length; window.ready=true;
 </script></body></html>

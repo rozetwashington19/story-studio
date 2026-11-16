@@ -62,10 +62,10 @@ export const T = {
 };
 
 export function std(opts) { return new THREE.MeshStandardMaterial({ roughness: 0.85, ...opts }); }
-export function box(scene, [w, h, d], [x, y, z], mat, { r = 0.03, cast = true, rot } = {}) {
+export function box(scene, [w, h, d], [x, y, z], mat, { r = 0.03, cast = true, rot, solid = true, name } = {}) {
   const g = r ? new RoundedBoxGeometry(w, h, d, 2, Math.min(r, w / 2 - 0.001, h / 2 - 0.001, d / 2 - 0.001)) : new THREE.BoxGeometry(w, h, d);
   const m = new THREE.Mesh(g, mat); m.position.set(x, y, z); m.castShadow = cast; m.receiveShadow = true;
-  if (rot) m.rotation.set(...rot); scene.add(m); return m;
+  if (rot) m.rotation.set(...rot); m.userData.solid = solid; m.name = name || `box ${w}x${h}x${d} @${[x, y, z].map(v => +v.toFixed(1))}`; scene.add(m); return m;
 }
 function repeatMat(t, rx, ry, extra = {}) { const c = t.clone(); c.repeat.set(rx, ry); c.needsUpdate = true; return std({ map: c, ...extra }); }
 

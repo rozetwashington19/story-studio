@@ -65,6 +65,27 @@ Split into `shots_a.js` / `shots_b.js` if long. Lessons learned (follow these):
 - New characters: vary skin (tan, light, brown, yellow, pale), shirt colors/styles, pants, hair
   (short, bun, spiky, long, none) and hats. Give the narrator a distinct look from previous episodes.
 
+## 4b. No clipping (mandatory)
+Characters must never pass through each other or through objects. Rules:
+- Give every avatar a name: `makeAvatar({ ...MIA, name: 'mia' })` — the checker reports by name.
+- Spacing (centre to centre, see `SPACING` in kit.js): side by side ≥ 4.3 (an avatar is 4 wide with arms);
+  arms raised sideways ≥ 6.5; facing each other ≥ 2.6; facing with arms forward ≥ 4.6. Group shots: line people up
+  with these gaps and widen the camera instead of squeezing them together.
+- Arms reaching forward/inward (`rFwd`, negative `rUp`) must not reach into a neighbour or a table/wall — check the pose.
+- Sitting: `sitOn(A, seatTopY)` (ground: `sitGround(A)`). Legs stick 2 units forward from the hips, so leave that space
+  clear (no seat backs, tables or people in front closer than 2.2). In vehicles/benches give each seat 4.3 of width.
+- Walk paths: walkers must not cross through other characters or props; keep 1+ unit of clearance from walls/furniture.
+- Props held in a hand go at the hand position (see 001 line 26), never through the body.
+- Intended contact only (a hug, a hand on a shoulder): whitelist it in that shot with
+  `S.userData.allowContact = [['mom', 'leo']]`.
+Run the checker after writing shots and fix until it reports **0** problems:
+```
+python3 engine/render.py episodes/NNN-slug clips            # all shots, 7 moments each -> out/clips.txt
+python3 engine/render.py episodes/NNN-slug clips 12 30      # re-check specific lines
+```
+Fix by moving characters apart, changing poses, moving props, or (last resort) cutting to a tighter angle that
+leaves the other character out. Never "fix" by whitelisting accidental overlaps.
+
 ## 5. Preview and fix (mandatory)
 ```
 python3 engine/render.py episodes/NNN-slug stills            # all shots, 2 frames each -> out/preview.jpg
@@ -72,11 +93,11 @@ python3 engine/render.py episodes/NNN-slug stills 12 13 40   # specific lines
 ```
 Crop the sheet into rows (Pillow) and look at every frame. Fix: characters cut off / out of frame, camera inside
 geometry, black or blown-out faces, unreadable silhouettes, bubble covering a face, wrong set for the line,
-console `PAGEERROR`s. Re-preview fixed shots. Up to 3 fix rounds.
+console `PAGEERROR`s, and anything visibly clipping that the checker missed (it only knows box() props). Re-preview fixed shots. Up to 3 fix rounds.
 For close-ups, also check 2–3 frames at full resolution: `python3 engine/render.py episodes/NNN-slug frame <line> 0.5` → `out/frame_<line>.png`
 (look for face artifacts, hair detail, caption/bubble overlap).
 
-## 6. Render
+## 6. Render (only after clips = 0 and previews pass)
 ```
 nohup python3 engine/render.py episodes/NNN-slug video > episodes/NNN-slug/out/render.log 2>&1 &
 ```
