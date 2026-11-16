@@ -60,6 +60,14 @@ Primitives: `box(S,[w,h,d],[x,y,z],material,{r,cast,rot})`, `std({...MeshStandar
 textures `T.brick T.planks T.tiles T.concrete T.asphalt T.plaster T.facade T.chalkboard(lines) T.sky(top,bottom)`,
 `T2.lockers T2.grass T2.sand T2.siding T2.fence T2.sign(text,bg,fg) T2.hands T2.calendar`.
 
+## Episode 003 kit (`engine/sets4.js`)
+`promiseString(S,{col,r,glow})` glowing tube: `.set(a,b,{sag,fade,r,snap})` (snap 0..1 = broken halves fall), `.path(pts)`, `.at(u)`, `.color(c)`, `.hide()`.
+`pinky(A,'R'|'L')` world position of a hand's tip. `kite(S,pos,{s,c1,c2,done,dusty,drawings,tail})` + `kiteFlutter(g,t,k)`, `spool`, `bird` (`userData.flap(t)`),
+`birdNest`, `ladder`, `sink(S,[x,z])` (returns `{drip}`), `laundryItem(S,kind,col)`, `phone(S,title,sub)`, `fedora(A,col)` (detachable hat), `glueJar`, `dust` (floating motes updater).
+Sets: `hill(S,{sunset,cottage,trees})` + `hillY(x,z)` ground height (flat top r=16 at y=0), `cottage(S,pos)`, `bridge(S)`, `livingRoom(S,{night,sunset,kiteDone,dusty})` (armchair seat top 1.7 at (-1.2,-5.6)).
+Framing lesson from 003: two-shots need lens 26 at distance ≥ 15 (or lens 22 at ~12); close-ups at distance ≥ 6.4 with lens ≤ 34 so buns/hats fit. For a close-up of someone not facing +z, use
+`faceCam` (episodes/003-kite/common.js) which places the camera along the character's facing direction. Rooms have no front wall: if the camera looks toward +z, add one.
+
 ## Look / grade
 Set `S.userData.look = 'night'` or `'flash'` (flashback). Post: bloom, split-tone grade, vignette, grain (engine/main.html).
 
