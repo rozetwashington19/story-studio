@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { hairGeometry, hashStr } from './hair.js';
+export { HAIR_STYLES } from './hair.js';
 
 export const D = Math.PI / 180;
 const loader = new THREE.TextureLoader();
@@ -141,7 +143,7 @@ function hairMaterial(col) {
   x.globalAlpha = 1; b.globalAlpha = 1;
   const map = new THREE.CanvasTexture(cc); map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 16; map.repeat.set(2, 1);
   const bump = new THREE.CanvasTexture(bc); bump.wrapS = bump.wrapT = THREE.RepeatWrapping; bump.repeat.set(2, 1);
-  const m = new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: 2.6, roughness: 0.45, metalness: 0.0 });
+  const m = new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: 1.6, roughness: 0.42, metalness: 0.0, side: THREE.DoubleSide });
   return (hairCache[col] = m);
 }
 function capGeometry(R, H, rr, from) {   // top part of a slightly bigger head shape, for hair
@@ -199,22 +201,10 @@ export function makeAvatar(o = {}) {
   A.face = o.face || 'smile';
   A.setFace = n => { if (A.faceMat && faceTex[n] && n !== A.face) { A.face = n; A.faceMat.map = faceSkinTex(skinHex, n); A.faceMat.needsUpdate = true; } };
   // hair / hats (children of head mesh)
-  if (o.hair === 'short' || o.hair === 'bun' || o.hair === 'spiky' || o.hair === 'long') {
-    const cap = mesh(capGeometry(0.67, 1.32, 0.36, 0.3), hairM, cast); headM.add(cap);
-    if (!shadow) { // keep back hair only behind the face: thin box approximation
-      const bb = mesh(rbox(1.36, o.hair === 'long' ? 1.5 : 0.9, 0.5, 0.2), hairM, cast); bb.position.set(0, o.hair === "long" ? -0.25 : 0.1, -0.4); headM.add(bb);
-    }
-    if (o.hair === 'short' || o.hair === 'long') {
-      const fr = mesh(rbox(0.95, 0.26, 0.3, 0.1), hairM, cast); fr.position.set(-0.15, 0.5, 0.42); fr.rotation.z = -8 * D; headM.add(fr);
-      // layered tufts for a swept, chunkier silhouette
-      [[0.28, 0.66, 0.3, 0.7, -14], [-0.32, 0.68, 0.22, 0.6, 10], [0.05, 0.72, -0.1, 0.8, -4]].forEach(([x, y, z, w, rz]) => {
-        const t = mesh(rbox(w, 0.22, 0.55, 0.1), hairM, cast); t.position.set(x, y, z); t.rotation.set(-12 * D, 0, rz * D); headM.add(t); });
-    }
-    if (o.hair === 'bun') { const b = mesh(new THREE.SphereGeometry(0.42, 24, 16), hairM, cast); b.position.set(0, 0.75, -0.45); headM.add(b); }
-    if (o.hair === 'spiky') {
-      [[-0.42, 0, 0, 28], [0, 0.05, 0, 0], [0.42, 0, 0, -28], [-0.24, -0.3, -25, 15], [0.24, -0.3, -25, -15], [0, 0.35, 28, 0], [-0.25, 0.3, 20, 20], [0.25, 0.3, 20, -20]]
-        .forEach(([x, z, rx, rz]) => { const c = mesh(new THREE.ConeGeometry(0.3, 1.0, 16), hairM, cast); c.position.set(x, 0.95, z); c.rotation.set(rx * D, 0, rz * D); headM.add(c); });
-    }
+  // sculpted hair (engine/hair.js): one merged mesh per avatar; hairSeed (default: from name) varies part side / spikes
+  if (o.hair) {
+    const hg = hairGeometry(o.hair, { seed: o.hairSeed ?? hashStr(o.name || o.hair) });
+    if (hg) { const hm = mesh(hg, hairM, cast); headM.add(hm); A.hairMesh = hm; }
   }
   if (o.hat) {
     const brim = mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.08, 40), o.hair ? hatM : hairM, cast); brim.position.y = 0.66; headM.add(brim);

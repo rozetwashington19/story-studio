@@ -7,7 +7,7 @@ Avatar: 5.3 tall. Head center y≈4.64, torso y 2–4, legs 0–2. Sitting on th
 `makeAvatar(opts)` → `A` with `A.root` (Group), joints `A.body A.neck A.armR A.armL A.legR A.legL`, `A.headMesh`,
 `A.pose(p)`, `A.setFace(name)`, `A.blob` (contact shadow).
 opts: `skin` ('tan'|'light'|'brown'|'yellow'|'pale'), `shirt` (hex), `shirtStyle` ('plain'|'hoodie'|'shirt'|'blazer'|'tee'),
-`pants` (hex), `pantsStyle` ('jeans'|'plain'), `hair` ('short'|'bun'|'spiky'|'long'|null), `hairCol` (hair gets a strand texture + bump automatically), `hat` (bool, top hat), `hatCol`,
+`pants` (hex), `pantsStyle` ('jeans'|'plain'), `hair` (see below), `hairCol`, `hairSeed` (varies part side / spike layout; default from `name`), `hat` (bool, top hat), `hatCol`,
 `face`, `name` (required — used by the collision checker), `blob` (false = no contact shadow), `cast` (cast real shadows).
 `add(S, A, [x,y,z], rotYdeg)` places it. Presets: `LEO TEACH DAD COUS EX[0..4]` (episode 001 — make new ones).
 
@@ -20,6 +20,13 @@ Collision check: `engine/clips.js` (`render.py … clips`); whitelist intended t
 Library: `POSES.rest hips armsup wave point shrug slump shock spit sprawl`, `SIT HUDDLE HUG`.
 Helpers: `addPose(a,b)` sum, `lerpPose(a,b,t)`, `track([[t0,pose],[t1,pose],…], t, easeFn)` keyframes,
 `idle(t,k,seed)`, `walk(t,speed,amp)`, `sob(t,k)` crying shake, `ease`, `snap` (fast-out).
+
+## Hair (`engine/hair.js`)
+Sculpted, one merged mesh per avatar. Styles (`HAIR_STYLES`): `short` (side-swept fringe) `swoop` (quiff) `spiky` `buzz` `mohawk`
+`curly` `afro` `bun` `ponytail` `pigtails` `long` (curtain bangs, falls past shoulders) `bob` `braids` `puffs`, or `null` (bald).
+Give every character in an episode a different style + color; vary the narrator's look from previous episodes.
+New styles: add a `case` in `hairGeometry()` using `shell({line, thick, flare, edge})`, `lock(points, r)`, `cone`, `ball`, `ring`
+(head-local: front +Z, top y=0.61, brows y≈0.28 — keep fringes above y≈0.32 across the face).
 
 ## Shadows / silhouettes
 `wallShadow(S, opts, [x, z], {profile, size, mat})` flat black figure on a wall facing +Z (put z just in front of the wall);
