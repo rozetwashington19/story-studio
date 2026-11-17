@@ -32,8 +32,10 @@ Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked e
   "your shadow shows how you really feel"). Everyday settings (home, school, street). Ends on an emotional beat.
 - **wild:** a fun, high-concept rule with creatures, magic or sci-fi that escalates fast and visually
   (the *kind*: "every time you blink, a monster appears", "your pet can shrink you", "gravity flips at lunch",
-  "every lie turns into a tiny dragon"). Kid-friendly spooky-fun, never truly scary or gory — monsters are cute-blocky
-  (`monster()` in KIT.md) and end up silly, friendly or outsmarted. Bigger stakes, chases, set pieces and jokes; the
+  "every lie turns into a tiny dragon"). Pick the tone that fits the premise:
+  *spooky* — creepy Roblox-horror creatures (`creature()`: stalker/brute/crawler/shade) in a dark world, real suspense, glowing eyes
+  in the dark, chases, a jump-scare on the action (with a sfx hit) — but never gory, no blood, no one gets hurt, and the kids win
+  by being clever; or *silly* — cute-blocky `monster()`s that end up friendly or outsmarted. Mix both when it suits the story. Bigger stakes, chases, set pieces and jokes; the
   ending is a clever or funny twist (a small heartfelt touch is welcome but not required). Use the same script formula,
   with gags that show the rule's chaos instead of sad side characters.
   **Backgrounds must match the theme:** build most shots in a themed world from `engine/themes.js` (pick_mode suggests two

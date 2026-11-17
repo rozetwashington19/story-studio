@@ -233,3 +233,110 @@ export function monster(S, { name = 'monster', col = 0x6ad86a, belly = null, sha
     } };
   return M2;
 }
+
+// ---------------- scary creatures (kid-horror: creepy, not gory) ----------------
+// creature(S, { kind: 'stalker'|'brute'|'crawler'|'shade', name, col, eyeCol, size, seed })
+//   stalker: very tall + thin, hunched, dangling long arms with claws, too-wide jagged grin, blank glowing eyes
+//   brute:   hulking hunched shoulders, curved horns, glowing slit eyes, tusks, big clawed fists
+//   crawler: low spider-thing with jointed legs and a cluster of glowing eyes
+//   shade:   floating hooded shadow, void face with glowing eyes + grin, trailing wisps
+// Returns { root, head, animate(t, mood), look(vec3), eyesOn(0..1) }  mood: 'lurk'|'stalk'|'lunge'|'roar'|'hide'
+// Glowing eyes + bloom read best in dark worlds (spooky, forest night, cityNight, castle night, lab). Feet on y=0, faces +Z.
+export function creature(S, { kind = 'stalker', name = 'creature', col, eyeCol, size = 1, seed = 1 } = {}) {
+  const R = rng(seed + 11); const root = new THREE.Group(); root.scale.setScalar(size); S.add(root);
+  const C = col ?? { stalker: 0x2a2630, brute: 0x3a2a2a, crawler: 0x1e2a22, shade: 0x0c0a12 }[kind];
+  const E = eyeCol ?? { stalker: 0xf4f4ff, brute: 0xff7a1a, crawler: 0xd8ff3a, shade: 0xff2a3a }[kind];
+  const skin = M({ color: C, roughness: 0.85 }), dark = M({ color: new THREE.Color(C).multiplyScalar(0.5), roughness: 0.9 });
+  const bone = M({ color: 0xe8e0c8, roughness: 0.5 }), maw = M({ color: 0x120206, roughness: 0.9 });
+  const eyeM = new THREE.MeshBasicMaterial({ color: E }), eyes = [];
+  const G = (parent, x = 0, y = 0, z = 0) => { const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g); return g; };
+  const part = (parent, geo, mat, x = 0, y = 0, z = 0) => { const m = mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m; };
+  const grin = (parent, w, y, z, n = 9) => {   // too-wide jagged grin: dark slit with interlocking teeth
+    const g = G(parent, 0, y, z); const sl = part(g, new THREE.BoxGeometry(w, 0.32, 0.12), maw); sl.scale.y = 1;
+    for (let i = 0; i < n; i++) { const x = -w / 2 + (i + 0.5) * w / n;
+      const up = part(g, new THREE.ConeGeometry(w / n * 0.42, 0.24, 4), bone, x, 0.06, 0.05); up.rotation.x = Math.PI;
+      const dn = part(g, new THREE.ConeGeometry(w / n * 0.42, 0.24, 4), bone, x + w / n / 2, -0.06, 0.05); }
+    g.userData.open = (k) => { sl.scale.y = 1 + k * 1.6; g.children.forEach((c, i) => { if (i) c.position.y = (c.rotation.x ? 1 : -1) * (0.06 + k * 0.22); }); }; return g; };
+  const eye = (parent, x, y, z, r, slit = false) => { const e = part(parent, new THREE.SphereGeometry(r, 14, 10), eyeM, x, y, z); if (slit) e.scale.set(1.3, 0.38, 0.6); eyes.push(e); return e; };
+  const claws = (hand, n = 3, len = 0.6) => { for (let i = 0; i < n; i++) { const c = part(hand, new THREE.ConeGeometry(0.07, len, 6), bone, (i - (n - 1) / 2) * 0.16, -len / 2, 0.05); c.rotation.x = Math.PI + 0.25; } };
+  const J = {};   // joints for animation
+  let head;
+  if (kind === 'stalker') {
+    J.hips = G(root, 0, 3.6, 0); J.body = G(J.hips);
+    part(J.body, new THREE.BoxGeometry(1.3, 2.8, 0.7), skin, 0, 1.4, 0);
+    J.neck = G(J.body, 0, 2.9, 0.15); head = G(J.neck, 0, 0.55, 0.2);
+    const hd = part(head, new THREE.BoxGeometry(1.0, 1.3, 0.9), skin); hd.scale.set(1, 1, 1);
+    eye(head, -0.25, 0.25, 0.46, 0.13); eye(head, 0.25, 0.25, 0.46, 0.13); grin(head, 0.95, -0.25, 0.46, 9);
+    J.arms = [-1, 1].map(s => { const sh = G(J.body, s * 0.85, 2.6, 0); part(sh, new THREE.BoxGeometry(0.32, 2.4, 0.32), skin, 0, -1.2, 0);
+      const el = G(sh, 0, -2.4, 0); part(el, new THREE.BoxGeometry(0.28, 2.2, 0.28), skin, 0, -1.1, 0); const hn = G(el, 0, -2.25, 0); claws(hn, 4, 0.7); return { sh, el }; });
+    J.legs = [-1, 1].map(s => { const hp = G(root, s * 0.4, 3.6, 0); part(hp, new THREE.BoxGeometry(0.38, 3.6, 0.38), dark, 0, -1.8, 0); return hp; });
+    J.body.rotation.x = 0.35; J.neck.rotation.x = -0.25;
+  } else if (kind === 'brute') {
+    J.hips = G(root, 0, 2.2, 0); J.body = G(J.hips);
+    const tor = part(J.body, new THREE.SphereGeometry(1.6, 20, 14), skin, 0, 1.5, 0); tor.scale.set(1.35, 1.0, 0.95);
+    for (let i = 0; i < 5; i++) { const sp = part(J.body, new THREE.ConeGeometry(0.16, 0.6, 6), bone, 0, 2.4 - i * 0.4, -1.3 + i * 0.05); sp.rotation.x = -1.1; }
+    J.neck = G(J.body, 0, 2.55, 1.15); head = G(J.neck, 0, 0.1, 0.45);
+    part(head, new THREE.BoxGeometry(1.5, 1.25, 1.2), skin);
+    eye(head, -0.36, 0.18, 0.6, 0.15, true); eye(head, 0.36, 0.18, 0.6, 0.15, true);
+    const brow = part(head, new THREE.BoxGeometry(1.55, 0.22, 0.35), dark, 0, 0.4, 0.55); brow.rotation.x = 0.3;
+    for (const s of [-1, 1]) { const h = part(head, new THREE.TorusGeometry(0.5, 0.12, 8, 16, Math.PI * 0.9), bone, s * 0.7, 0.8, 0); h.rotation.set(0, Math.PI / 2, s > 0 ? 0.3 : Math.PI - 0.3);
+      const tk = part(head, new THREE.ConeGeometry(0.09, 0.4, 6), bone, s * 0.4, -0.22, 0.62); }
+    grin(head, 1.1, -0.32, 0.6, 7);
+    J.arms = [-1, 1].map(s => { const sh = G(J.body, s * 2.1, 2.0, 0.2); part(sh, new THREE.SphereGeometry(0.75, 14, 10), skin);
+      part(sh, new THREE.BoxGeometry(0.75, 2.0, 0.75), skin, 0, -1.2, 0); const el = G(sh, 0, -2.2, 0); part(el, new THREE.BoxGeometry(0.85, 1.4, 0.85), skin, 0, -0.6, 0);
+      const fist = G(el, 0, -1.45, 0); part(fist, new THREE.BoxGeometry(1.1, 0.9, 1.0), dark); claws(fist, 3, 0.5); return { sh, el }; });
+    J.legs = [-1, 1].map(s => { const hp = G(root, s * 0.9, 2.2, 0); part(hp, new THREE.BoxGeometry(0.9, 2.2, 0.9), dark, 0, -1.1, 0); return hp; });
+    J.body.rotation.x = 0.3;
+  } else if (kind === 'crawler') {
+    J.hips = G(root, 0, 1.3, 0); J.body = G(J.hips);
+    const bd = part(J.body, new THREE.SphereGeometry(1.3, 18, 12), skin); bd.scale.set(1.2, 0.6, 1.5);
+    const ab = part(J.body, new THREE.SphereGeometry(1.0, 16, 12), dark, 0, 0.3, -1.8); ab.scale.set(1.1, 0.9, 1.2);
+    head = G(J.body, 0, 0.1, 1.7); part(head, new THREE.SphereGeometry(0.7, 16, 12), skin).scale.set(1.1, 0.75, 0.9);
+    for (const [x, y, r] of [[-0.28, 0.25, 0.13], [0.28, 0.25, 0.13], [-0.5, 0.1, 0.09], [0.5, 0.1, 0.09], [-0.14, 0.42, 0.08], [0.14, 0.42, 0.08]]) eye(head, x, y, 0.55, r);
+    for (const s of [-1, 1]) { const f = part(head, new THREE.ConeGeometry(0.09, 0.5, 6), bone, s * 0.18, -0.35, 0.5); f.rotation.x = Math.PI - 0.4; }
+    J.legs = []; for (let i = 0; i < 6; i++) { const s = i % 2 ? 1 : -1, k = Math.floor(i / 2); const hp = G(J.body, s * 1.1, 0, 0.9 - k * 0.9); hp.rotation.y = s * (0.5 - k * 0.5);
+      const up = G(hp); part(up, new THREE.BoxGeometry(1.8, 0.18, 0.18), dark, s * 0.9, 0, 0); up.rotation.z = s * 0.7;
+      const kn = G(up, s * 1.8, 0, 0); const lo = G(kn); part(lo, new THREE.BoxGeometry(0.16, 2.1, 0.16), dark, 0, -1.0, 0); lo.rotation.z = -s * 0.5; J.legs.push({ hp, up, lo, s, k }); }
+    J.arms = [];
+  } else {   // shade
+    J.hips = G(root, 0, 0.6, 0); J.body = G(J.hips);
+    const cloak = new THREE.ConeGeometry(1.4, 4.4, 14, 6, true); const p = cloak.attributes.position;
+    for (let i = 0; i < p.count; i++) if (p.getY(i) < -2.1) p.setY(i, p.getY(i) + Math.sin(Math.atan2(p.getX(i), p.getZ(i)) * 7) * 0.35 - 0.2);
+    cloak.computeVertexNormals(); part(J.body, cloak, M({ color: C, roughness: 1, side: THREE.DoubleSide }), 0, 2.2, 0);
+    head = G(J.body, 0, 4.2, 0.1); const hood = part(head, new THREE.SphereGeometry(0.85, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), M({ color: C, roughness: 1, side: THREE.DoubleSide })); hood.rotation.x = -0.5;
+    const voidF = part(head, new THREE.SphereGeometry(0.62, 16, 12), new THREE.MeshBasicMaterial({ color: 0x000000 }), 0, -0.05, 0.25); voidF.scale.z = 0.6;
+    eye(head, -0.22, 0.05, 0.6, 0.09, true); eye(head, 0.22, 0.05, 0.6, 0.09, true); grin(head, 0.55, -0.28, 0.6, 7);
+    J.arms = [-1, 1].map(s => { const sh = G(J.body, s * 0.9, 3.4, 0.2); const sl = part(sh, new THREE.ConeGeometry(0.35, 1.8, 8, 1, true), M({ color: C, side: THREE.DoubleSide }), 0, -0.9, 0); sl.rotation.x = Math.PI;
+      const el = G(sh, 0, -1.8, 0); const hn = G(el); part(hn, new THREE.BoxGeometry(0.3, 0.4, 0.15), M({ color: 0x8a8a90 })); claws(hn, 4, 0.55); return { sh, el }; });
+    J.legs = [];
+  }
+  const glowL = new THREE.PointLight(E, 4, 6, 2); head.add(glowL); glowL.position.set(0, 0, 1.2);
+  const mouthG = head.children.find(c => c.userData && c.userData.open);
+  root.traverse(m => { if (m.isMesh) { m.userData.avatar = name; m.userData.part = kind; } });
+  const target = new THREE.Vector3(0, 4.6, 20), tmp = new THREE.Vector3();
+  const api = { root, head, joints: J, kind, name,
+    look(v) { target.copy(v); },
+    eyesOn(k) { eyes.forEach(e => e.visible = k > 0.5); glowL.intensity = 4 * k; },
+    animate(t, mood = 'lurk') {
+      const L = J.legs || [], A = J.arms || [];
+      const walkK = mood === 'stalk' ? 1 : mood === 'lunge' ? 2.2 : 0;
+      const sw = Math.sin(t * (kind === 'crawler' ? 9 : 3.2) * Math.max(walkK, 0.001));
+      if (kind === 'crawler') L.forEach(({ up, lo, s, k }, i) => { const ph = t * 9 * Math.max(walkK, 0.2) + i * 1.9; up.rotation.z = s * (0.7 + Math.max(0, Math.sin(ph)) * 0.35 * (walkK ? 1 : 0.15)); up.rotation.y = Math.cos(ph) * 0.3 * (walkK ? 1 : 0.1); });
+      else if (kind !== 'shade') L.forEach((l, i) => { l.rotation.x = (i ? 1 : -1) * sw * 0.5 * Math.min(walkK, 1); });
+      J.hips.position.y = (kind === 'stalker' ? 3.6 : kind === 'brute' ? 2.2 : kind === 'crawler' ? 1.3 : 0.6 + Math.sin(t * 1.8) * 0.25) + (walkK ? Math.abs(sw) * 0.12 : 0);
+      const lean = { lurk: 0, stalk: 0.12, lunge: 0.45, roar: -0.25, hide: -0.15 }[mood] ?? 0;
+      J.body.rotation.x = (kind === 'stalker' ? 0.35 : kind === 'brute' ? 0.3 : 0) + lean + (mood === 'roar' ? Math.sin(t * 40) * 0.02 : 0);
+      J.body.rotation.z = mood === 'lurk' ? Math.sin(t * 0.9) * 0.06 : 0;
+      A.forEach(({ sh, el }, i) => { const s = i ? 1 : -1;
+        if (mood === 'lunge') { sh.rotation.x = -1.35 - lean + Math.sin(t * 6 + i) * 0.1; el.rotation.x = -0.25; sh.rotation.z = s * 0.2; }
+        else if (mood === 'roar') { sh.rotation.x = -0.4; sh.rotation.z = s * (1.7 + Math.sin(t * 20) * 0.05); el.rotation.x = -0.9; }
+        else { sh.rotation.x = (walkK ? -sw * s * 0.3 : 0) + Math.sin(t * 1.3 + i) * 0.06; sh.rotation.z = s * 0.12; el.rotation.x = kind === 'shade' ? -0.6 : -0.15; } });
+      if (mouthG) mouthG.userData.open(mood === 'roar' ? 0.8 + Math.sin(t * 25) * 0.1 : mood === 'lunge' ? 0.6 : 0.05);
+      // head: creepy tilt + snap toward the target (lurk adds sudden twitches)
+      root.updateMatrixWorld(true); head.parent.worldToLocal(tmp.copy(target)); tmp.sub(head.position);
+      const yaw = Math.max(-1, Math.min(1, Math.atan2(tmp.x, tmp.z))), pitch = Math.max(-0.6, Math.min(0.6, -Math.atan2(tmp.y, Math.hypot(tmp.x, tmp.z))));
+      const tw = mood === 'lurk' && (t % 2.3) < 0.15 ? 0.45 : 0;
+      head.rotation.set(pitch, yaw, (mood === 'lurk' ? 0.25 + tw : mood === 'hide' ? 0.4 : 0) * (kind === 'stalker' || kind === 'shade' ? 1 : 0.4));
+    } };
+  return api;
+}

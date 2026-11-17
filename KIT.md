@@ -76,6 +76,11 @@ waving banners, glowing tanks) — call it in the shot's update. Night worlds se
 `monster(S, { name, col, belly, shape: 'blob'|'box'|'tall', eyes: 1-3, horns, teeth, arms, tentacles, size, spots, seed })` →
 `m.root` (position/rotate it), `m.animate(t, 'idle'|'bounce'|'chase'|'scared'|'wave')`, `m.look(vec3)` (pupils follow),
 `m.blink(0..1)`. Height ≈ 4 × size, feet on y=0, faces +Z, tagged for the collision checker (keep 4+ units from avatars).
+**Scary creatures** (kid-horror, Roblox-horror style — creepy, never gory): `creature(S, { kind, name, col, eyeCol, size, seed })`,
+kinds `stalker` (tall, hunched, long clawed arms, too-wide jagged grin, blank glowing eyes) · `brute` (hulking, horns, slit eyes, tusks)
+· `crawler` (spider-thing, cluster of glowing eyes) · `shade` (floating hooded shadow, red eyes). `c.animate(t, 'lurk'|'stalk'|'lunge'|'roar'|'hide')`,
+`c.look(vec3)` (head snaps toward a target), `c.eyesOn(0..1)` (eyes appear out of the dark). Best in dark worlds (spooky, forest night,
+cityNight, castle night, lab); stalker is ~7.5 tall — frame from low angles for menace.
 Previews: `python3 tools/world_lineup.py out.jpg [world …]`.
 
 ## Look / grade
