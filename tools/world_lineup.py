@@ -1,5 +1,5 @@
 """Render every themed world (engine/themes.js) with a kid and a monster:  python3 tools/world_lineup.py out.jpg [world ...]
-Two frames per world: wide establishing shot + reverse-angle medium. Uses a throwaway episodes/_worldtest."""
+Two frames per world: wide establishing shot + reverse-angle medium. Uses a throwaway episodes/_worldtest. CLOSE=1 also saves each world's wide shot at full resolution as <out>_<world>.jpg."""
 import json, os, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); EP = os.path.join(ROOT, "episodes/_worldtest")
 OUT = sys.argv[1]; W = sys.argv[2:] or ['forest', 'forestNight', 'spooky', 'space', 'underwater', 'candy', 'castle', 'castleNight', 'cityNight', 'snow', 'desert', 'lab']
@@ -24,5 +24,9 @@ try:
     if errs or r.returncode: print("\n".join(errs) or r.stderr[-2000:]); sys.exit(1)
     from PIL import Image
     im = Image.open(EP + "/out/preview.jpg"); im.resize((im.width * 2 // 3, im.height * 2 // 3)).save(OUT, quality=90); print("worlds ->", OUT)
+    if os.environ.get("CLOSE"):
+        for k, w in enumerate(W):
+            subprocess.run(["python3", "engine/render.py", EP, "frame", str(k + 1), "0.2"], cwd=ROOT, capture_output=True)
+            Image.open(EP + f"/out/frame_{k + 1}.png").convert("RGB").save(os.path.splitext(OUT)[0] + f"_{w}.jpg", quality=88)
 finally:
     shutil.rmtree(EP, ignore_errors=True)

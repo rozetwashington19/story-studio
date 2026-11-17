@@ -42,10 +42,10 @@ function particles(S, n, { col = 0xffffff, size = 0.12, box: [x0, x1, y0, y1, z0
 }
 function tree(S, [x, z], { h = 7, trunk = 0x6a4428, leaf = 0x3f8a3a, kind = 'round', s = 1 } = {}) {
   const g = new THREE.Group(); g.position.set(x, 0, z); g.scale.setScalar(s); S.add(g);
-  const tr = mesh(new THREE.CylinderGeometry(0.35, 0.5, h, 8), M({ color: trunk })); tr.position.y = h / 2; g.add(tr);
-  const lm = M({ color: leaf, roughness: 0.8 });
+  const bk = tm(TX.bark(trunk), 1, h / 4, { bump: 3 }); const tr = mesh(new THREE.CylinderGeometry(0.35, 0.5, h, 10), bk); tr.position.y = h / 2; g.add(tr);
+  const lm = tm(TX.leaf(leaf), 2, 2, { bump: 2.5, roughness: 0.85 });
   if (kind === 'pine') for (let i = 0; i < 4; i++) { const c = mesh(new THREE.ConeGeometry(2.6 - i * 0.5, 2.6, 9), lm); c.position.y = h * 0.45 + i * 1.5; g.add(c); }
-  else if (kind === 'dead') for (let i = 0; i < 4; i++) { const b = mesh(new THREE.CylinderGeometry(0.08, 0.18, 2.6, 6), M({ color: trunk })); b.position.set(Math.cos(i * 1.7) * 0.6, h * (0.55 + i * 0.1), Math.sin(i * 1.7) * 0.6); b.rotation.set(Math.sin(i * 1.7) * 0.9, 0, -Math.cos(i * 1.7) * 0.9); g.add(b); }
+  else if (kind === 'dead') for (let i = 0; i < 4; i++) { const b = mesh(new THREE.CylinderGeometry(0.08, 0.18, 2.6, 6), bk); b.position.set(Math.cos(i * 1.7) * 0.6, h * (0.55 + i * 0.1), Math.sin(i * 1.7) * 0.6); b.rotation.set(Math.sin(i * 1.7) * 0.9, 0, -Math.cos(i * 1.7) * 0.9); g.add(b); }
   else for (const [dx, dy, dz, r] of [[0, h, 0, 2.2], [1.3, h - 0.6, 0.4, 1.5], [-1.2, h - 0.5, -0.3, 1.6], [0.2, h + 1.2, 0, 1.4]]) { const b = mesh(new THREE.IcosahedronGeometry(r, 1), lm); b.position.set(dx, dy, dz); g.add(b); }
   return g;
 }
@@ -54,56 +54,127 @@ const around = (n, rMin, rMax, seed, f, { front = false } = {}) => { const R = r
   const a = (front ? -Math.PI : -Math.PI * 0.85) + R() * Math.PI * (front ? 2 : 1.7), r = rMin + R() * (rMax - rMin);
   const x = Math.sin(a) * r, z = -Math.cos(a) * r - 2; if (z > 6 || (z > -5 && Math.abs(x) < 8.5)) continue; f(x, z, R, i); } };   // keep play area + camera corridor clear
 
+// ---------------- procedural surface textures (color + same canvas as bump map) ----------------
+const TXC = {};
+const hx = c => '#' + new THREE.Color(c).getHexString();
+const shd = (c, f) => { const k = new THREE.Color(c); k.multiplyScalar(f); return '#' + k.getHexString(); };
+const tx = (key, w, h, draw) => TXC[key] || (TXC[key] = ctex(w, h, draw));
+// textured material: t = canvas texture, (rx, ry) repeats, bump = relief strength
+function tm(t, rx = 1, ry = 1, { bump = 1.5, ...o } = {}) { const m = t.clone(); m.repeat.set(rx, ry); m.needsUpdate = true; return M({ map: m, bumpMap: m, bumpScale: bump, ...o }); }
+export const TX = {
+  bark: (col = 0x6a4428) => tx('bark' + col, 256, 512, (x, w, h) => { x.fillStyle = hx(col); x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 60; i++) { const x0 = Math.random() * w; x.strokeStyle = Math.random() < 0.6 ? shd(col, 0.55) : shd(col, 1.3); x.lineWidth = 2 + Math.random() * 5;
+      x.beginPath(); x.moveTo(x0, 0); for (let y = 0; y <= h; y += 32) x.lineTo(x0 + Math.sin(y * 0.03 + i) * 6, y); x.stroke(); }
+    for (let i = 0; i < 5; i++) { x.fillStyle = shd(col, 0.45); x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, 8, 14, 0, 0, 7); x.fill(); } noise(x, w, h, 1, 0.1); }),
+  leaf: (col = 0x3f8a3a) => tx('leaf' + col, 256, 256, (x, w, h) => { x.fillStyle = shd(col, 0.8); x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 900; i++) { x.fillStyle = shd(col, 0.6 + Math.random() * 0.75); x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, 5 + Math.random() * 7, 3 + Math.random() * 4, Math.random() * 3, 0, 7); x.fill(); } }),
+  stone: (col = 0x8a8478) => tx('stone' + col, 512, 512, (x, w, h) => { x.fillStyle = shd(col, 0.45); x.fillRect(0, 0, w, h);
+    for (let r = 0; r < 8; r++) { let px = -Math.random() * 60; while (px < w) { const bw = 50 + Math.random() * 60; x.fillStyle = shd(col, 0.8 + Math.random() * 0.4);
+      x.beginPath(); x.roundRect(px + 3, r * 64 + 3, bw - 6, 58, 8); x.fill(); px += bw; } }
+    x.strokeStyle = shd(col, 0.4); x.lineWidth = 2; for (let i = 0; i < 25; i++) { let a = Math.random() * w, b = Math.random() * h; x.beginPath(); x.moveTo(a, b); for (let k = 0; k < 4; k++) { a += (Math.random() - 0.5) * 30; b += Math.random() * 20; x.lineTo(a, b); } x.stroke(); }
+    noise(x, w, h, 1.5, 0.12); }),
+  cobble: (col = 0x9a9488) => tx('cob' + col, 512, 512, (x, w, h) => { x.fillStyle = shd(col, 0.4); x.fillRect(0, 0, w, h);
+    for (let r = 0; r < 10; r++) for (let c = 0; c < 10; c++) { const cx = c * 51 + (r % 2) * 25 + (Math.random() - 0.5) * 8, cy = r * 51 + (Math.random() - 0.5) * 8;
+      const g = x.createRadialGradient(cx - 6, cy - 6, 2, cx, cy, 26); g.addColorStop(0, shd(col, 1.25)); g.addColorStop(1, shd(col, 0.7 + Math.random() * 0.2)); x.fillStyle = g;
+      x.beginPath(); x.ellipse(cx, cy, 21 + Math.random() * 4, 19 + Math.random() * 4, Math.random(), 0, 7); x.fill(); } noise(x, w, h, 1, 0.1); }),
+  shingle: (col = 0x3a4aa8) => tx('sh' + col, 256, 256, (x, w, h) => { x.fillStyle = shd(col, 0.5); x.fillRect(0, 0, w, h);
+    for (let r = 0; r < 9; r++) for (let c = -1; c < 9; c++) { const cx = c * 32 + (r % 2) * 16, cy = r * 30; x.fillStyle = shd(col, 0.8 + Math.random() * 0.35);
+      x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + 30, cy); x.lineTo(cx + 30, cy + 20); x.arc(cx + 15, cy + 20, 15, 0, Math.PI); x.closePath(); x.fill(); } noise(x, w, h, 0.8, 0.1); }),
+  strata: (col = 0xc8703a) => tx('st' + col, 256, 512, (x, w, h) => { let y = 0; while (y < h) { const bh = 8 + Math.random() * 30; x.fillStyle = shd(col, 0.75 + Math.random() * 0.45); x.fillRect(0, y, w, bh); y += bh; }
+    x.strokeStyle = shd(col, 0.5); x.lineWidth = 2; for (let i = 0; i < 18; i++) { const a = Math.random() * w; x.beginPath(); x.moveTo(a, Math.random() * h); x.lineTo(a + (Math.random() - 0.5) * 20, Math.random() * h); x.stroke(); } noise(x, w, h, 2, 0.12); }),
+  snow: () => tx('snow', 512, 512, (x, w, h) => { x.fillStyle = '#e4ecf6'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 40; i++) { const g = x.createRadialGradient(0, 0, 0, 0, 0, 80); g.addColorStop(0, 'rgba(160,185,220,0.35)'); g.addColorStop(1, 'rgba(160,185,220,0)'); x.save(); x.translate(Math.random() * w, Math.random() * h); x.scale(2.2, 0.6); x.fillStyle = g; x.fillRect(-80, -80, 160, 160); x.restore(); }
+    for (let i = 0; i < 500; i++) { x.fillStyle = 'rgba(255,255,255,0.9)'; x.fillRect(Math.random() * w, Math.random() * h, 2, 2); } noise(x, w, h, 0.8, 0.05); }),
+  dune: (col = 0xe2c288) => tx('dune' + col, 512, 512, (x, w, h) => { x.fillStyle = hx(col); x.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 9) { x.strokeStyle = Math.floor(y / 9) % 2 ? shd(col, 0.82) : shd(col, 1.12); x.lineWidth = 3; x.beginPath(); for (let px = 0; px <= w; px += 16) x.lineTo(px, y + Math.sin(px * 0.03 + y * 0.05) * 5); x.stroke(); } noise(x, w, h, 2, 0.12); }),
+  metal: (col = 0x3a4450) => tx('met' + col, 512, 512, (x, w, h) => { x.fillStyle = hx(col); x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 300; i++) { x.fillStyle = `rgba(255,255,255,${Math.random() * 0.04})`; x.fillRect(0, Math.random() * h, w, 1); }
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) { x.strokeStyle = shd(col, 0.5); x.lineWidth = 4; x.strokeRect(c * 256 + 2, r * 128 + 2, 252, 124); x.fillStyle = shd(col, 1.5);
+      for (const [a, b] of [[10, 10], [242, 10], [10, 114], [242, 114]]) { x.beginPath(); x.arc(c * 256 + a, r * 128 + b, 4, 0, 7); x.fill(); } }
+    for (let i = 0; i < 6; i++) { x.fillStyle = 'rgba(60,40,20,0.25)'; x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, 20, 6, 1.4, 0, 7); x.fill(); } }),
+  wetAsphalt: () => tx('wasp', 512, 512, (x, w, h) => { x.fillStyle = '#1a1a22'; x.fillRect(0, 0, w, h); noise(x, w, h, 3, 0.18);
+    for (let i = 0; i < 9; i++) { x.fillStyle = 'rgba(120,110,170,0.22)'; x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, 30 + Math.random() * 50, 10 + Math.random() * 20, Math.random(), 0, 7); x.fill(); }
+    x.strokeStyle = '#0a0a10'; x.lineWidth = 2; for (let i = 0; i < 10; i++) { let a = Math.random() * w, b = Math.random() * h; x.beginPath(); x.moveTo(a, b); for (let k = 0; k < 5; k++) { a += (Math.random() - 0.5) * 40; b += (Math.random() - 0.5) * 40; x.lineTo(a, b); } x.stroke(); } }),
+  meadow: (col = 0x4f9a3c) => tx('mead' + col, 512, 512, (x, w, h) => { x.fillStyle = shd(col, 0.9); x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 8; i++) { x.fillStyle = 'rgba(110,80,40,0.25)'; x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, 30 + Math.random() * 40, 20 + Math.random() * 25, Math.random(), 0, 7); x.fill(); }
+    for (let i = 0; i < 6000; i++) { const px = Math.random() * w, py = Math.random() * h; x.strokeStyle = shd(col, 0.6 + Math.random() * 0.75); x.lineWidth = 1.5; x.beginPath(); x.moveTo(px, py); x.lineTo(px + (Math.random() - 0.5) * 4, py - 4 - Math.random() * 6); x.stroke(); }
+    for (let i = 0; i < 40; i++) { x.fillStyle = ['#ffffff', '#ffe060', '#ff90c0'][i % 3]; x.beginPath(); x.arc(Math.random() * w, Math.random() * h, 2, 0, 7); x.fill(); } }),
+  deadGrass: () => tx('dg', 512, 512, (x, w, h) => { x.fillStyle = '#3a3428'; x.fillRect(0, 0, w, h); noise(x, w, h, 2, 0.15);
+    for (let i = 0; i < 3500; i++) { const px = Math.random() * w, py = Math.random() * h; x.strokeStyle = shd(0x6a6040, 0.5 + Math.random() * 0.6); x.lineWidth = 1.5; x.beginPath(); x.moveTo(px, py); x.lineTo(px + (Math.random() - 0.5) * 8, py - 3 - Math.random() * 7); x.stroke(); } }),
+  moon: () => tx('moon', 512, 512, (x, w, h) => { x.fillStyle = '#8a8a90'; x.fillRect(0, 0, w, h); noise(x, w, h, 3, 0.15);
+    for (let i = 0; i < 45; i++) { const cx = Math.random() * w, cy = Math.random() * h, r = 3 + Math.random() * 18; x.fillStyle = 'rgba(40,40,50,0.35)'; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill();
+      x.strokeStyle = 'rgba(220,220,230,0.35)'; x.lineWidth = 2; x.beginPath(); x.arc(cx + 1, cy + 1, r, 0.5, 3.2); x.stroke(); } }),
+  spots: (col, dot = '#ffffff', n = 30, r = [6, 14]) => tx('sp' + col + dot + n, 256, 256, (x, w, h) => { x.fillStyle = hx(col); x.fillRect(0, 0, w, h); noise(x, w, h, 0.6, 0.08);
+    for (let i = 0; i < n; i++) { x.fillStyle = dot; x.beginPath(); x.arc(Math.random() * w, Math.random() * h, r[0] + Math.random() * (r[1] - r[0]), 0, 7); x.fill(); } }),
+  boards: (col = 0x3a3040) => tx('bd' + col, 256, 256, (x, w, h) => { for (let i = 0; i < 8; i++) { x.fillStyle = shd(col, 0.75 + Math.random() * 0.45); x.fillRect(i * 32, 0, 32, h); x.fillStyle = shd(col, 0.4); x.fillRect(i * 32, 0, 3, h); }
+    for (let i = 0; i < 20; i++) { x.fillStyle = shd(col, 0.35); x.beginPath(); x.arc(Math.random() * w, Math.random() * h, 3, 0, 7); x.fill(); } noise(x, w, h, 1, 0.12); }),
+};
+// scattered low-poly rocks (textured) and grass tufts (instanced), outside the play area
+function rocks(S, n, rMin, rMax, seed, col = 0x8a8478, s = 1) {
+  const mat = tm(TX.stone(col), 0.6, 0.6, { bump: 2 });
+  around(n, rMin, rMax, seed, (x, z, R) => { const g = new THREE.IcosahedronGeometry(0.5 + R() * 0.9, 1); const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const k = 0.8 + R() * 0.4; p.setXYZ(i, p.getX(i) * k, p.getY(i) * k * 0.7, p.getZ(i) * k); } g.computeVertexNormals();
+    const m = mesh(g, mat); m.position.set(x, 0.15 * s, z); m.scale.setScalar(s); m.rotation.y = R() * 6; S.add(m); });
+}
+function tufts(S, n, col = 0x4f9a3c, seed = 2, h = 0.5) {
+  const R = rng(seed), g = new THREE.ConeGeometry(0.05, h, 4); g.translate(0, h / 2, 0); const im = new THREE.InstancedMesh(g, M({ color: col, roughness: 0.9 }), n * 5);
+  const o = new THREE.Object3D(); let k = 0;
+  for (let i = 0; i < n; i++) { let x = (R() - 0.5) * 40, z = -30 + R() * 36; if (Math.abs(x) < 4 && z > -3 && z < 6) x += Math.sign(x || 1) * 5;
+    for (let j = 0; j < 5; j++) { o.position.set(x + (R() - 0.5) * 0.3, 0, z + (R() - 0.5) * 0.3); o.rotation.set((R() - 0.5) * 0.6, R() * 3, (R() - 0.5) * 0.6); o.scale.set(1, 0.6 + R() * 0.8, 1); o.updateMatrix(); im.setMatrixAt(k++, o.matrix); } }
+  im.instanceColor = null; S.add(im); return im;
+}
+
 // ---------------- worlds ----------------
 export function forest(S, { night = false } = {}) {
-  rig(S, night ? { sky: [[0, '#0a1030'], [1, '#2a3a6a']], fog: [0x1a2448, 14, 60], hemi: [0x5a70c0, 0x101018, 0.7], sun: [0x9ab0ff, 1.4, [-8, 14, 8]], rim: [0x80a0ff, 1.0], look: 'night' }
-    : { sky: [[0, '#6ab0e8'], [1, '#d8f0c8']], fog: [0xbfe0b8, 22, 80], hemi: [0xd0f0ff, 0x405030, 0.9], sun: [0xfff0c8, 3.0, [-8, 14, 10]] });
-  ground(S, repeatMat(T2.grass(), 20, 20));
+  rig(S, night ? { sky: [[0, '#0a1030'], [1, '#2a3a6a']], fog: [0x1a2448, 22, 90], hemi: [0x5a70c0, 0x101018, 0.7], sun: [0x9ab0ff, 1.4, [-8, 14, 8]], rim: [0x80a0ff, 1.0], look: 'night' }
+    : { sky: [[0, '#6ab0e8'], [1, '#d8f0c8']], fog: [0xbfe0b8, 45, 150], hemi: [0xd0f0ff, 0x405030, 0.9], sun: [0xfff0c8, 3.0, [-8, 14, 10]] });
+  ground(S, tm(TX.meadow(night ? 0x2f6a3a : 0x4f9a3c), 22, 22, { bump: 1.2 })); rocks(S, 14, 8, 30, 17, 0x8a8a80); tufts(S, 140, night ? 0x2a5a3a : 0x5aa846, 3);
+  { const Rf = rng(77); for (let i = 0; i < 34; i++) tree(S, [-80 + i * 4.8 + Rf() * 3, -55 - Rf() * 25], { h: 7 + Rf() * 5, leaf: night ? 0x22483a : [0x3a7a3a, 0x2f6a34, 0x4a8a3c][i % 3], s: 1.2 + Rf() * 0.8 }); }   // distant tree line
   around(26, 11, 34, 4, (x, z, R) => tree(S, [x, z], { h: 6 + R() * 4, leaf: night ? 0x2a5a3a : [0x3f8a3a, 0x4f9a3c, 0x2f7a3a][Math.floor(R() * 3)], s: 0.9 + R() * 0.5 }));
   around(12, 7, 14, 9, (x, z, R) => { const s = 0.5 + R() * 0.6; const st = mesh(new THREE.CylinderGeometry(0.18 * s, 0.22 * s, 0.7 * s, 8), M({ color: 0xf2ead8 })); st.position.set(x, 0.35 * s, z); S.add(st);
-    const cap = mesh(new THREE.SphereGeometry(0.6 * s, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), M({ color: R() < 0.5 ? 0xd83a3a : 0xc87a3a })); cap.position.set(x, 0.7 * s, z); S.add(cap); });
+    const cap = mesh(new THREE.SphereGeometry(0.6 * s, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), tm(TX.spots(R() < 0.5 ? 0xd83a3a : 0xc87a3a, '#fff4e0', 14, [8, 16]), 2, 1, { bump: 0.5 })); cap.position.set(x, 0.7 * s, z); S.add(cap); });
   if (night) { const moon = new THREE.Mesh(new THREE.SphereGeometry(3, 24, 16), glow(0xfff4d0)); moon.position.set(-14, 22, -60); S.add(moon);
     const key = new THREE.PointLight(0xffd8a0, 18, 16, 1.6); key.position.set(0, 6, 5); S.add(key); }
   const up = night ? particles(S, 60, { col: 0xd8ff70, size: 0.09, box: [-12, 12, 0.5, 6, -12, 6], wobble: 0.8 }) : particles(S, 30, { col: 0xfff8d0, size: 0.05, box: [-10, 10, 1, 8, -10, 6], wobble: 0.6 });
   return { update: up };
 }
 export function spooky(S) {   // haunted hill: kid-friendly spooky (purple sky, big moon, dead trees, graves, crooked house)
-  rig(S, { sky: [[0, '#1a0a30'], [0.7, '#5a2a6a'], [1, '#c86a5a']], fog: [0x3a2050, 16, 70], hemi: [0x8a70d0, 0x201018, 0.8], sun: [0xb0a0ff, 1.6, [-10, 12, 8]], rim: [0xff9a60, 1.4], look: 'night' });
-  ground(S, M({ map: floorTex('#3a3a2a', '#2a2a1a').clone(), color: 0x5a5a48 }));
+  rig(S, { sky: [[0, '#1a0a30'], [0.7, '#5a2a6a'], [1, '#c86a5a']], fog: [0x3a2050, 26, 100], hemi: [0x8a70d0, 0x201018, 0.8], sun: [0xb0a0ff, 1.6, [-10, 12, 8]], rim: [0xff9a60, 1.4], look: 'night' });
+  ground(S, tm(TX.deadGrass(), 20, 20, { bump: 1.5, color: 0x9a9080 })); rocks(S, 10, 9, 28, 23, 0x6a6a70); tufts(S, 90, 0x5a5238, 5, 0.6);
   const moon = new THREE.Mesh(new THREE.SphereGeometry(5, 24, 16), glow(0xffe8b0)); moon.position.set(10, 26, -70); S.add(moon);
   around(10, 12, 30, 7, (x, z, R) => tree(S, [x, z], { h: 6 + R() * 3, trunk: 0x2a1a20, kind: 'dead' }));
-  const stone = M({ color: 0x7a7a80 });
+  const stone = tm(TX.stone(0x8a8a90), 0.5, 0.6, { bump: 2.5 });
   around(12, 7, 16, 11, (x, z, R) => { box(S, [1.2, 1.6 + R() * 0.6, 0.35], [x, 0.8, z], stone, { r: 0.4, rot: [0, 0, (R() - 0.5) * 0.3], name: 'grave' }); });
-  const hs = M({ color: 0x2a2030 }); box(S, [10, 9, 8], [-6, 4.5, -38], hs, { r: 0, cast: false, rot: [0, 0, 0.04], solid: false }); box(S, [11, 0.6, 9], [-6, 9.2, -38], M({ color: 0x1a1020 }), { r: 0, rot: [0, 0, -0.1], solid: false });
+  const hs = tm(TX.boards(0x3a3040), 3, 3, { bump: 2 }); box(S, [10, 9, 8], [-6, 4.5, -38], hs, { r: 0, cast: false, rot: [0, 0, 0.04], solid: false }); box(S, [11, 0.6, 9], [-6, 9.2, -38], tm(TX.shingle(0x2a2030), 4, 3), { r: 0, rot: [0, 0, -0.1], solid: false });
   box(S, [3, 7, 3], [-2, 11, -38], hs, { r: 0, rot: [0, 0, 0.1], solid: false });
   for (const [x, y] of [[-8.5, 5], [-4, 5], [-6, 7.2], [-2, 12]]) box(S, [1.4, 1.6, 0.1], [x, y, -33.9], glow(0xffc860), { r: 0, cast: false, solid: false });
   const key = new THREE.PointLight(0xffb070, 22, 18, 1.6); key.position.set(1, 6, 6); S.add(key);
-  const pumpkins = []; around(5, 5, 9, 13, (x, z) => { const p = mesh(new THREE.SphereGeometry(0.6, 16, 10), M({ color: 0xf07a1a })); p.scale.y = 0.8; p.position.set(x, 0.48, z); S.add(p);
+  const pumpkins = []; around(5, 5, 9, 13, (x, z) => { const p = mesh(new THREE.SphereGeometry(0.6, 16, 10), tm(tx('pump', 256, 128, (c, w, h) => { c.fillStyle = '#f07a1a'; c.fillRect(0, 0, w, h); for (let i = 0; i < 8; i++) { c.fillStyle = '#c85a10'; c.fillRect(i * 32, 0, 5, h); } noise(c, w, h, 1, 0.1); }), 1, 1, { bump: 2 })); p.scale.y = 0.8; p.position.set(x, 0.48, z); S.add(p);
     const l = new THREE.PointLight(0xff8a30, 3, 4, 2); l.position.set(x, 0.9, z + 0.5); S.add(l); });
   return { update: particles(S, 40, { col: 0xc0a0ff, size: 0.07, box: [-14, 14, 0.5, 8, -16, 6], wobble: 1.0 }) };
 }
 export function space(S) {    // moon surface: craters, starfield, ringed planet, distant earth
   rig(S, { sky: [[0, '#000006'], [1, '#0a0a24']], fog: null, hemi: [0x8090c0, 0x202024, 0.6], sun: [0xffffff, 3.4, [-12, 9, 6]], rim: [0x6a8aff, 1.6], look: 'night' });
-  ground(S, M({ map: (() => { const t = floorTex('#8a8a90', '#6a6a70', 2.5); t.repeat.set(16, 16); return t; })(), roughness: 1 }));
-  const R = rng(5), cm = M({ color: 0x75757c, roughness: 1 });
+  ground(S, tm(TX.moon(), 14, 14, { bump: 3, roughness: 1 })); rocks(S, 18, 7, 36, 31, 0x8a8a90);
+  const R = rng(5), cm = tm(TX.moon(), 1, 1, { bump: 3, roughness: 1, color: 0xb0b0b8 });
   around(16, 7, 40, 21, (x, z, Rr) => { const s = 1 + Rr() * 2.5; const c = mesh(new THREE.TorusGeometry(s, s * 0.22, 6, 20), cm); c.rotation.x = Math.PI / 2; c.position.set(x, 0, z); c.scale.z = 0.6; S.add(c); });
   const sg = new THREE.BufferGeometry(), sp = []; for (let i = 0; i < 1500; i++) { const a = R() * Math.PI * 2, b = R() * Math.PI * 0.48, r = 250; sp.push(Math.cos(a) * Math.cos(b) * r, Math.sin(b) * r, Math.sin(a) * Math.cos(b) * r); }
   sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)); S.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, sizeAttenuation: false })));
   const pl = new THREE.Group(); pl.position.set(18, 30, -110); S.add(pl);
   pl.add(new THREE.Mesh(new THREE.SphereGeometry(14, 32, 20), M({ map: ctex(256, 128, (x, w, h) => { for (let i = 0; i < 16; i++) { x.fillStyle = ['#e8a86a', '#d88a5a', '#f2c890', '#c8784a'][i % 4]; x.fillRect(0, i * 8, w, 8); } }), emissive: 0x3a2010 })));
   const ring = new THREE.Mesh(new THREE.RingGeometry(18, 26, 64), new THREE.MeshBasicMaterial({ color: 0xe8d0a8, side: THREE.DoubleSide, transparent: true, opacity: 0.7 })); ring.rotation.x = -1.2; ring.rotation.y = 0.3; pl.add(ring);
-  const earth = new THREE.Mesh(new THREE.SphereGeometry(4, 24, 16), M({ color: 0x3a7ad8, emissive: 0x10305a })); earth.position.set(-26, 22, -90); S.add(earth);
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(4, 24, 16), M({ map: ctex(256, 128, (c, w, h) => { c.fillStyle = '#2a6ad0'; c.fillRect(0, 0, w, h); for (let i = 0; i < 14; i++) { c.fillStyle = i % 3 ? '#3a9a4a' : '#e8e8e8'; c.beginPath(); c.ellipse(Math.random() * w, Math.random() * h, 10 + Math.random() * 24, 6 + Math.random() * 12, Math.random(), 0, 7); c.fill(); } }), emissive: 0x10305a })); earth.position.set(-26, 22, -90); S.add(earth);
   const flag = new THREE.Group(); flag.position.set(-6, 0, -6); S.add(flag); flag.add(mesh(new THREE.CylinderGeometry(0.06, 0.06, 4, 6), M({ color: 0xdddddd })));
   flag.children[0].position.y = 2; const fl = mesh(new THREE.PlaneGeometry(1.8, 1.1), M({ color: 0xe84a4a, side: THREE.DoubleSide })); fl.position.set(0.9, 3.4, 0); flag.add(fl);
   return { update: (t) => { pl.rotation.y = t * 0.02; earth.rotation.y = t * 0.1; } };
 }
 export function underwater(S) {   // sea floor: sand, kelp, coral, light shafts, bubbles
   rig(S, { sky: [[0, '#0a6aa8'], [1, '#04304a']], fog: [0x0a5a88, 8, 48], hemi: [0x6ad0ff, 0x0a2a3a, 1.0], sun: [0xb8f0ff, 2.2, [-4, 16, 6]], rim: [0x40c0ff, 1.0] });
-  ground(S, repeatMat(T2.sand(), 16, 16));
-  const kelp = []; around(18, 6, 26, 3, (x, z, R) => { const g = new THREE.Group(); g.position.set(x, 0, z); S.add(g); const h = 4 + R() * 6, m = M({ color: R() < 0.5 ? 0x3a8a3a : 0x5a9a2a });
+  ground(S, tm(TX.dune(0xd8c08a), 18, 18, { bump: 1.5 })); rocks(S, 16, 6, 24, 41, 0x6a8a8a);
+  const kelp = []; around(18, 6, 26, 3, (x, z, R) => { const g = new THREE.Group(); g.position.set(x, 0, z); S.add(g); const h = 4 + R() * 6, m = tm(TX.leaf(R() < 0.5 ? 0x3a8a3a : 0x5a9a2a), 0.5, 1, { bump: 1.5 });
     for (let i = 0; i < 6; i++) { const seg = mesh(new THREE.BoxGeometry(0.35, h / 6, 0.12), m); seg.position.y = h / 12 + i * h / 6; g.add(seg); } kelp.push(g); });
   const cols = [0xff6a8a, 0xffa040, 0xb06ad8, 0xff4a5a];
-  around(14, 6, 14, 8, (x, z, R) => { const m = M({ color: cols[Math.floor(R() * 4)], roughness: 0.6 }); for (let i = 0; i < 4; i++) { const b = mesh(new THREE.CylinderGeometry(0.12, 0.2, 1 + R(), 6), m); b.position.set(x + (R() - 0.5), 0.5, z + (R() - 0.5)); b.rotation.set((R() - 0.5) * 0.8, 0, (R() - 0.5) * 0.8); S.add(b); }
+  around(14, 6, 14, 8, (x, z, R) => { const m = tm(TX.spots(cols[Math.floor(R() * 4)], 'rgba(255,255,255,0.45)', 60, [2, 5]), 1, 1, { bump: 3, roughness: 0.6 }); for (let i = 0; i < 4; i++) { const b = mesh(new THREE.CylinderGeometry(0.12, 0.2, 1 + R(), 6), m); b.position.set(x + (R() - 0.5), 0.5, z + (R() - 0.5)); b.rotation.set((R() - 0.5) * 0.8, 0, (R() - 0.5) * 0.8); S.add(b); }
     const ball = mesh(new THREE.IcosahedronGeometry(0.5, 1), m); ball.position.set(x + 0.7, 0.4, z); S.add(ball); });
   const shaft = new THREE.MeshBasicMaterial({ color: 0xbff0ff, transparent: true, opacity: 0.08, depthWrite: false, side: THREE.DoubleSide });
   for (let i = 0; i < 6; i++) { const p = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 40), shaft); p.position.set(-12 + i * 5, 14, -14 + (i % 2) * 4); p.rotation.z = 0.35; S.add(p); }
@@ -111,36 +182,36 @@ export function underwater(S) {   // sea floor: sand, kelp, coral, light shafts,
   return { update: (t) => { bub(t); kelp.forEach((g, i) => g.children.forEach((c, k) => { c.rotation.z = Math.sin(t * 1.2 + i + k * 0.5) * 0.12 * k; c.position.x = Math.sin(t * 1.2 + i) * 0.04 * k * k; })); } };
 }
 export function candy(S) {    // candy land: pink ground, lollipop trees, gumdrops, candy canes, cotton-candy clouds
-  rig(S, { sky: [[0, '#ff9ad8'], [1, '#ffe8f6']], fog: [0xffd8f0, 26, 90], hemi: [0xffe0f8, 0x8a4a7a, 1.0], sun: [0xfff0f8, 3.0, [-8, 14, 10]], rim: [0xffc0e0, 1.2] });
+  rig(S, { sky: [[0, '#ff9ad8'], [1, '#ffe8f6']], fog: [0xffd8f0, 45, 150], hemi: [0xffe0f8, 0x8a4a7a, 1.0], sun: [0xfff0f8, 3.0, [-8, 14, 10]], rim: [0xffc0e0, 1.2] });
   ground(S, M({ map: (() => { const t = ctex(256, 256, (x, w, h) => { for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) { x.fillStyle = (i + j) % 2 ? '#ffb8e0' : '#ffe0f2'; x.fillRect(i * 32, j * 32, 32, 32); } }); t.repeat.set(30, 30); return t; })() }));
   const cols = [0xff4a8a, 0x4ad8c8, 0xffd84a, 0xa86aff, 0xff8a3a];
   around(14, 9, 28, 6, (x, z, R) => { const g = new THREE.Group(); g.position.set(x, 0, z); S.add(g); const h = 4 + R() * 3; const stick = mesh(new THREE.CylinderGeometry(0.15, 0.15, h, 8), M({ color: 0xf8f8f8 })); stick.position.y = h / 2; g.add(stick);
     const pop = mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.4, 32), M({ map: ctex(256, 256, (c, w, hh) => { for (let k = 0; k < 6; k++) { c.fillStyle = k % 2 ? '#ffffff' : '#' + new THREE.Color(cols[Math.floor(R() * 5)]).getHexString(); c.beginPath(); c.arc(128, 128, 128 - k * 21, 0, 7); c.fill(); } }) }));
     pop.rotation.x = Math.PI / 2; pop.position.y = h + 1.2; g.add(pop); });
-  around(16, 6, 13, 9, (x, z, R) => { const d = mesh(new THREE.SphereGeometry(0.7, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), M({ color: cols[Math.floor(R() * 5)], roughness: 0.25, transparent: true, opacity: 0.92 })); d.position.set(x, 0, z); d.scale.y = 1.3; S.add(d); });
+  around(16, 6, 13, 9, (x, z, R) => { const d = mesh(new THREE.SphereGeometry(0.7, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), tm(TX.spots(cols[Math.floor(R() * 5)], 'rgba(255,255,255,0.8)', 260, [1, 2]), 2, 1, { bump: 1.2, roughness: 0.3 })); d.position.set(x, 0, z); d.scale.y = 1.3; S.add(d); });
   const cl = M({ color: 0xffd0f0, roughness: 1 }); for (let i = 0; i < 6; i++) { const c = new THREE.Group(); c.position.set(-30 + i * 12, 16 + (i % 3) * 3, -50); S.add(c); for (let k = 0; k < 4; k++) { const b = mesh(new THREE.SphereGeometry(2.4, 14, 10), cl, false); b.position.set(k * 2.2 - 3.3, Math.sin(k) * 0.6, 0); c.add(b); } }
   return { update: particles(S, 40, { col: 0xffffff, size: 0.08, box: [-12, 12, 1, 10, -12, 6], wobble: 0.5 }) };
 }
 export function castle(S, { night = false } = {}) {   // stone courtyard in front of a castle with towers and banners
   rig(S, night ? { sky: [[0, '#0a1030'], [1, '#3a3a6a']], fog: [0x2a2a4a, 25, 90], hemi: [0x6a7ac0, 0x201818, 0.7], sun: [0xa0b0ff, 1.4, [-8, 14, 8]], rim: [0xffb070, 1.0], look: 'night' }
-    : { sky: [[0, '#4f86d8'], [1, '#ffe0b8']], fog: [0xf0d8b8, 30, 110], hemi: [0xd0e0ff, 0x504030, 0.9], sun: [0xffe8c0, 3.2, [-8, 14, 10]] });
-  ground(S, repeatMat(T.concrete(0xa8a090), 20, 20));
-  const st = std({ map: repeatMat(T.brick(0x8a8478), 6, 3).map });
+    : { sky: [[0, '#4f86d8'], [1, '#ffe0b8']], fog: [0xf0d8b8, 55, 180], hemi: [0xd0e0ff, 0x504030, 0.9], sun: [0xffe8c0, 3.2, [-8, 14, 10]] });
+  ground(S, tm(TX.cobble(0x9a9488), 24, 24, { bump: 2.5 }));
+  const st = tm(TX.stone(0x8a8478), 6, 2, { bump: 2.5 });
   box(S, [60, 12, 3], [0, 6, -22], st, { r: 0, cast: false, solid: false });
   for (let x = -29; x <= 29; x += 2.4) box(S, [1.4, 1.4, 3], [x, 12.7, -22], st, { r: 0, cast: false, solid: false });
-  for (const x of [-16, 16, 0]) { const h = x ? 20 : 26, rr = x ? 4 : 5; const tw = mesh(new THREE.CylinderGeometry(rr, rr, h, 20), st.clone(), false); tw.position.set(x, h / 2, -24); S.add(tw);
-    const roof = mesh(new THREE.ConeGeometry(rr + 0.8, 7, 20), M({ color: 0x3a4aa8 }), false); roof.position.set(x, h + 3.5, -24); S.add(roof);
+  for (const x of [-16, 16, 0]) { const h = x ? 20 : 26, rr = x ? 4 : 5; const tw = mesh(new THREE.CylinderGeometry(rr, rr, h, 24), tm(TX.stone(0x8a8478), rr * 1.2, h / 5, { bump: 2.5 }), false); tw.position.set(x, h / 2, -24); S.add(tw);
+    const roof = mesh(new THREE.ConeGeometry(rr + 0.8, 7, 24), tm(TX.shingle(0x3a4aa8), 4, 2, { bump: 2 }), false); roof.position.set(x, h + 3.5, -24); S.add(roof);
     const win = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.4, 0.2), night ? glow(0xffc860) : M({ color: 0x1a1a2a })); win.position.set(x, h - 5, -24 + rr); S.add(win); }
   const gate = box(S, [7, 9, 0.6], [0, 4.5, -20.4], M({ map: T.planks(0x5a3a22) }), { r: 0.1, cast: false, solid: false });
   const flags = []; for (const x of [-8, 8]) { box(S, [0.2, 8, 0.2], [x, 4, -6], M({ color: 0x4a4a4a, metalness: 0.5 }), { r: 0.05, name: 'banner pole' });
-    const f = mesh(new THREE.PlaneGeometry(2, 3, 8, 1), M({ color: x < 0 ? 0xc0302a : 0x2a5ac0, side: THREE.DoubleSide })); f.position.set(x + 1.05, 6.4, -6); S.add(f); flags.push(f); }
+    const f = mesh(new THREE.PlaneGeometry(2, 3, 8, 1), M({ side: THREE.DoubleSide, map: ctex(128, 192, (c, w, h) => { c.fillStyle = x < 0 ? '#c0302a' : '#2a5ac0'; c.fillRect(0, 0, w, h); c.fillStyle = '#f2c83a'; c.fillRect(0, 0, w, 12); c.fillRect(0, h - 12, w, 12); c.beginPath(); c.moveTo(w / 2, 50); c.lineTo(w / 2 + 30, 96); c.lineTo(w / 2, 142); c.lineTo(w / 2 - 30, 96); c.fill(); noise(c, w, h, 1, 0.1); }) })); f.position.set(x + 1.05, 6.4, -6); S.add(f); flags.push(f); }
   if (night) for (const x of [-4.5, 4.5]) { const l = new THREE.PointLight(0xff9a40, 14, 12, 1.6); l.position.set(x, 6, -19.5); S.add(l); const fl = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), glow(0xffb050)); fl.position.copy(l.position); S.add(fl); }
   return { update: (t) => flags.forEach((f, i) => { const p = f.geometry.attributes.position; for (let k = 0; k < p.count; k++) { const x = p.getX(k); p.setZ(k, Math.sin(t * 4 + x * 2 + i) * 0.15 * (x + 1)); } p.needsUpdate = true; }) };
 }
 export function cityNight(S) {    // neon street at night: lit windows, glowing signs, wet asphalt
   rig(S, { sky: [[0, '#05051a'], [1, '#2a1a4a']], fog: [0x1a1030, 20, 80], hemi: [0x6a5ac0, 0x101018, 0.6], sun: [0x8a9aff, 1.0, [-6, 14, 8]], rim: [0xff4ad8, 1.6], look: 'night' });
-  ground(S, M({ color: 0x1a1a22, roughness: 0.25, metalness: 0.4 }));
-  box(S, [80, 0.32, 8], [0, -0.13, -4], M({ color: 0x4a4a52, roughness: 0.6 }), { r: 0, cast: false, solid: false });
+  ground(S, tm(TX.wetAsphalt(), 16, 16, { bump: 1, roughness: 0.3, metalness: 0.35 }));
+  box(S, [80, 0.32, 8], [0, -0.13, -4], repeatMat(T.tiles(0x5a5a62, 0x4a4a52), 40, 4), { r: 0, cast: false, solid: false });
   const R = rng(4), neon = [0xff3ad8, 0x3ae8ff, 0xffe83a, 0x6aff6a, 0xff6a3a]; let x = -40;
   while (x < 40) { const w = 7 + R() * 5, h = 14 + R() * 18;
     const wt = ctex(256, 512, (c, cw, ch) => { c.fillStyle = '#000000'; c.fillRect(0, 0, cw, ch); for (let yy = 10; yy < ch; yy += 34) for (let xx = 10; xx < cw; xx += 40) { c.fillStyle = Math.random() < 0.4 ? '#ffd890' : '#000000'; c.fillRect(xx, yy, 24, 20); } });
@@ -153,21 +224,23 @@ export function cityNight(S) {    // neon street at night: lit windows, glowing 
   return { update: particles(S, 30, { col: 0xff9ae8, size: 0.05, box: [-14, 14, 1, 10, -10, 6], wobble: 0.4 }) };
 }
 export function snow(S) {    // snowy hill: pines, snowmen, falling snow, mountains
-  rig(S, { sky: [[0, '#6a9ad0'], [1, '#d8e6f4']], fog: [0xc8d8e8, 24, 95], hemi: [0xd8e4ff, 0x6a7890, 0.75], sun: [0xfff0e0, 1.9, [-8, 14, 10]] });
-  ground(S, M({ color: 0xd8e2ee, roughness: 0.95 }));
+  rig(S, { sky: [[0, '#6a9ad0'], [1, '#d8e6f4']], fog: [0xc8d8e8, 55, 190], hemi: [0xd8e4ff, 0x6a7890, 0.75], sun: [0xfff0e0, 1.9, [-8, 14, 10]] });
+  ground(S, tm(TX.snow(), 7, 7, { bump: 2.5, roughness: 0.95 })); rocks(S, 10, 9, 30, 51, 0x7a8090);
   around(22, 10, 34, 5, (x, z, R) => { const g = tree(S, [x, z], { h: 3 + R() * 2, kind: 'pine', leaf: 0x2a5a3a, s: 1 + R() * 0.6 }); g.children.slice(1).forEach(c => { const sc = mesh(new THREE.ConeGeometry(c.geometry.parameters.radius * 0.7, 1.0, 9), M({ color: 0xffffff })); sc.position.copy(c.position); sc.position.y += 0.9; g.add(sc); }); });
-  for (const [x, z] of [[-6, -5], [7, -7]]) { const w = M({ color: 0xffffff }); [[0.9, 0.9], [0.65, 2.25], [0.45, 3.2]].forEach(([r, y]) => { const b = mesh(new THREE.SphereGeometry(r, 16, 12), w); b.position.set(x, y, z); S.add(b); });
+  for (const [x, z] of [[-6, -5], [7, -7]]) { const w = tm(TX.snow(), 1, 1, { bump: 2 }); [[0.9, 0.9], [0.65, 2.25], [0.45, 3.2]].forEach(([r, y]) => { const b = mesh(new THREE.SphereGeometry(r, 16, 12), w); b.position.set(x, y, z); S.add(b); });
     const n = mesh(new THREE.ConeGeometry(0.08, 0.5, 8), M({ color: 0xff8a2a })); n.rotation.x = Math.PI / 2; n.position.set(x, 3.2, z + 0.65); S.add(n); }
-  const mt = M({ color: 0xc8d0e0, roughness: 1 }); [[-40, 30], [-10, 40], [25, 34], [50, 28]].forEach(([x, h]) => { const m = mesh(new THREE.ConeGeometry(h * 0.8, h, 7), mt, false); m.position.set(x, h / 2 - 2, -80); S.add(m);
-    const cap = mesh(new THREE.ConeGeometry(h * 0.28, h * 0.35, 7), M({ color: 0xffffff }), false); cap.position.set(x, h - 2 - h * 0.17, -80); S.add(cap); });
+  const mt = tm(TX.strata(0x8a90a0), 6, 3, { bump: 2, roughness: 1 }); [[-40, 30], [-10, 40], [25, 34], [50, 28]].forEach(([x, h]) => { const m = mesh(new THREE.ConeGeometry(h * 0.8, h, 7), mt, false); m.position.set(x, h / 2 - 2, -80); S.add(m);
+    const cap = mesh(new THREE.ConeGeometry(h * 0.28, h * 0.35, 7), tm(TX.snow(), 2, 2, { bump: 2 }), false); cap.position.set(x, h - 2 - h * 0.17, -80); S.add(cap); });
   return { update: particles(S, 260, { col: 0xffffff, size: 0.07, fall: 1.2, box: [-16, 16, 0, 14, -16, 8], wobble: 0.5, emissive: false }) };
 }
 export function desert(S) {    // dunes, mesas, cacti, heat-haze sky
-  rig(S, { sky: [[0, '#5aa0e0'], [1, '#ffd8a0']], fog: [0xf8d8a8, 30, 110], hemi: [0xfff0d0, 0x8a6030, 1.0], sun: [0xfff0c0, 3.6, [-10, 16, 8]] });
-  ground(S, repeatMat(T2.sand(), 18, 18));
-  const R = rng(8), sm = M({ color: 0xe8c080 }); for (let i = 0; i < 9; i++) { const d = mesh(new THREE.SphereGeometry(8 + R() * 6, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), sm, false); d.scale.y = 0.25; d.position.set(-50 + i * 12, -0.5, -30 - R() * 20); S.add(d); }
-  const mm = M({ color: 0xc8703a }); [[-30, 14], [20, 18], [45, 12]].forEach(([x, h]) => { box(S, [18, h, 12], [x, h / 2, -70], mm, { r: 0.5, cast: false, solid: false }); });
-  const cm = M({ color: 0x4f8a3a }); around(10, 8, 24, 3, (x, z, Rr) => { const h = 2.5 + Rr() * 2.5; const b = mesh(new THREE.CapsuleGeometry(0.4, h, 6, 12), cm); b.position.set(x, h / 2 + 0.4, z); S.add(b);
+  rig(S, { sky: [[0, '#5aa0e0'], [1, '#ffd8a0']], fog: [0xf8d8a8, 70, 220], hemi: [0xfff0d0, 0x8a6030, 1.0], sun: [0xfff0c0, 3.6, [-10, 16, 8]] });
+  ground(S, tm(TX.dune(), 16, 16, { bump: 2 })); rocks(S, 12, 8, 30, 61, 0xb07a4a);
+  const R = rng(8), sm = tm(TX.dune(0xe8c080), 6, 3, { bump: 2 }); for (let i = 0; i < 9; i++) { const d = mesh(new THREE.SphereGeometry(8 + R() * 6, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), sm, false); d.scale.y = 0.25; d.position.set(-50 + i * 12, -0.5, -30 - R() * 20); S.add(d); }
+  const mm = tm(TX.strata(0xc8703a), 3, 1, { bump: 3 }); [[-34, 14, 11], [-12, 9, 7], [20, 18, 12], [46, 12, 9]].forEach(([x, h, r], i) => { const g = new THREE.CylinderGeometry(r * 0.78, r, h, 7, 3); const p = g.attributes.position;
+    for (let k = 0; k < p.count; k++) { const a = Math.atan2(p.getX(k), p.getZ(k)); const f = 1 + 0.12 * Math.sin(a * 3 + i) + (p.getY(k) > h / 2 - 0.01 ? 0 : 0.05 * Math.sin(p.getY(k) * 1.3 + a)); p.setX(k, p.getX(k) * f); p.setZ(k, p.getZ(k) * f); }
+    g.computeVertexNormals(); const m = mesh(g, mm, false); m.position.set(x, h / 2, -70 - (i % 2) * 12); S.add(m); });
+  const cm = tm(ctex(128, 128, (c, w, h) => { c.fillStyle = '#4f8a3a'; c.fillRect(0, 0, w, h); for (let i = 0; i < 8; i++) { c.fillStyle = '#3a6a2a'; c.fillRect(i * 16, 0, 4, h); } for (let i = 0; i < 60; i++) { c.fillStyle = '#f4f0d8'; c.fillRect(Math.random() * w, Math.random() * h, 2, 2); } }), 1, 1, { bump: 3 }); around(10, 8, 24, 3, (x, z, Rr) => { const h = 2.5 + Rr() * 2.5; const b = mesh(new THREE.CapsuleGeometry(0.4, h, 6, 12), cm); b.position.set(x, h / 2 + 0.4, z); S.add(b);
     const a = mesh(new THREE.CapsuleGeometry(0.25, 1.0, 4, 10), cm); a.position.set(x + 0.7, h * 0.6 + 0.5, z); S.add(a); });
   const sun = new THREE.Mesh(new THREE.SphereGeometry(6, 24, 16), glow(0xfff4c0)); sun.position.set(-30, 40, -120); S.add(sun);
   return { update: particles(S, 25, { col: 0xe8c890, size: 0.06, box: [-14, 14, 0.2, 3, -10, 6], wobble: 2, emissive: false }) };
@@ -175,7 +248,7 @@ export function desert(S) {    // dunes, mesas, cacti, heat-haze sky
 export function lab(S) {    // mad-science lab interior: glowing tanks, consoles, pipes (back wall z=-9, walls x=±10, h 10)
   S.background = new THREE.Color(0x0a0f14);
   box(S, [20, 0.3, 18], [0, -0.15, 0], M({ map: (() => { const t = ctex(256, 256, (x, w, h) => { x.fillStyle = '#3a4048'; x.fillRect(0, 0, w, h); x.strokeStyle = '#2a2e34'; x.lineWidth = 4; for (let i = 0; i <= w; i += 64) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, h); x.moveTo(0, i); x.lineTo(w, i); x.stroke(); } }); t.repeat.set(5, 5); return t; })(), metalness: 0.3, roughness: 0.5 }), { r: 0, cast: false, name: 'floor' });
-  const wm = M({ color: 0x2a3440, metalness: 0.4, roughness: 0.6 });
+  const wm = tm(TX.metal(0x3a4450), 2, 1, { bump: 1.5, metalness: 0.4, roughness: 0.55 });
   box(S, [20, 10, 0.4], [0, 5, -9.2], wm, { r: 0, cast: false, name: 'back wall' }); box(S, [0.4, 10, 18], [-10.2, 5, 0], wm, { r: 0, cast: false, name: 'wall' }); box(S, [0.4, 10, 18], [10.2, 5, 0], wm, { r: 0, cast: false, name: 'wall' });
   S.add(new THREE.HemisphereLight(0x8ad0ff, 0x10141a, 0.9));
   const key = new THREE.PointLight(0xe8f4ff, 40, 0, 1.6); key.position.set(0, 9, 3); key.castShadow = true; S.add(key);
@@ -183,7 +256,7 @@ export function lab(S) {    // mad-science lab interior: glowing tanks, consoles
     const g = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 5, 24, 1, true), new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.6, transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
     g.position.set(x, 3.3, -7.6); S.add(g); box(S, [2.6, 0.8, 2.6], [x, 0.4, -7.6], M({ color: 0x5a6068, metalness: 0.7 }), { r: 0.1, name: 'tank base' }); box(S, [2.6, 0.6, 2.6], [x, 6.1, -7.6], M({ color: 0x5a6068, metalness: 0.7 }), { r: 0.1, name: 'tank top' });
     const l = new THREE.PointLight(c, 8, 8, 2); l.position.set(x, 3, -5.8); S.add(l); tanks.push(g); }
-  for (const z of [-4, 1]) { box(S, [2, 2.4, 3], [-8.8, 1.2, z], M({ color: 0x4a525c, metalness: 0.5 }), { r: 0.08, name: 'console' }); box(S, [0.1, 1.2, 2.2], [-7.78, 2.6, z], glow(0x3ae8ff), { r: 0, cast: false, solid: false }); }
+  for (const z of [-4, 1]) { box(S, [2, 2.4, 3], [-8.8, 1.2, z], tm(TX.metal(0x4a525c), 0.5, 0.5, { metalness: 0.5 }), { r: 0.08, name: 'console' }); box(S, [0.1, 1.2, 2.2], [-7.78, 2.6, z], glow(0x3ae8ff), { r: 0, cast: false, solid: false }); }
   for (const y of [8.4, 9.0]) box(S, [20, 0.35, 0.35], [0, y, -8.6], M({ color: 0x8a6a3a, metalness: 0.8, roughness: 0.3 }), { r: 0.15, cast: false, solid: false });
   return { update: (t) => tanks.forEach((g, i) => { g.material.emissiveIntensity = 0.5 + 0.25 * Math.sin(t * 3 + i * 2); }) };
 }
