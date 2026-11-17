@@ -92,3 +92,21 @@ Faces are painted into the head's skin texture (cylindrical mapping, seam at the
 `engine/faces/*.png` are loaded automatically. Current (33): smile grin shock sad smirk neutral worried cry teary fakesmile determined softsmile
 wink awe blush angry laugh scared sleepy sleeping love starstruck confused thinking nervous mischief proud bored disgusted silly pout relieved delighted.
 New faces: draw with PIL like `tools/faces4.py`. Swap expressions mid-shot with `A.setFace()` for reactions (e.g. smile -> shock -> laugh).
+
+## Rain + Episode 005 kit (`engine/themes.js` rain section, `engine/sets6.js`)
+**Rain system** (themes.js, reusable for any rainy scene): `const R = rain(S, { n, radius, top, speed, len, col, opacity, wind, splashes, ground, lightning: [t…], lightMax })`
+then call `R.update(t, cam)` in the shot update **after** `camPath` (streaks and splash rings follow the camera; `ground: null` = no splashes, e.g. interiors;
+`n: 0` = lightning only). Lightning: list shot-local strike times → double-flash light spike (pair with a `thunder` sfx at the same time); `R.flash(t)` → 0..1.
+Helpers: `wetFloor(S, {area, puddles, col})` glossy street with mirror-dark puddles · `lightStreak(S, [x,z], col, {len, w, k})` vertical light reflection on wet
+ground · `rainGlass(S, [w,h], [x,y,z], ryDeg)` drops + running streaks on a window (returns `update(t)`) · `patternLight(S, {pos, target, col, intensity, angle,
+pattern: 'blinds'|'rain'|'window'})` SpotLight with a cookie texture (blind stripes / rain-streak shadows on walls and faces).
+**Sets (sets6.js)** — all return `{ update(t, cam) }` (call every frame): `shopFront(S, {lightning})` rainy neon street + "TIME EXCHANGE" storefront (facade z=-6, door x 2.2..4.8);
+`shopInside(S, {lightning})` (counter top y 3.0, front face z=-2.4; shopkeeper z≈-5.9, customer z≈0.2 facing 180; jar shelves, banker's lamp `env.key`, rain window
+`env.cold` (`cold.userData.base` = intensity), front wall z=11.6 for reverse shots); `apartment(S, {morning, lightning, lamp})` (couch seat top 1.6 at x=-3.5 z≈-5.3,
+table top 2.6 at (4.5,-2.5), door on right wall `env.door`, rainy/sunny back window); `stoop(S, {morning, lightning})` rowhouse door + landing (top 1.5) + 2 steps
+(tops 1.0/0.5, z -5.1..-3.5), rails x=±3, streetlamp; `rainStreet(S, {lightning, rainOpts})`.
+**Props/helpers**: `lifeClock(A, {side, years, col, light})` glowing wrist clock (`.set(n, col)`, `.glow(k)`, `.hide(b)`, `.world()`); `longSleeve(A, side, col)` (`.pull(0..1)`);
+`grayHair(A, k)`; `umbrella(S, col, r)` (hold with `{rFwd: 65, rUp: -22}`, place at `pinky(A,'R')`); `coinBag`, `coinPour(S, from, [x,y,z], n)` → `update(k)`;
+`lightStream(S, col, n)` → `update(a, b, k, t, arc)` particles flowing a→b; `yearJar(S, pos, col, {s, light})`; `paperSheet`, `pen`, `broom`, `consoleBox`.
+Render cost (005): cityNight + rain + several shadow-casting spot lights renders ≈4.5–5 s/frame at q=1 (vs ≈2 s for daylight sets) — budget ≈3 h for an all-rainy episode, or use fewer point lights.
+Lesson from 005: cyan practical lights on 'yellow' skin read green — keep coloured face lights weak (≤1.5) or lerp them toward white (lifeClock does).

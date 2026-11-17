@@ -413,3 +413,97 @@ export function creature(S, { kind = 'stalker', name = 'creature', col, eyeCol, 
     } };
   return api;
 }
+
+// ---------------- rain (episode 005) ----------------
+// const R = rain(S, opts); then in the shot's update, AFTER camPath:  R.update(t, cam)
+//   streaks: instanced thin lines in a box that follows the camera (cheap, always "around" the lens)
+//   splashes: little expanding rings on the ground in front of the camera; opts.ground = floor height (null = none, e.g. interiors)
+//   lightning: opts.lightning = [t0, t1, ...] shot-local strike times -> brief double-flash light spike (add a 'thunder' sfx on it);
+//              R.flash(t) returns the 0..1 flash level if you want to brighten other things (sky, window) yourself.
+//   opts: n (streak count), radius, top, speed, len, col, opacity, wind (tilt, radians), splashes (count), lightCol, lightning
+// Pair with: wetFloor(S, opts) (glossy puddled street), lightStreak(S, [x,z], col) (light reflections on wet ground),
+//            rainGlass(S, [w,h], [x,y,z], ry) (rain running down a window, returns update(t)),
+//            patternLight(S, {pos, target, pattern:'blinds'|'rain'|'window'}) (projected window / rain shadows).
+export function rain(S, { n = 1500, radius = 14, top = 16, speed = 28, len = 0.9, col = 0xb8c8e8, opacity = 0.3, wind = 0.12, splashes = 160,
+  ground = 0, lightning = [], lightCol = 0xcfdcff, lightMax = 5, seed = 11 } = {}) {
+  const R = rng(seed);
+  const im = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.011, 0.011, len, 3, 1, true),
+    new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity, depthWrite: false }), n);
+  im.frustumCulled = false; im.userData.fx = true; S.add(im);
+  const P = [...Array(n)].map(() => [R() * 2 - 1, R() * 2 - 1, R(), 0.8 + R() * 0.45]);
+  const o = new THREE.Object3D(), fwd = new THREE.Vector3();
+  let sp = null, SPL = [];
+  if (splashes && ground !== null) {
+    sp = new THREE.InstancedMesh(new THREE.RingGeometry(0.06, 0.1, 14).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }), splashes);
+    sp.frustumCulled = false; sp.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(splashes * 3), 3); S.add(sp);
+    SPL = [...Array(splashes)].map(() => [R(), 0.35 + R() * 0.3]);
+  }
+  const hash = (a, b) => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
+  const flashL = new THREE.DirectionalLight(lightCol, 0); flashL.position.set(-10, 30, -20); S.add(flashL);
+  const flashH = new THREE.HemisphereLight(lightCol, 0x202030, 0); S.add(flashH);
+  const flash = (t) => { let k = 0; for (const t0 of lightning) { const u = t - t0; if (u < 0 || u > 0.6) continue;
+    k = Math.max(k, Math.exp(-u * 22) + (u > 0.12 ? 0.75 * Math.exp(-(u - 0.12) * 14) : 0)); } return Math.min(1, k); };
+  const c = new THREE.Color();
+  return {
+    flash,
+    update(t, cam) {
+      const cp = cam.position; cam.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
+      const cx = cp.x + fwd.x * radius * 0.55, cz = cp.z + fwd.z * radius * 0.55, y0 = Math.min(ground ?? 0, cp.y - top * 0.5);
+      for (let i = 0; i < n; i++) { const [u, v, ph, s] = P[i];
+        const yy = y0 + ((ph * top - t * speed * s) % top + top) % top;
+        o.position.set(cx + u * radius + (yy - y0) * wind, yy, cz + v * radius); o.rotation.set(0, 0, wind); o.scale.set(1, s, 1); o.updateMatrix(); im.setMatrixAt(i, o.matrix); }
+      im.instanceMatrix.needsUpdate = true;
+      if (sp) { const gx = cp.x + fwd.x * 9, gz = cp.z + fwd.z * 9;
+        SPL.forEach(([ph, per], i) => { const cyc = Math.floor(t / per + ph), a = (t / per + ph) - cyc;
+          o.position.set(gx + (hash(i, cyc) * 2 - 1) * 11, (ground ?? 0) + 0.03, gz + (hash(cyc, i + 7) * 2 - 1) * 8); o.rotation.set(0, 0, 0);
+          o.scale.setScalar(0.4 + a * 3.2); o.updateMatrix(); sp.setMatrixAt(i, o.matrix); c.setScalar(Math.max(0, 1 - a) * 0.9); sp.setColorAt(i, c); });
+        sp.instanceMatrix.needsUpdate = true; sp.instanceColor.needsUpdate = true; }
+      const f = flash(t); flashL.intensity = f * lightMax; flashH.intensity = f * lightMax * 0.5;
+    },
+  };
+}
+// glossy wet street with darker mirror-like puddles (size x size, centred at [x,z])
+export function wetFloor(S, { size = 120, x = 0, z = -20, puddles = 18, seed = 5, col = '#1a1a22', area = [-12, 12, -8, 10] } = {}) {
+  const t = ctex(512, 512, (c, w, h) => { c.fillStyle = col; c.fillRect(0, 0, w, h); noise(c, w, h, 2.4, 0.16);
+    c.strokeStyle = 'rgba(255,255,255,0.05)'; for (let i = 0; i < 40; i++) { c.beginPath(); c.moveTo(Math.random() * w, Math.random() * h); c.lineTo(Math.random() * w, Math.random() * h); c.stroke(); } });
+  t.repeat.set(size / 8, size / 8);
+  box(S, [size, 0.3, size], [x, -0.15, z], M({ map: t, bumpMap: t, bumpScale: 0.6, roughness: 0.22, metalness: 0.45 }), { r: 0, cast: false, name: 'ground' });
+  const R = rng(seed), pm = M({ color: 0x0a0c12, roughness: 0.04, metalness: 0.8 });
+  for (let i = 0; i < puddles; i++) { const p = new THREE.Mesh(new THREE.CircleGeometry(1, 24), pm); p.rotation.x = -Math.PI / 2;
+    p.scale.set(0.8 + R() * 2.4, 0.5 + R() * 1.4, 1); p.position.set(area[0] + R() * (area[1] - area[0]), 0.012, area[2] + R() * (area[3] - area[2])); p.receiveShadow = true; S.add(p); }
+}
+// vertical light reflection on wet ground (streetlamp / neon / window glow), stretched toward +z (the camera)
+const streakTex = () => TXC.streak || (TXC.streak = ctex(64, 256, (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, 'rgba(255,255,255,0)');
+  g.addColorStop(0.25, 'rgba(255,255,255,0.9)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  const r = c.createLinearGradient(0, 0, w, 0); r.addColorStop(0, 'rgba(0,0,0,1)'); r.addColorStop(0.5, 'rgba(0,0,0,0)'); r.addColorStop(1, 'rgba(0,0,0,1)');
+  c.globalCompositeOperation = 'destination-out'; c.fillStyle = r; c.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 6) { c.fillStyle = `rgba(0,0,0,${Math.random() * 0.5})`; c.fillRect(0, y, w, 3); } }));
+export function lightStreak(S, [x, z], col = 0xffd8a0, { len = 8, w = 1.4, k = 0.7 } = {}) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, len), new THREE.MeshBasicMaterial({ map: streakTex(), color: new THREE.Color(col).multiplyScalar(k), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.position.set(x, 0.02, z + len * 0.35); S.add(m); return m;
+}
+// rain on a window pane: static droplets + streaks that run down (transparent overlay). Returns update(t).
+export function rainGlass(S, [w, h], [x, y, z], ry = 0, { tint = 0x9ab8e8, opacity = 0.9 } = {}) {
+  const drops = ctex(256, 256, (c, W, H) => { c.clearRect(0, 0, W, H); for (let i = 0; i < 260; i++) { const px = Math.random() * W, py = Math.random() * H, r = 0.8 + Math.random() * 2.6;
+    c.fillStyle = `rgba(220,235,255,${0.25 + Math.random() * 0.4})`; c.beginPath(); c.ellipse(px, py, r, r * 1.25, 0, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,0.8)'; c.fillRect(px - r * 0.3, py - r * 0.5, 1, 1); } }, [w / 3, h / 3]);
+  const runs = ctex(256, 512, (c, W, H) => { c.clearRect(0, 0, W, H); for (let i = 0; i < 26; i++) { let px = Math.random() * W; const py = Math.random() * H, L = 40 + Math.random() * 160;
+    c.strokeStyle = `rgba(200,225,255,${0.25 + Math.random() * 0.35})`; c.lineWidth = 1 + Math.random() * 1.8; c.beginPath(); c.moveTo(px, py);
+    for (let s = 0; s < L; s += 8) { px += (Math.random() - 0.5) * 3; c.lineTo(px, py + s); } c.stroke(); c.fillStyle = 'rgba(235,245,255,0.8)'; c.beginPath(); c.arc(px, py + L, 2.4, 0, 7); c.fill(); } }, [w / 4, h / 6]);
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry * D; S.add(g);
+  const mk = (map, dz) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map, color: tint, transparent: true, opacity, roughness: 0.05, metalness: 0.1, depthWrite: false, emissive: tint, emissiveMap: map, emissiveIntensity: 0.25 }));
+    m.position.z = dz; g.add(m); return m; };
+  mk(drops, 0.01); const rm = mk(runs, 0.02);
+  return (t) => { rm.material.map.offset.y = t * 0.09; };
+}
+// projected light through a window: SpotLight with a cookie texture -> blinds stripes or rain-streaked window shadows on walls/faces
+export function patternLight(S, { pos = [6, 8, 6], target = [0, 3, -4], col = 0x8ab0ff, intensity = 60, angle = 0.5, pattern = 'blinds', dist = 40 } = {}) {
+  const key = 'pl_' + pattern; const tex = TXC[key] || (TXC[key] = ctex(256, 256, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2; const g = c.createRadialGradient(cx, cy, 10, cx, cy, w / 2); g.addColorStop(0, '#fff'); g.addColorStop(0.75, '#ddd'); g.addColorStop(1, '#000');
+    c.fillStyle = g; c.fillRect(0, 0, w, h); c.fillStyle = '#000';
+    if (pattern === 'blinds') for (let y = 0; y < h; y += 22) c.fillRect(0, y, w, 9);
+    if (pattern === 'window' || pattern === 'rain') { c.fillRect(w / 2 - 5, 0, 10, h); c.fillRect(0, h / 2 - 5, w, 10); }
+    if (pattern === 'rain') for (let i = 0; i < 70; i++) { c.fillStyle = `rgba(0,0,0,${0.3 + Math.random() * 0.5})`; let px = Math.random() * w, py = Math.random() * h; const L = 10 + Math.random() * 50;
+      for (let s = 0; s < L; s += 3) { px += (Math.random() - 0.5) * 1.5; c.fillRect(px, py + s, 2.2, 3); } } }));
+  const s = new THREE.SpotLight(col, intensity, dist, angle, 0.35, 1.4); s.position.set(...pos); s.target.position.set(...target);
+  s.map = tex; s.castShadow = true; s.shadow.mapSize.set(1024, 1024); s.shadow.bias = -0.0008; S.add(s, s.target); return s;
+}

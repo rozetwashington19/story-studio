@@ -5,7 +5,7 @@ Statuses: OPEN → CLAIMED (episode NNN, date) → DONE (episode NNN).
 
 ---
 
-## R1 — The Year Trader — CLAIMED (episode 005, 2026-11-17)
+## R1 — The Year Trader — DONE (episode 005)
 Requested 2026-11-17 by the owner.
 
 **Premise (owner's words):** In a world where people can exchange years of their lives for money, a desperate boy makes

@@ -90,10 +90,29 @@ def wind():      d = 2.5; n = lp(noise(d), 700); m = 0.6 + 0.4 * np.sin(2 * np.p
 def gasp():      d = 0.35; return bp(noise(d), 600, 2400) * np.sin(np.linspace(0, np.pi, int(d * SR))) ** 2
 def zip_():      d = 0.7; return bp(noise(d), 1200, 5000) * (0.5 + 0.5 * np.sin(2 * np.pi * np.cumsum(np.linspace(30, 60, int(d * SR))) / SR)) * np.sin(np.linspace(0, np.pi, int(d * SR)))
 def tada():      return cat(chime()[:int(0.5 * SR)], sparkle(), gap=0.0)
+# ep 005 (rain): ambient rain bed, thunder, coins, pen scribble, door creak
+def rain(d=3.0):  # soft hiss + scattered droplet ticks, fades in/out (use as a bed at -6..-9, one cue per shot)
+    n = lp(hp(noise(d), 400), 5200) * 0.55; drops = np.zeros(int(d * SR))
+    for _ in range(int(d * 38)):
+        i = RNG.integers(0, len(drops) - 2000); f = RNG.uniform(1800, 4200); dd = 0.02
+        drops[i:i + int(dd * SR)] += np.sin(2 * np.pi * f * t_(dd)) * env(int(dd * SR), 0.0005, 0.008) * RNG.uniform(0.2, 0.7)
+    fade = np.minimum(1, np.minimum(t_(d) / 0.4, (d - t_(d)) / 0.6)); return (n + drops) * fade
+def thunder():   # distant crack + long low rumble
+    d = 3.2; tt = t_(d); r = lp(noise(d), 160, 3) * (np.exp(-tt * 1.1) * (0.7 + 0.3 * np.sin(2 * np.pi * 3.1 * tt) * np.sin(2 * np.pi * 0.9 * tt)))
+    crack = bp(noise(0.25), 300, 2400) * env(int(0.25 * SR), 0.002, 0.08); r[:len(crack)] += crack * 0.6; return r * np.minimum(1, tt / 0.03)
+def coins():     # bag of coins jingling / pouring
+    d = 1.0; out = np.zeros(int(d * SR))
+    for k in range(16):
+        st = RNG.uniform(0, 0.7); f = RNG.uniform(3200, 6200); dd = 0.12
+        x = (np.sin(2 * np.pi * f * t_(dd)) + 0.5 * np.sin(2 * np.pi * f * 1.51 * t_(dd))) * env(int(dd * SR), 0.0005, 0.04); i = int(st * SR); out[i:i + len(x)] += x[:len(out) - i]
+    return out
+def scribble():  d = 0.8; return bp(noise(d), 1500, 6000) * (0.5 + 0.5 * np.sin(2 * np.pi * np.cumsum(5 + 4 * np.sin(2 * np.pi * 1.3 * t_(d))) / SR)) * np.sin(np.linspace(0, np.pi, int(d * SR)))
+def creak():     d = 0.7; tt = t_(d); f = 140 + 60 * np.sin(2 * np.pi * 1.4 * tt); x = np.sign(np.sin(2 * np.pi * np.cumsum(f) / SR)) * (np.sin(2 * np.pi * 31 * tt) > 0); return bp(x, 300, 2200) * np.sin(np.linspace(0, np.pi, len(tt)))
 
 SOUNDS = {'pop': pop, 'boing': boing, 'whoosh': whoosh, 'swoosh_up': swoosh_up, 'snap': snap, 'twang': twang, 'chime': chime, 'sparkle': sparkle,
           'glow': glow, 'step': step, 'steps': steps, 'thud': thud, 'knock': knock, 'chirp': chirp, 'flap': flap, 'drip': drip, 'buzz': buzz,
-          'tap': tap, 'typing': typing, 'ding': ding, 'rustle': rustle, 'wind': wind, 'gasp': gasp, 'zip': zip_, 'tada': tada}
+          'tap': tap, 'typing': typing, 'ding': ding, 'rustle': rustle, 'wind': wind, 'gasp': gasp, 'zip': zip_, 'tada': tada,
+          'rain': rain, 'thunder': thunder, 'coins': coins, 'scribble': scribble, 'creak': creak}
 
 # Owner feedback (2026-11-17): effects must stay subtle background sounds that never cover the narrator.
 HOUSE_DB = -17.0      # cue loudness relative to the narration's speech RMS (between lines: clearly audible)

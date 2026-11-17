@@ -82,7 +82,7 @@ sounds that never drown the voice. `engine/sfx.py` synthesizes them (no samples,
 while the narrator speaks they duck 5 dB, are thinned in the 1–4 kHz speech band, and are capped 13 dB under the voice.
 Time every cue to its action — never shift a cue into a pause to make room for the voice.
 `[[line, at, name, gain_db?], …]` — `line` = script line, `at` = seconds after that shot starts or `"40%"` of the shot, `gain_db` = trim (-10…+3).
-Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud knock chirp flap drip buzz tap typing ding rustle wind gasp zip tada.
+Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud knock chirp flap drip buzz tap typing ding rustle wind gasp zip tada rain (bed, -6..-10) thunder (on lightning) coins scribble creak.
 - Put cues on visible actions, timed to the animation (a snap when a string breaks, steps while walking, a whoosh on a fast move,
   a chime/sparkle/glow on magic, a buzz on a phone, wind outdoors). About one cue per 1–3 shots (~20–35 per episode). Silence on
   the saddest lines and on the final line is fine — leave room for the voice.
