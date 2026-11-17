@@ -1,12 +1,13 @@
 # Daily episode runbook
 
-Goal: one new, original **~1:00** vertical (1080×1920) 3D Roblox-style story short per day, in the
+Goal: one new, original **1:20–1:30** vertical (1080×1920) 3D Roblox-style story short per day, in the
 "In this world…" format. New premise, new characters every day. **Narration only, no music.**
 
-**Length: about 1 minute (55–65 s).** The owner switched the series from ~2:20 to 1-minute stories on 2026-11-17; this overrides any older
-length in a scheduled prompt or earlier episode. Episodes 001–003 are the old 2:20 format — copy their code patterns, not their length.
+**Length: 1:20–1:30 (80–90 s), chosen per story.** Owner decision 2026-11-17: shorter than the old ~2:20, but long enough for a real arc.
+Lighter/funny premises land near 1:20; emotional ones with a search + reveal can use the full 1:30. Never under 1:15 or over 1:35.
+This overrides any older length in a scheduled prompt or earlier episode. Episodes 001–003 are the old 2:20 format — copy their code patterns, not their length.
 
-Total time budget ≈ 2.25 h: setup 8 min · story 10 min · narration 7 min · shots 40 min · previews/fixes 20 min · render ~60 min · delivery 5 min.
+Total time budget ≈ 2.75 h: setup 8 min · story 12 min · narration 9 min · shots 45 min · previews/fixes 20 min · render ~90 min · delivery 5 min.
 The time saved by the shorter format goes into **quality**: fewer shots, each one richer (see §4c), and a higher-quality render.
 
 **Narrator voice:** the series is narrated in the owner's own voice, cloned locally by `engine/voice.py` from
@@ -30,23 +31,23 @@ Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked e
 - Kid-friendly. Original story — never retell an existing film, book, show or someone else's video.
 
 ## 2. Write `episodes/NNN-slug/script.txt` (NNN = next number)
-Formula (1-minute version — same beats, tighter):
+Formula (80–90 s version — the full arc, kept tight):
 1. Line 1: "In this world," — line 2: the rule.
 2. "You see, …" explains how it works (1 line).
-3. 2 quick gags showing the rule on side characters (teacher, parent, sibling, neighbor…), 2 lines each: setup + punchline.
+3. 2–3 quick gags showing the rule on side characters (teacher, parent, sibling, neighbor…), 2 lines each: setup + punchline.
 4. "I'm <Name>. I'm <age>." + a hook that breaks the rule for the narrator.
-5. Fun at first (1–2 beats), then it goes wrong (1–2 beats).
-6. A quick search or escalation; a discovery.
-7. Emotional reveal + a choice (2–4 lines).
+5. Fun at first (2 beats), then it goes wrong (2 beats).
+6. A search or escalation (3–4 lines); a discovery.
+7. Emotional reveal + a choice or sacrifice (4–6 lines, give it room — this is what the extra time is for).
 8. Resolution + a callback to one gag + a short final line that lands emotionally.
-- 30–36 lines, 190–215 words → about 0:55–1:05 at the narrator's pace (≈3.4 words/s incl. pauses). One line = one shot. Keep lines short (≤ 10 words).
+- 42–50 lines, 260–300 words → about 1:20–1:30 at the narrator's pace (≈3.4 words/s incl. pauses; ~265 words ≈ 1:20, ~295 ≈ 1:30). One line = one shot. Keep lines short (≤ 10 words).
 - Every line must earn its place: one idea per line, no recap lines, at most 3 speaking characters besides the narrator.
 - First-person kid narrator. Dialogue goes in "double quotes" and also gets a speech bubble.
-- End a line with ` [pause]` for a dramatic beat (use ~4–6 times: big reveals, sad moments, final line).
+- End a line with ` [pause]` for a dramatic beat (use ~6–8 times: big reveals, sad moments, final line).
 - Write `notes.md`: premise, characters (name, look), sets needed, one-sentence logline.
 
-Then run `python3 engine/voice.py episodes/NNN-slug` (≈5–7 min; run it with nohup and poll) → prints duration.
-Adjust the script if outside 0:52–1:08. voice.py speaks each line in context with the previous one (smoother flow), trims tails
+Then run `python3 engine/voice.py episodes/NNN-slug` (≈7–10 min; run it with nohup and poll) → prints duration.
+Adjust the script if outside 1:15–1:35. voice.py speaks each line in context with the previous one (smoother flow), trims tails
 cleanly (no ringing), and checks every line with Whisper (`~/models/sherpa-onnx-whisper-base.en`, from setup.sh). Read the
 `CHECK:` lines it prints: most are spelling quirks ("Juneau", "10"), but if a line is garbled or contains a word from the
 previous line, redo just those lines solo: `ONLY=51,55 python3 engine/voice.py episodes/NNN-slug` (keeps all other lines).
@@ -136,7 +137,7 @@ For close-ups, also check 2–3 frames at full resolution: `python3 engine/rende
 ```
 nohup python3 engine/render.py episodes/NNN-slug video > episodes/NNN-slug/out/render.log 2>&1 &
 ```
-≈2.0–2.3 s per frame with the quality passes (≈60–70 min for 1:00). Poll the log. Output: `out/final.mp4` (~50 MB).
+≈2.0–2.3 s per frame with the quality passes (≈85–105 min for 1:20–1:30). Keep the quality passes on (`q=1`, the default). Poll the log. Output: `out/final.mp4` (~50 MB).
 Sanity check: `ffprobe` duration ≈ narration duration; extract a 30-frame contact sheet and look at it.
 
 ## 7. Deliver
