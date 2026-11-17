@@ -57,10 +57,10 @@ previous line, redo just those lines solo: `ONLY=51,55 python3 engine/voice.py e
 (0.06–0.17 typical; keep above the speaker's head, never over the caption zone at y≈0.55–0.65).
 
 ## 3b. Write `sfx.json` (small sound effects — mandatory)
-The owner wants subtle background sound effects that never cover the narrator ("don't ruin the narration"). `engine/sfx.py`
-synthesizes them (no samples, no music) and mixes them ~17 dB under the voice in the pauses; while the narrator speaks they duck
-10 dB, lose their 1–4 kHz band, are capped 20 dB under the voice, and a cue that would start mid-word slides to the nearest pause.
-Don't raise gains to fight this — if a moment needs a sound, put the cue in a pause between lines.
+The owner wants sound effects that play exactly on the action and overlap the narration like normal SFX, as subtle background
+sounds that never drown the voice. `engine/sfx.py` synthesizes them (no samples, no music) and mixes them ~17 dB under the voice;
+while the narrator speaks they duck 5 dB, are thinned in the 1–4 kHz speech band, and are capped 13 dB under the voice.
+Time every cue to its action — never shift a cue into a pause to make room for the voice.
 `[[line, at, name, gain_db?], …]` — `line` = script line, `at` = seconds after that shot starts or `"40%"` of the shot, `gain_db` = trim (-10…+3).
 Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud knock chirp flap drip buzz tap typing ding rustle wind gasp zip tada.
 - Put cues on visible actions, timed to the animation (a snap when a string breaks, steps while walking, a whoosh on a fast move,

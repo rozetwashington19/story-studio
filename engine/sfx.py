@@ -97,9 +97,10 @@ SOUNDS = {'pop': pop, 'boing': boing, 'whoosh': whoosh, 'swoosh_up': swoosh_up, 
 
 # Owner feedback (2026-11-17): effects must stay subtle background sounds that never cover the narrator.
 HOUSE_DB = -17.0      # cue loudness relative to the narration's speech RMS (between lines: clearly audible)
-DUCK_DB = -10.0       # extra reduction while the narrator is talking (starts 80 ms before each word)
-CEIL_DB = -20.0       # while talking, effects are also hard-capped this far under the voice's moment-to-moment level
-NUDGE_S = 0.4         # a cue that would start mid-word moves to the nearest pause within this window
+# Owner: effects play exactly on the action and overlap the narration like normal SFX — never moved into pauses —
+# but they must not drown the voice. So under speech they are only gently ducked, thinned in the speech band, and capped.
+DUCK_DB = -5.0        # gentle reduction while the narrator is talking (starts 80 ms before each word)
+CEIL_DB = -13.0       # while talking, effects never get closer than this to the voice's moment-to-moment level
 def active_rms(x):
     a = np.abs(x); m = a > a.max() * 0.08; return float(np.sqrt(np.mean(x[m] ** 2))) if m.any() else 1e-6
 def db(v): return 10 ** (v / 20)
@@ -118,25 +119,18 @@ def build(ep):
     envv = np.sqrt(np.convolve(v ** 2, np.ones(w) / w, 'same')); speech = envv > vrms * 0.2
     la, hold = int(0.08 * SR), int(0.2 * SR)
     sp = np.convolve(speech.astype(float), np.ones(la + hold), 'full')[hold:hold + total] > 0
-    def nudge(i):   # move a cue start out of speech into the nearest gap (if one is close)
-        if not sp[min(i, total - 1)]: return i
-        r = int(NUDGE_S * SR)
-        for d in range(0, r, int(0.01 * SR)):
-            for j in (i + d, i - d):
-                if 0 <= j < total and not sp[j]: return j
-        return i
     for c in cues:
         line, at, name = c[0], c[1], c[2]; g = c[3] if len(c) > 3 else 0.0
         if name not in SOUNDS: print('unknown sfx', name); continue
         s, e = starts[line - 1], ends[line - 1]
         off = (e - s) * float(at[:-1]) / 100 if isinstance(at, str) and at.endswith('%') else float(at)
         x = SOUNDS[name](); x = x / (np.abs(x).max() + 1e-9); x *= vrms * db(HOUSE_DB + g) / active_rms(x)
-        x = np.clip(x, -db(-8), db(-8)); i = nudge(int((s + off) * SR))
+        x = np.clip(x, -db(-8), db(-8)); i = int((s + off) * SR)   # exactly on the action
         if i >= total: continue
         bus[i:i + len(x)] += x[:total - i]
     # under speech: duck, carve the speech band (1-4 kHz) out of the effects, and cap them under the voice's level
     sm = int(0.06 * SR); talking = np.convolve(sp.astype(float), np.ones(sm) / sm, 'same')
-    bus = bus - 0.6 * bp(bus, 1000, 4000) * talking
+    bus = bus - 0.35 * bp(bus, 1000, 4000) * talking
     bus *= 1 + (db(DUCK_DB) - 1) * talking
     envs = np.sqrt(np.convolve(bus ** 2, np.ones(w) / w, 'same')) + 1e-9
     ceil = np.where(sp, np.minimum(1.0, (envv + vrms * 0.05) * db(CEIL_DB) / envs), 1.0)
