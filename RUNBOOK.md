@@ -61,6 +61,7 @@ Formula (80–90 s version — the full arc, kept tight):
 - Write `notes.md`: mode, premise, characters (name, look), sets needed, one-sentence logline.
 
 Then run `python3 engine/voice.py episodes/NNN-slug` (≈7–10 min; run it with nohup and poll) → prints duration.
+Narration is read in natural passages (`VOICE_MODE=passage`, default) — write lines that flow as connected sentences when read aloud.
 Adjust the script if outside 1:15–1:35. voice.py speaks each line in context with the previous one (smoother flow), trims tails
 cleanly (no ringing), and checks every line with Whisper (`~/models/sherpa-onnx-whisper-base.en`, from setup.sh). Read the
 `CHECK:` lines it prints: most are spelling quirks ("Juneau", "10"), but if a line is garbled or contains a word from the
