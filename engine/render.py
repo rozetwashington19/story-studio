@@ -3,7 +3,7 @@
   python3 engine/render.py episodes/NNN-slug clips [lines...]         -> collision report (must be 0 before rendering)
   python3 engine/render.py episodes/NNN-slug frame 12 0.5            -> out/frame_12.png (full-res check of one shot)
   python3 engine/render.py episodes/NNN-slug video                      -> out/episode.mp4 (+ compressed out/final.mp4)
-Narration only, no music (user preference)."""
+Narration + small sound effects (episodes/NNN/sfx.json, engine/sfx.py); no music (user preference)."""
 import sys, os, time, subprocess, base64, io, glob
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from captions import Episode
@@ -52,9 +52,11 @@ try:
             for j, im in enumerate(ims): sheet.paste(im, ((j % cols) * 216, (j // cols) * 384))
             sheet.save(os.path.join(OUT, "preview.jpg")); print("preview ->", os.path.join(OUT, "preview.jpg"), "shots:", ids)
         else:
+            if os.path.exists(os.path.join(EPDIR, "sfx.json")): subprocess.run(["python3", os.path.join(ROOT, "engine/sfx.py"), EPDIR], check=True)
+            AUDIO = os.path.join(OUT, "mix.wav") if os.path.exists(os.path.join(EPDIR, "sfx.json")) else os.path.join(OUT, "narration.wav")   # narration + sound effects
             mp4 = os.path.join(OUT, "episode.mp4")
             ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "1080x1920", "-r", str(FPS), "-i", "-",
-                                   "-i", os.path.join(OUT, "narration.wav"), "-c:v", "libx264", "-preset", "veryfast", "-crf", "19", "-pix_fmt", "yuv420p",
+                                   "-i", AUDIO, "-c:v", "libx264", "-preset", "veryfast", "-crf", "19", "-pix_fmt", "yuv420p",
                                    "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", mp4], stdin=subprocess.PIPE)
             N = int(E.total * FPS); t0 = time.time()
             for f in range(N):

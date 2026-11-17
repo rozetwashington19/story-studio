@@ -1,0 +1,148 @@
+"""Small procedural sound effects mixed under the narration (no music, no samples: every sound is synthesized here).
+
+  python3 engine/sfx.py episodes/NNN-slug            -> out/sfx.wav + out/mix.wav (render.py uses mix.wav when it exists)
+  python3 engine/sfx.py episodes/NNN-slug --remux    -> also swaps the audio of an already-rendered out/final.mp4 (no re-render)
+  python3 engine/sfx.py --demo                       -> /tmp/sfx_demo.wav with every sound, one after another
+
+Cues live in episodes/NNN-slug/sfx.json, a list of [line, at, name] or [line, at, name, gain_db]:
+  line   = script line number (1-based, same as shots/bubbles)
+  at     = seconds after that shot starts, or "50%" of the shot's length
+  name   = one of SOUNDS below;  gain_db = optional trim (-6 .. +4), 0 = house level
+House level: each cue sits ~14 dB under the voice (clearly audible, never competing) and ducks a further 4 dB while
+the narrator is speaking. Keep it sparse: about one cue per 1-3 shots, on actions (pops, steps, snaps, whooshes, chimes).
+"""
+import json, os, sys, subprocess
+import numpy as np
+import soundfile as sf
+from scipy.signal import butter, sosfilt
+
+SR = 48000
+RNG = np.random.default_rng(7)
+t_ = lambda d: np.arange(int(d * SR)) / SR
+def env(n, a=0.005, r=0.2, shape=4.0):  # attack (s) then exponential-ish release over the rest
+    x = np.ones(n); na = max(1, int(a * SR)); x[:na] = np.linspace(0, 1, na)
+    rest = n - na
+    if rest > 0: x[na:] = np.exp(-shape * np.linspace(0, 1, rest) * (len(x) / SR) / max(r, 1e-3))
+    return x
+def bp(x, lo, hi, order=2): return sosfilt(butter(order, [lo, hi], 'bandpass', fs=SR, output='sos'), x)
+def lp(x, f, order=2): return sosfilt(butter(order, f, 'lowpass', fs=SR, output='sos'), x)
+def hp(x, f, order=2): return sosfilt(butter(order, f, 'highpass', fs=SR, output='sos'), x)
+def sweep(f0, f1, d, curve=1.0):
+    tt = t_(d); f = f0 + (f1 - f0) * (tt / d) ** curve; return np.sin(2 * np.pi * np.cumsum(f) / SR)
+def noise(d): return RNG.standard_normal(int(d * SR))
+def cat(*xs, gap=0.0):
+    out = []
+    for x in xs: out += [x, np.zeros(int(gap * SR))]
+    return np.concatenate(out)
+
+def pop():      d = 0.09; return sweep(380, 950, d, 0.6) * env(len(t_(d)), 0.002, 0.05)
+def boing():
+    d = 0.45; tt = t_(d); f = 180 + 260 * (1 - np.exp(-tt * 18)) + 25 * np.sin(tt * 55) * np.exp(-tt * 6)
+    return np.sin(2 * np.pi * np.cumsum(f) / SR) * env(len(tt), 0.003, 0.25)
+def whoosh(d=0.45, up=False):
+    n = noise(d); n = bp(n, 300, 3500); e = np.sin(np.linspace(0, np.pi, len(n))) ** 2
+    lo = np.linspace(400, 2200, len(n)) if up else np.linspace(2200, 400, len(n))
+    return lp(n * e, 2600) * (0.6 + 0.4 * lo / 2200)
+def swoosh_up(): return whoosh(0.6, up=True)
+def snap():      # string snapping: sharp click + falling twang
+    d = 0.5; tt = t_(d); ks = karplus(220, d) ; click = hp(noise(0.012), 2000) * np.linspace(1, 0, int(0.012 * SR))
+    out = ks * 0.8; click = lp(click, 6000); out[:len(click)] += click * 1.5; f = sweep(900, 160, 0.18, 0.5) * env(int(0.18 * SR), 0.001, 0.1); out[:len(f)] += f * 0.5; return out
+def twang():    return karplus(330, 0.6)
+def karplus(f, d):
+    n = int(d * SR); p = int(SR / f); buf = RNG.uniform(-1, 1, p); out = np.zeros(n)
+    for i in range(n):
+        out[i] = buf[i % p]; buf[i % p] = 0.996 * 0.5 * (buf[i % p] + buf[(i + 1) % p])
+    return lp(out, 2600) * env(n, 0.001, d * 0.5, 2.0)
+def chime():     # bright magical chime (3 bell partials, staggered)
+    d = 1.1; out = np.zeros(int(d * SR))
+    for k, (f, st) in enumerate([(1568, 0), (2093, 0.07), (2637, 0.14)]):
+        x = (np.sin(2 * np.pi * f * t_(d - st)) + 0.3 * np.sin(2 * np.pi * f * 2.76 * t_(d - st))) * env(int((d - st) * SR), 0.002, 0.35)
+        out[int(st * SR):] += x * (1 - 0.15 * k)
+    return out
+def sparkle():
+    d = 0.9; out = np.zeros(int(d * SR))
+    for k in range(9):
+        st = k * 0.08 + RNG.uniform(0, 0.03); f = RNG.uniform(2400, 4200); dd = 0.25
+        x = np.sin(2 * np.pi * f * t_(dd)) * env(int(dd * SR), 0.001, 0.08); i = int(st * SR); out[i:i + len(x)] += x[:len(out) - i] * (1 - k / 12)
+    return out
+def glow():      # soft rising magic pad
+    d = 1.4; tt = t_(d); f = 220 * (1 + tt / d); ph = 2 * np.pi * np.cumsum(f) / SR
+    x = np.sin(ph) + 0.5 * np.sin(2 * ph) + 0.25 * np.sin(3.01 * ph); e = np.sin(np.linspace(0, np.pi, len(tt))) ** 1.5
+    sp = sparkle(); sp = np.pad(sp, (0, max(0, len(tt) - len(sp))))[:len(tt)]; return lp(x * e, 1800) + 0.3 * sp
+def step():      d = 0.07; return lp(noise(d), 500) * env(int(d * SR), 0.002, 0.03) + 0.6 * np.sin(2 * np.pi * 70 * t_(d)) * env(int(d * SR), 0.002, 0.03)
+def steps(n=4, gap=0.32): return cat(*[step() * (0.85 + 0.15 * (i % 2)) for i in range(n)], gap=gap)
+def thud():      d = 0.3; return (np.sin(2 * np.pi * np.cumsum(np.linspace(110, 45, int(d * SR))) / SR) + 0.3 * lp(noise(d), 300)) * env(int(d * SR), 0.002, 0.12)
+def knock():     return cat(thud()[:int(0.12 * SR)] , thud()[:int(0.12 * SR)], gap=0.12)
+def chirp():
+    parts = []
+    for k in range(3): parts.append(sweep(2600 + 300 * k, 4200, 0.07, 0.7) * env(int(0.07 * SR), 0.003, 0.04))
+    return cat(*parts, gap=0.06)
+def flap():      d = 0.5; n = bp(noise(d), 200, 1500); m = (np.sin(2 * np.pi * 18 * t_(d)) > 0.3) * 1.0; return lp(n * m, 1500) * env(int(d * SR), 0.01, 0.3)
+def drip():      d = 0.18; return sweep(1400, 520, d, 0.4) * env(int(d * SR), 0.001, 0.06)
+def buzz():      # phone vibrating twice
+    d = 0.32; tt = t_(d); b = np.sign(np.sin(2 * np.pi * 175 * tt)) * 0.6 + np.sin(2 * np.pi * 350 * tt) * 0.4
+    one = lp(b, 900) * np.minimum(1, np.minimum(tt / 0.02, (d - tt) / 0.02)); return cat(one, one, gap=0.12)
+def tap():       d = 0.03; return bp(noise(d), 1200, 5000) * env(int(d * SR), 0.0005, 0.01)
+def typing():    return cat(*[tap() * RNG.uniform(0.6, 1) for _ in range(7)], gap=0.09)
+def ding():      d = 0.9; return (np.sin(2 * np.pi * 1320 * t_(d)) + 0.4 * np.sin(2 * np.pi * 3960 * t_(d))) * env(int(d * SR), 0.002, 0.3)
+def rustle():    d = 0.5; return bp(noise(d) * (RNG.random(int(d * SR)) > 0.7), 1800, 6500) * np.sin(np.linspace(0, np.pi, int(d * SR)))
+def wind():      d = 2.5; n = lp(noise(d), 700); m = 0.6 + 0.4 * np.sin(2 * np.pi * 0.7 * t_(d)); return n * m * np.sin(np.linspace(0, np.pi, int(d * SR)))
+def gasp():      d = 0.35; return bp(noise(d), 600, 2400) * np.sin(np.linspace(0, np.pi, int(d * SR))) ** 2
+def zip_():      d = 0.7; return bp(noise(d), 1200, 5000) * (0.5 + 0.5 * np.sin(2 * np.pi * np.cumsum(np.linspace(30, 60, int(d * SR))) / SR)) * np.sin(np.linspace(0, np.pi, int(d * SR)))
+def tada():      return cat(chime()[:int(0.5 * SR)], sparkle(), gap=0.0)
+
+SOUNDS = {'pop': pop, 'boing': boing, 'whoosh': whoosh, 'swoosh_up': swoosh_up, 'snap': snap, 'twang': twang, 'chime': chime, 'sparkle': sparkle,
+          'glow': glow, 'step': step, 'steps': steps, 'thud': thud, 'knock': knock, 'chirp': chirp, 'flap': flap, 'drip': drip, 'buzz': buzz,
+          'tap': tap, 'typing': typing, 'ding': ding, 'rustle': rustle, 'wind': wind, 'gasp': gasp, 'zip': zip_, 'tada': tada}
+
+HOUSE_DB = -14.0      # cue loudness relative to the narration's speech RMS
+DUCK_DB = -4.0        # extra reduction while the narrator is talking
+def active_rms(x):
+    a = np.abs(x); m = a > a.max() * 0.08; return float(np.sqrt(np.mean(x[m] ** 2))) if m.any() else 1e-6
+def db(v): return 10 ** (v / 20)
+
+def build(ep):
+    out = os.path.join(ep, 'out'); timing = json.load(open(os.path.join(out, 'timing.json')))
+    voice, sr = sf.read(os.path.join(out, 'narration.wav')); assert sr == SR, sr
+    if voice.ndim > 1: voice = voice.mean(1)
+    total = len(voice) + int(2.0 * SR)
+    starts = [0.0] + [t['start'] for t in timing[1:]]; ends = starts[1:] + [total / SR]
+    cues = json.load(open(os.path.join(ep, 'sfx.json'))) if os.path.exists(os.path.join(ep, 'sfx.json')) else []
+    bus = np.zeros(total)
+    vrms = active_rms(voice)
+    for c in cues:
+        line, at, name = c[0], c[1], c[2]; g = c[3] if len(c) > 3 else 0.0
+        if name not in SOUNDS: print('unknown sfx', name); continue
+        s, e = starts[line - 1], ends[line - 1]
+        off = (e - s) * float(at[:-1]) / 100 if isinstance(at, str) and at.endswith('%') else float(at)
+        x = SOUNDS[name](); x = x / (np.abs(x).max() + 1e-9); x *= vrms * db(HOUSE_DB + g) / active_rms(x)
+        x = np.clip(x, -db(-8), db(-8)); i = int((s + off) * SR)
+        if i >= total: continue
+        bus[i:i + len(x)] += x[:total - i]
+    # duck under speech: smoothed voice envelope
+    v = np.concatenate([voice, np.zeros(total - len(voice))]); w = int(0.05 * SR)
+    envv = np.sqrt(np.convolve(v ** 2, np.ones(w) / w, 'same')); talking = (envv > vrms * 0.25).astype(float)
+    sm = int(0.12 * SR); talking = np.convolve(talking, np.ones(sm) / sm, 'same')
+    bus *= 1 + (db(DUCK_DB) - 1) * talking
+    mix = v + bus; pk = np.abs(mix).max()
+    if pk > db(-1): mix *= db(-1) / pk
+    sf.write(os.path.join(out, 'sfx.wav'), bus.astype(np.float32), SR); sf.write(os.path.join(out, 'mix.wav'), mix.astype(np.float32), SR)
+    print(f'sfx: {len(cues)} cues -> out/mix.wav ({total / SR:.1f}s)')
+
+def remux(ep):
+    out = os.path.join(ep, 'out')
+    for name in ('final.mp4', 'episode.mp4'):
+        f = os.path.join(out, name)
+        if not os.path.exists(f): continue
+        tmp = f[:-4] + '_tmp.mp4'
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', f, '-i', os.path.join(out, 'mix.wav'), '-map', '0:v', '-map', '1:a', '-c:v', 'copy',
+                        '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', tmp], check=True)
+        os.replace(tmp, f); print('remuxed', f)
+
+if __name__ == '__main__':
+    if sys.argv[1] == '--demo':
+        sf.write('/tmp/sfx_demo.wav', np.concatenate([np.concatenate([SOUNDS[k]() / (np.abs(SOUNDS[k]()).max() + 1e-9) * 0.5, np.zeros(SR // 2)]) for k in SOUNDS]).astype(np.float32), SR)
+        print('demo ->/tmp/sfx_demo.wav', list(SOUNDS))
+    else:
+        build(sys.argv[1])
+        if '--remux' in sys.argv: remux(sys.argv[1])

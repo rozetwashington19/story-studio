@@ -1,7 +1,7 @@
 # Daily episode runbook
 
 Goal: one new, original **1:20–1:30** vertical (1080×1920) 3D Roblox-style story short per day, in the
-"In this world…" format. New premise, new characters every day. **Narration only, no music.**
+"In this world…" format. New premise, new characters every day. **Narration + small sound effects, no music.**
 
 **Length: 1:20–1:30 (80–90 s), chosen per story.** Owner decision 2026-11-17: shorter than the old ~2:20, but long enough for a real arc.
 Lighter/funny premises land near 1:20; emotional ones with a search + reveal can use the full 1:30. Never under 1:15 or over 1:35.
@@ -55,6 +55,18 @@ previous line, redo just those lines solo: `ONLY=51,55 python3 engine/voice.py e
 ## 3. Write `bubbles.json`
 `{"<line number>": ["Bubble text", x 0–1, y 0–1]}` — x is the bubble center, y the top edge
 (0.06–0.17 typical; keep above the speaker's head, never over the caption zone at y≈0.55–0.65).
+
+## 3b. Write `sfx.json` (small sound effects — mandatory)
+The owner wants light sound effects on the animations: noticeable, but never competing with the voice. `engine/sfx.py` synthesizes
+them (no samples, no music) and mixes them ~14 dB under the narration, ducking a further 4 dB while the narrator speaks.
+`[[line, at, name, gain_db?], …]` — `line` = script line, `at` = seconds after that shot starts or `"40%"` of the shot, `gain_db` = trim (-10…+3).
+Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud knock chirp flap drip buzz tap typing ding rustle wind gasp zip tada.
+- Put cues on visible actions, timed to the animation (a snap when a string breaks, steps while walking, a whoosh on a fast move,
+  a chime/sparkle/glow on magic, a buzz on a phone, wind outdoors). About one cue per 1–3 shots (~20–35 per episode). Silence on
+  the saddest lines and on the final line is fine — leave room for the voice.
+- Ambient beds (`wind`) at -6 to -8; frequent sounds (`steps`, `rustle`) at -4 to -6; the big moments (the twist, the climax) at 0 to +2.
+- `render.py video` mixes it automatically (out/mix.wav). To fix levels after a render without re-rendering: edit sfx.json, then
+  `python3 engine/sfx.py episodes/NNN-slug --remux`. Worked example: `episodes/003-kite/sfx.json`.
 
 ## 4. Write `shots.js` (export `SHOTS`, exactly one function per script line)
 Copy the pattern from `episodes/001-shadow/shots_b.js`. Each entry `(S, cam) => { build set + actors; return (t, dur) => { animate } }`.
@@ -143,7 +155,7 @@ Sanity check: `ffprobe` duration ≈ narration duration; extract a 30-frame cont
 ## 7. Deliver
 - Send `out/final.mp4` to the user with a one-line caption: title + logline.
 - Add a line to `episodes/INDEX.md`: `NNN | date | title | premise | narrator name | logline`.
-- Commit the episode source (script, bubbles, notes, shots, any new faces/sets — not `out/`) and push.
+- Commit the episode source (script, bubbles, sfx.json, notes, shots, any new faces/sets — not `out/`) and push.
   Two episodes are made per day by separate runs, so before pushing: `git fetch --depth=50 origin main` and
   `git rebase origin/main`. If another run already added an episode with your number, rename your folder to the next free
   number, fix its INDEX line, and also make sure your premise isn't the one it just added (if it is, say so in the final message).
