@@ -68,6 +68,16 @@ Sets: `hill(S,{sunset,cottage,trees})` + `hillY(x,z)` ground height (flat top r=
 Framing lesson from 003: two-shots need lens 26 at distance ≥ 15 (or lens 22 at ~12); close-ups at distance ≥ 6.4 with lens ≤ 34 so buns/hats fit. For a close-up of someone not facing +z, use
 `faceCam` (episodes/003-kite/common.js) which places the camera along the character's facing direction. Rooms have no front wall: if the camera looks toward +z, add one.
 
+## Themed worlds + monsters (`engine/themes.js`, for wild episodes)
+`const env = forest(S, {night})` · `spooky(S)` · `space(S)` · `underwater(S)` · `candy(S)` · `castle(S, {night})` · `cityNight(S)` ·
+`snow(S)` · `desert(S)` · `lab(S)` (also `WORLDS[name]`). Each builds floor, backdrop, sky, fog and lights, keeps the play area
+(x ±7, z -4..8) and the camera corridor clear, and returns `env.update(t)` for ambient motion (fireflies, bubbles, snow,
+waving banners, glowing tanks) — call it in the shot's update. Night worlds set `look='night'` and include a face key light.
+`monster(S, { name, col, belly, shape: 'blob'|'box'|'tall', eyes: 1-3, horns, teeth, arms, tentacles, size, spots, seed })` →
+`m.root` (position/rotate it), `m.animate(t, 'idle'|'bounce'|'chase'|'scared'|'wave')`, `m.look(vec3)` (pupils follow),
+`m.blink(0..1)`. Height ≈ 4 × size, feet on y=0, faces +Z, tagged for the collision checker (keep 4+ units from avatars).
+Previews: `python3 tools/world_lineup.py out.jpg [world …]`.
+
 ## Look / grade
 Set `S.userData.look = 'night'` or `'flash'` (flashback). Post: bloom, split-tone grade, vignette, grain (engine/main.html).
 

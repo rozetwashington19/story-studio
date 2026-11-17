@@ -23,12 +23,23 @@ foreground calls (each foreground call is capped at 10 minutes). Never end your 
 ```
 Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked example: script.txt, bubbles.json, shots_a.js, shots_b.js).
 
-## 1. Pick a premise
+## 1. Roll the mode, then pick a premise
 - `git pull` first (another run may have added an episode since you cloned), then read `episodes/INDEX.md`. Never reuse a premise, main character name, or core twist listed there.
-- A premise is one impossible rule about the world that is visual and has emotional potential
+- **Roll the story mode:** `python3 tools/pick_mode.py` → `heartfelt` (~60%) or `wild` (~40%). It is random on purpose so the
+  series mixes both; don't override it. Record it in `notes.md` (`Mode:` line) and in the INDEX `mode` column.
+- **heartfelt:** one impossible rule about the world that is visual and has emotional potential
   (examples of the *kind*: "every word costs money", "rumors come true", "the sea drains every 100 years",
-  "your shadow shows how you really feel"). Do not copy the example premises.
-- Kid-friendly. Original story — never retell an existing film, book, show or someone else's video.
+  "your shadow shows how you really feel"). Everyday settings (home, school, street). Ends on an emotional beat.
+- **wild:** a fun, high-concept rule with creatures, magic or sci-fi that escalates fast and visually
+  (the *kind*: "every time you blink, a monster appears", "your pet can shrink you", "gravity flips at lunch",
+  "every lie turns into a tiny dragon"). Kid-friendly spooky-fun, never truly scary or gory — monsters are cute-blocky
+  (`monster()` in KIT.md) and end up silly, friendly or outsmarted. Bigger stakes, chases, set pieces and jokes; the
+  ending is a clever or funny twist (a small heartfelt touch is welcome but not required). Use the same script formula,
+  with gags that show the rule's chaos instead of sad side characters.
+  **Backgrounds must match the theme:** build most shots in a themed world from `engine/themes.js` (pick_mode suggests two
+  that weren't used recently — use one of them unless the premise clearly needs another) and contrast it with everyday sets
+  (e.g. the bedroom where it starts). Use the world's `update(t)` for ambient motion in every shot that uses it.
+- Do not copy the example premises. Kid-friendly. Original story — never retell an existing film, book, show or someone else's video.
 
 ## 2. Write `episodes/NNN-slug/script.txt` (NNN = next number)
 Formula (80–90 s version — the full arc, kept tight):
@@ -39,12 +50,13 @@ Formula (80–90 s version — the full arc, kept tight):
 5. Fun at first (2 beats), then it goes wrong (2 beats).
 6. A search or escalation (3–4 lines); a discovery.
 7. Emotional reveal + a choice or sacrifice (4–6 lines, give it room — this is what the extra time is for).
+   Wild mode: the big twist / clever trick that beats the chaos instead (a small heartfelt beat is optional).
 8. Resolution + a callback to one gag + a short final line that lands emotionally.
 - 42–50 lines, 260–300 words → about 1:20–1:30 at the narrator's pace (≈3.4 words/s incl. pauses; ~265 words ≈ 1:20, ~295 ≈ 1:30). One line = one shot. Keep lines short (≤ 10 words).
 - Every line must earn its place: one idea per line, no recap lines, at most 3 speaking characters besides the narrator.
 - First-person kid narrator. Dialogue goes in "double quotes" and also gets a speech bubble.
 - End a line with ` [pause]` for a dramatic beat (use ~6–8 times: big reveals, sad moments, final line).
-- Write `notes.md`: premise, characters (name, look), sets needed, one-sentence logline.
+- Write `notes.md`: mode, premise, characters (name, look), sets needed, one-sentence logline.
 
 Then run `python3 engine/voice.py episodes/NNN-slug` (≈7–10 min; run it with nohup and poll) → prints duration.
 Adjust the script if outside 1:15–1:35. voice.py speaks each line in context with the previous one (smoother flow), trims tails
@@ -156,7 +168,7 @@ Sanity check: `ffprobe` duration ≈ narration duration; extract a 30-frame cont
 
 ## 7. Deliver
 - Send `out/final.mp4` to the user with a one-line caption: title + logline.
-- Add a line to `episodes/INDEX.md`: `NNN | date | title | premise | narrator name | logline`.
+- Add a line to `episodes/INDEX.md`: `NNN | date | title | premise | narrator name | logline | mode` (mode = `heartfelt` or `wild:<world>`).
 - Commit the episode source (script, bubbles, sfx.json, notes, shots, any new faces/sets — not `out/`) and push.
   Two episodes are made per day by separate runs, so before pushing: `git fetch --depth=50 origin main` and
   `git rebase origin/main`. If another run already added an episode with your number, rename your folder to the next free
