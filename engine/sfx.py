@@ -95,8 +95,11 @@ SOUNDS = {'pop': pop, 'boing': boing, 'whoosh': whoosh, 'swoosh_up': swoosh_up, 
           'glow': glow, 'step': step, 'steps': steps, 'thud': thud, 'knock': knock, 'chirp': chirp, 'flap': flap, 'drip': drip, 'buzz': buzz,
           'tap': tap, 'typing': typing, 'ding': ding, 'rustle': rustle, 'wind': wind, 'gasp': gasp, 'zip': zip_, 'tada': tada}
 
-HOUSE_DB = -14.0      # cue loudness relative to the narration's speech RMS
-DUCK_DB = -4.0        # extra reduction while the narrator is talking
+# Owner feedback (2026-11-17): effects must stay subtle background sounds that never cover the narrator.
+HOUSE_DB = -17.0      # cue loudness relative to the narration's speech RMS (between lines: clearly audible)
+DUCK_DB = -10.0       # extra reduction while the narrator is talking (starts 80 ms before each word)
+CEIL_DB = -20.0       # while talking, effects are also hard-capped this far under the voice's moment-to-moment level
+NUDGE_S = 0.4         # a cue that would start mid-word moves to the nearest pause within this window
 def active_rms(x):
     a = np.abs(x); m = a > a.max() * 0.08; return float(np.sqrt(np.mean(x[m] ** 2))) if m.any() else 1e-6
 def db(v): return 10 ** (v / 20)
@@ -110,20 +113,34 @@ def build(ep):
     cues = json.load(open(os.path.join(ep, 'sfx.json'))) if os.path.exists(os.path.join(ep, 'sfx.json')) else []
     bus = np.zeros(total)
     vrms = active_rms(voice)
+    # where is the narrator speaking? (50 ms envelope, 80 ms look-ahead so ducks begin before the word, 200 ms hold after)
+    v = np.concatenate([voice, np.zeros(total - len(voice))]); w = int(0.05 * SR)
+    envv = np.sqrt(np.convolve(v ** 2, np.ones(w) / w, 'same')); speech = envv > vrms * 0.2
+    la, hold = int(0.08 * SR), int(0.2 * SR)
+    sp = np.convolve(speech.astype(float), np.ones(la + hold), 'full')[hold:hold + total] > 0
+    def nudge(i):   # move a cue start out of speech into the nearest gap (if one is close)
+        if not sp[min(i, total - 1)]: return i
+        r = int(NUDGE_S * SR)
+        for d in range(0, r, int(0.01 * SR)):
+            for j in (i + d, i - d):
+                if 0 <= j < total and not sp[j]: return j
+        return i
     for c in cues:
         line, at, name = c[0], c[1], c[2]; g = c[3] if len(c) > 3 else 0.0
         if name not in SOUNDS: print('unknown sfx', name); continue
         s, e = starts[line - 1], ends[line - 1]
         off = (e - s) * float(at[:-1]) / 100 if isinstance(at, str) and at.endswith('%') else float(at)
         x = SOUNDS[name](); x = x / (np.abs(x).max() + 1e-9); x *= vrms * db(HOUSE_DB + g) / active_rms(x)
-        x = np.clip(x, -db(-8), db(-8)); i = int((s + off) * SR)
+        x = np.clip(x, -db(-8), db(-8)); i = nudge(int((s + off) * SR))
         if i >= total: continue
         bus[i:i + len(x)] += x[:total - i]
-    # duck under speech: smoothed voice envelope
-    v = np.concatenate([voice, np.zeros(total - len(voice))]); w = int(0.05 * SR)
-    envv = np.sqrt(np.convolve(v ** 2, np.ones(w) / w, 'same')); talking = (envv > vrms * 0.25).astype(float)
-    sm = int(0.12 * SR); talking = np.convolve(talking, np.ones(sm) / sm, 'same')
+    # under speech: duck, carve the speech band (1-4 kHz) out of the effects, and cap them under the voice's level
+    sm = int(0.06 * SR); talking = np.convolve(sp.astype(float), np.ones(sm) / sm, 'same')
+    bus = bus - 0.6 * bp(bus, 1000, 4000) * talking
     bus *= 1 + (db(DUCK_DB) - 1) * talking
+    envs = np.sqrt(np.convolve(bus ** 2, np.ones(w) / w, 'same')) + 1e-9
+    ceil = np.where(sp, np.minimum(1.0, (envv + vrms * 0.05) * db(CEIL_DB) / envs), 1.0)
+    g = np.convolve(ceil, np.ones(sm) / sm, 'same'); bus *= np.minimum(1.0, g)
     mix = v + bus; pk = np.abs(mix).max()
     if pk > db(-1): mix *= db(-1) / pk
     sf.write(os.path.join(out, 'sfx.wav'), bus.astype(np.float32), SR); sf.write(os.path.join(out, 'mix.wav'), mix.astype(np.float32), SR)

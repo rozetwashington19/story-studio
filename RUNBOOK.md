@@ -57,14 +57,16 @@ previous line, redo just those lines solo: `ONLY=51,55 python3 engine/voice.py e
 (0.06–0.17 typical; keep above the speaker's head, never over the caption zone at y≈0.55–0.65).
 
 ## 3b. Write `sfx.json` (small sound effects — mandatory)
-The owner wants light sound effects on the animations: noticeable, but never competing with the voice. `engine/sfx.py` synthesizes
-them (no samples, no music) and mixes them ~14 dB under the narration, ducking a further 4 dB while the narrator speaks.
+The owner wants subtle background sound effects that never cover the narrator ("don't ruin the narration"). `engine/sfx.py`
+synthesizes them (no samples, no music) and mixes them ~17 dB under the voice in the pauses; while the narrator speaks they duck
+10 dB, lose their 1–4 kHz band, are capped 20 dB under the voice, and a cue that would start mid-word slides to the nearest pause.
+Don't raise gains to fight this — if a moment needs a sound, put the cue in a pause between lines.
 `[[line, at, name, gain_db?], …]` — `line` = script line, `at` = seconds after that shot starts or `"40%"` of the shot, `gain_db` = trim (-10…+3).
 Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud knock chirp flap drip buzz tap typing ding rustle wind gasp zip tada.
 - Put cues on visible actions, timed to the animation (a snap when a string breaks, steps while walking, a whoosh on a fast move,
   a chime/sparkle/glow on magic, a buzz on a phone, wind outdoors). About one cue per 1–3 shots (~20–35 per episode). Silence on
   the saddest lines and on the final line is fine — leave room for the voice.
-- Ambient beds (`wind`) at -6 to -8; frequent sounds (`steps`, `rustle`) at -4 to -6; the big moments (the twist, the climax) at 0 to +2.
+- Ambient beds (`wind`) at -6 to -8; frequent sounds (`steps`, `rustle`) at -4 to -6; the big moments (the twist, the climax) at 0 (never above +2).
 - `render.py video` mixes it automatically (out/mix.wav). To fix levels after a render without re-rendering: edit sfx.json, then
   `python3 engine/sfx.py episodes/NNN-slug --remux`. Worked example: `episodes/003-kite/sfx.json`.
 
