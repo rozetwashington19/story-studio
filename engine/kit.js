@@ -27,7 +27,7 @@ export function camPath(cam, p, from, to, lookFrom, lookTo, lensA, lensB = lensA
   const e = ease(p);
   cam.position.copy(V(from).lerp(V(to), e));
   cam.fov = fov(lensA + (lensB - lensA) * e); cam.updateProjectionMatrix();
-  cam.lookAt(V(lookFrom).lerp(V(lookTo), e));
+  const tg = V(lookFrom).lerp(V(lookTo), e); cam.lookAt(tg); cam.userData.target = tg;   // target = DOF focus point
 }
 // keyframed pose track: [[time, poseObj], ...] with ease between
 export function track(keys, t, fn = ease) {
@@ -161,3 +161,19 @@ export function crumbs(A) { const m = std({ color: 0x8a5a2a }); [[0.25, -0.25], 
 
 export const L = (look) => (S) => { S.userData.look = look; };
 
+
+// ---- animation quality helpers (added with the 1-minute format) ----
+// overshoot-and-settle easing: pose hits feel snappy and alive instead of linear
+export const backOut = t => { if (t <= 0) return 0; if (t >= 1) return 1; const c = 1.7, u = t - 1; return 1 + (c + 1) * u * u * u + c * u * u; };
+// keyframes with overshoot: hit([[0, POSES.rest], [0.4, POSES.wave]], t)
+export const hit = (keys, t) => track(keys, t, backOut);
+// talking: layered head motion for whoever is speaking during their dialogue line (add to their pose)
+export function talk(t, k = 1) { return { nod: (Math.sin(t * 9) * 2.5 + Math.sin(t * 14.3) * 1.5) * k, tilt: Math.sin(t * 4.1) * 2.5 * k, turn: Math.sin(t * 2.3) * 3 * k, bob: Math.abs(Math.sin(t * 9)) * 0.02 * k }; }
+// eyelines: head turn/nod so avatar A looks at world point p (returns {turn, nod}; add to the pose)
+export function lookAt(A, p) {
+  A.root.updateMatrixWorld(true); const l = A.root.worldToLocal(new THREE.Vector3(...(Array.isArray(p) ? p : [p.x, p.y, p.z])));
+  const dx = l.x, dy = l.y - 4.64, dz = l.z, cl = (v, m) => Math.max(-m, Math.min(m, v));
+  return { turn: cl(Math.atan2(dx, dz) / D, 70), nod: cl(-Math.atan2(dy, Math.hypot(dx, dz)) / D, 40) };
+}
+// anticipation: a small opposite dip right before an action at time t0 (add to the pose), e.g. before a jump or a throw
+export function anticipate(t, t0, k = 1) { const u = (t - (t0 - 0.25)) / 0.25; if (u < 0 || u > 1) return {}; const s = Math.sin(u * Math.PI); return { bob: -0.12 * s * k, lean: 6 * s * k, nod: 4 * s * k }; }

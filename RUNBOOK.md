@@ -6,7 +6,8 @@ Goal: one new, original **~1:00** vertical (1080×1920) 3D Roblox-style story sh
 **Length: about 1 minute (55–65 s).** The owner switched the series from ~2:20 to 1-minute stories on 2026-11-17; this overrides any older
 length in a scheduled prompt or earlier episode. Episodes 001–003 are the old 2:20 format — copy their code patterns, not their length.
 
-Total time budget ≈ 1.5 h: setup 8 min · story 10 min · narration 7 min · shots 25 min · previews/fixes 15 min · render ~35 min · delivery 5 min.
+Total time budget ≈ 2.25 h: setup 8 min · story 10 min · narration 7 min · shots 40 min · previews/fixes 20 min · render ~60 min · delivery 5 min.
+The time saved by the shorter format goes into **quality**: fewer shots, each one richer (see §4c), and a higher-quality render.
 
 **Narrator voice:** the series is narrated in the owner's own voice, cloned locally by `engine/voice.py` from
 `engine/voice/narrator_ref.wav`. Never replace or edit that reference. Pace is deliberately relaxed (owner: "don't make it
@@ -80,6 +81,25 @@ Split into `shots_a.js` / `shots_b.js` if long. Lessons learned (follow these):
   gray/white hair + `wrinkles` (+ beard/mustache for grandpas), dads/teachers adult styles, kids `freckles`/`rosy`.
 - Use the full range of expressions (33 faces, KIT.md); switch faces mid-shot for reactions instead of holding one face. Give the narrator a distinct look from previous episodes.
 
+## 4c. Cinematic quality (mandatory — this is where the extra time goes)
+The renderer now adds automatically (engine/main.html, `q=1`): SMAA anti-aliasing, a rim light behind the subject (edge highlights),
+depth of field on lenses ≥ 30 (focus = the camPath look-at point, so aim it at the face), and a subtle handheld drift.
+Per scene you can tune: `S.userData.rimIntensity`, `S.userData.rim = false`, `S.userData.dofScale` (2 = stronger blur), `S.userData.dof = false`,
+`S.userData.handheld = false` (for locked-off shots). Optional, slower: `&ibl=1` (flatter), `&ao=1` (+2.4 s/frame), `&msaa=4` (+2 s/frame).
+Your job per shot:
+- **Lighting:** every set has a motivated key (sun/lamp/window) plus a warm/cool contrast. Emotional climaxes at golden hour or by a lamp;
+  night shots get a practical light near the faces. Check previews for flat, evenly-lit frames and add a key `PointLight`/`SpotLight` if needed.
+- **Lenses:** establishing 22–26, mediums 28–30, close-ups 34–40 (DOF kicks in). At least 1/3 of shots are close-ups on faces.
+- **Camera:** always moving with intent — slow push-in on emotional lines, low angle for triumph, dolly alongside walkers, a reveal
+  (tilt/pan) for discoveries. Use `faceCam` (episodes/003-kite/common.js) so close-ups are from the front or 3/4.
+- **Animation:** pose hits use `hit()` (overshoot-and-settle) not linear; add `anticipate()` before jumps/throws; the speaker during a
+  dialogue line gets `talk(t)` added; eyelines use `lookAt(A, point)` (characters look at each other / at the thing that matters);
+  stagger timing between characters (offset `t` per character); everybody breathes (`idle`). No character is ever frozen.
+- **Expressions:** change faces within a shot when the emotion turns (`setFace` at the right moment), and use the full face library.
+- **Textures/props:** dress every set with 3+ detail props (frames, plants, toys, clutter) so no wall or floor is empty; prefer textured materials
+  (`T`, `T2`, `repeatMat`) over flat colors for large surfaces.
+- Drafts: `Q=0 python3 engine/render.py … stills` renders previews fast without the quality passes; do the final preview pass at `q=1`.
+
 ## 4b. No clipping (mandatory)
 Characters must never pass through each other or through objects. Rules:
 - Give every avatar a name: `makeAvatar({ ...MIA, name: 'mia' })` — the checker reports by name.
@@ -116,7 +136,7 @@ For close-ups, also check 2–3 frames at full resolution: `python3 engine/rende
 ```
 nohup python3 engine/render.py episodes/NNN-slug video > episodes/NNN-slug/out/render.log 2>&1 &
 ```
-≈1.1–1.4 s per frame (≈35–45 min for 1:00). Poll the log. Output: `out/final.mp4` (~50 MB).
+≈2.0–2.3 s per frame with the quality passes (≈60–70 min for 1:00). Poll the log. Output: `out/final.mp4` (~50 MB).
 Sanity check: `ffprobe` duration ≈ narration duration; extract a 30-frame contact sheet and look at it.
 
 ## 7. Deliver

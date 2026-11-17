@@ -26,7 +26,7 @@ try:
         pg = b.new_page(viewport={"width": 1080, "height": 1920})
         pg.on("console", lambda m: print("console:", m.text) if "GPU stall" not in m.text and "404" not in m.text else None)
         pg.on("pageerror", lambda e: print("PAGEERROR:", e))
-        pg.goto(f"http://localhost:{PORT}/engine/main.html?ep={EPID}"); pg.wait_for_function("window.ready===true", timeout=120000)
+        pg.goto(f"http://localhost:{PORT}/engine/main.html?ep={EPID}&q={os.environ.get('Q', '0' if MODE == 'clips' else '1')}"); pg.wait_for_function("window.ready===true", timeout=120000)
         n = pg.evaluate("window.NSHOTS")
         if n != len(E.timing): print(f"WARNING: {n} shots but {len(E.timing)} script lines")
         grab = lambda i, lt, d: Image.open(io.BytesIO(base64.b64decode(pg.evaluate(f"renderShot({i},{lt},{d})").split(",")[1])))
