@@ -25,6 +25,11 @@ Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked e
 
 ## 1. Roll the mode, then pick a premise
 - `git pull` first (another run may have added an episode since you cloned), then read `episodes/INDEX.md`. Never reuse a premise, main character name, or core twist listed there.
+- **Owner requests come first:** read `episodes/REQUESTS.md`. If any request is `OPEN`, take the first one instead of rolling a
+  random mode: immediately change its status to `CLAIMED (episode NNN, date)`, commit and push that one-line change *before doing
+  anything else* (so the other daily run can't take the same request), then build the episode from it. The request's premise,
+  visual style and guidance override the random mode and premise steps below (all other runbook rules still apply). At delivery,
+  set it to `DONE (episode NNN)`. If no request is OPEN, continue with the random mode below.
 - **Roll the story mode:** `python3 tools/pick_mode.py` → `heartfelt` (~60%) or `wild` (~40%). It is random on purpose so the
   series mixes both; don't override it. Record it in `notes.md` (`Mode:` line) and in the INDEX `mode` column.
 - **heartfelt:** one impossible rule about the world that is visual and has emotional potential
