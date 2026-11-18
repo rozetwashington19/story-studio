@@ -137,3 +137,16 @@ Day lighting tip: put the sun where its shadow lands where the story needs shade
 directional-light shadows only include objects in front of the light position, so for tall props (balloons) use a far sun position (e.g. [10, 40, 14]).
 Husk v2 (themes.js): deeper slanted sockets under a brow ridge, cheekbones, sunken cheeks, dim eye glow (no more "pumpkin" face light).
 Freeze/unfreeze helpers and the scarecrow pose live in episodes/006-daycreatures/common.js (`husk()`, `scarecrow()`, `sitUp()`, `lie()`).
+
+## Episode 007 kit — fading people + family home (`engine/sets8.js`)
+`fade(A, k | { body, head, armR, armL, legR, legL }, { glow, glowK, keep })` makes an avatar see-through with a faint ghost glow (k 1 = solid, ~0.1 = a faint glowing
+outline, 0.015 = nearly gone); parts listed in `keep` (default `['outfit boots']`) stay solid — e.g. only the sneakers walk around. Per-limb values let someone fade in
+or out piece by piece (hands first, then the face). In bright scenes keep the head ~0.3 more solid than the body so the face stays readable (`ghost()` in
+episodes/007-seethrough/common.js). `aura(A, k, col)` warm inner glow on a solid avatar (keep k ≤ 0.3 — bloom blows it out). `thoughts(S, col, n)` →
+`(from, to, k, t, arc)` golden motes streaming from a thinker's head to someone. `dimLights(S, f)` scales every light in a set.
+Sets (all return `{ update(t) }`): `familyKitchen(S, { morning, night, flash })` = kitchen (dining table top 2.75 at (0,-2.8), x ±3.25, z -4.5..-1.1; stand behind it at
+z ≤ -6.2 when arms reach forward) + counter/cabinets/cookie jar on the left (front z -6.8), window, fridge drawings. `nursery(S, { night })` crib at (2.5,-6.8)
+(solid collider 'crib' — whitelist a baby lying in it), spinning star mobile, rocking chair, bunting. `nightStairs(S, { lamp, day })` wide staircase (x ±5) climbing to -z:
+step i top 0.7(i+1), z -(i+1)..-i; sit with `sitOn(A, 1.4)` at z -1.42 (step 1), whitelist 'step*'; moonlit window, warm lamp, banisters. `carInside(S, { sunset })`
+two front seats (seat top 1.6) at x ±2.3 facing +z, dash/wheel in front, scenery streaming past; frame through the windshield at z ≈ 9, lens 26–28.
+Props: `mug`, `cerealBowl`, `plate`, `pizzaTray` (+`slice`), `crib`, `dinoPancake`, `strawberry`, `strawberryBowl`, `swaddle(A)` (blanket around a small baby avatar), `handMirror`, `pan`.
