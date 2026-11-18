@@ -2,7 +2,7 @@
   python3 engine/render.py episodes/NNN-slug stills [line numbers...]   -> out/preview.jpg (2 frames per shot, 8 per row)
   python3 engine/render.py episodes/NNN-slug clips [lines...]         -> collision report (must be 0 before rendering)
   python3 engine/render.py episodes/NNN-slug frame 12 0.5            -> out/frame_12.png (full-res check of one shot)
-  python3 engine/render.py episodes/NNN-slug video                      -> out/episode.mp4 (+ compressed out/final.mp4)
+  python3 engine/render.py episodes/NNN-slug video                      -> out/episode.mp4 (+ compressed out/final.mp4); resumable (out/parts/)
 Narration + small sound effects (episodes/NNN/sfx.json, engine/sfx.py); no music (user preference)."""
 import sys, os, time, subprocess, base64, io, glob
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -55,15 +55,23 @@ try:
             if os.path.exists(os.path.join(EPDIR, "sfx.json")): subprocess.run(["python3", os.path.join(ROOT, "engine/sfx.py"), EPDIR], check=True)
             AUDIO = os.path.join(OUT, "mix.wav") if os.path.exists(os.path.join(EPDIR, "sfx.json")) else os.path.join(OUT, "narration.wav")   # narration + sound effects
             mp4 = os.path.join(OUT, "episode.mp4")
-            ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "1080x1920", "-r", str(FPS), "-i", "-",
-                                   "-i", AUDIO, "-c:v", "libx264", "-preset", "veryfast", "-crf", "19", "-pix_fmt", "yuv420p",
-                                   "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", mp4], stdin=subprocess.PIPE)
-            N = int(E.total * FPS); t0 = time.time()
-            for f in range(N):
-                t = f / FPS; i, lt, d = E.shot_at(t)
-                ff.stdin.write(E.overlay(grab(i, lt, d), t, i).tobytes())
-                if f % 150 == 0: print(f"frame {f}/{N} {time.time()-t0:.0f}s", flush=True)
-            ff.stdin.close(); ff.wait()
+            # resumable: frames are encoded in chunks (out/parts/part_NNNN.mp4); finished chunks are skipped on a re-run,
+            # so a killed/restarted render continues where it stopped. Delete out/parts/ to force a full re-render.
+            PD = os.path.join(OUT, "parts"); os.makedirs(PD, exist_ok=True); CH = 300
+            N = int(E.total * FPS); t0 = time.time(); parts = []
+            for c0 in range(0, N, CH):
+                pf = os.path.join(PD, f"part_{c0:05d}.mp4"); parts.append(pf)
+                if os.path.exists(pf): print(f"skip frames {c0}-{min(N, c0 + CH)} (done)", flush=True); continue
+                ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "1080x1920", "-r", str(FPS), "-i", "-",
+                                       "-c:v", "libx264", "-preset", "veryfast", "-crf", "19", "-pix_fmt", "yuv420p", pf + ".tmp.mp4"], stdin=subprocess.PIPE)
+                for f in range(c0, min(N, c0 + CH)):
+                    t = f / FPS; i, lt, d = E.shot_at(t)
+                    ff.stdin.write(E.overlay(grab(i, lt, d), t, i).tobytes())
+                    if f % 150 == 0: print(f"frame {f}/{N} {time.time()-t0:.0f}s", flush=True)
+                ff.stdin.close(); ff.wait(); os.replace(pf + ".tmp.mp4", pf)
+            lst = os.path.join(PD, "list.txt"); open(lst, "w").write("".join(f"file '{p}'\n" for p in parts))
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-i", AUDIO, "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+                            "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", mp4], check=True)
             subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", mp4, "-c:v", "libx264", "-preset", "veryfast", "-crf", "25", "-maxrate", "6M", "-bufsize", "12M",
                             "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", os.path.join(OUT, "final.mp4")], check=True)
             print("done ->", os.path.join(OUT, "final.mp4"))

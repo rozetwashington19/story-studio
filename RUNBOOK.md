@@ -171,7 +171,7 @@ For close-ups, also check 2–3 frames at full resolution: `python3 engine/rende
 ```
 nohup python3 engine/render.py episodes/NNN-slug video > episodes/NNN-slug/out/render.log 2>&1 &
 ```
-≈2.0–2.3 s per frame with the quality passes (≈85–105 min for 1:20–1:30). Keep the quality passes on (`q=1`, the default). Poll the log. Output: `out/final.mp4` (~50 MB).
+The render is resumable (finished 300-frame chunks are kept in out/parts/ and skipped on a re-run — if the container restarts, just run the same command again). ≈2.0–2.3 s per frame with the quality passes (rainy night sets with many lights: ≈4.5 s) (≈85–105 min for 1:20–1:30). Keep the quality passes on (`q=1`, the default). Poll the log. Output: `out/final.mp4` (~50 MB).
 Sanity check: `ffprobe` duration ≈ narration duration; extract a 30-frame contact sheet and look at it.
 
 ## 7. Deliver
