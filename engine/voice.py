@@ -11,7 +11,7 @@ Fallback (only if the clone model is missing or fails): Kokoro am_adam pitched u
   python3 engine/voice.py episodes/NNN-slug            # VOICE=clone (default) | VOICE=kokoro
 Script format: one line per shot; end a line with ' [pause]' for a long dramatic pause after it.
 """
-import sys, os, json, subprocess, numpy as np, soundfile as sf, sherpa_onnx
+import sys, os, re, json, hashlib, subprocess, numpy as np, soundfile as sf, sherpa_onnx
 EP = sys.argv[1]; OUT = os.path.join(EP, "out"); os.makedirs(OUT + "/lines", exist_ok=True)
 HERE = os.path.dirname(os.path.abspath(__file__))
 VOICE = os.environ.get("VOICE", "clone"); TEMPO = float(os.environ.get("VOICE_TEMPO", "1.08"))
@@ -44,8 +44,9 @@ if VOICE == "clone":
 if engine is None: gen, chain = kokoro_engine(); engine = "kokoro"
 
 raw = [l.rstrip("\n") for l in open(os.path.join(EP, "script.txt")) if l.strip()]
-lines, long_pause = [], []
-for l in raw:
+lines, long_pause, tags = [], [], []
+for l in raw:   # delivery tags like {soft} {slow} {excited} {tense} (see DELIVERY) are stripped from the spoken/caption text
+    tags.append(re.findall(r"\{(\w+)\}", l)); l = re.sub(r"\s*\{\w+\}\s*", " ", l).strip()
     lines.append(l.replace("[pause]", "").strip()); long_pause.append(l.strip().endswith("[pause]"))
 
 # ---- quality helpers (added ep 002): context generation, clean trims, ASR check ----
@@ -76,6 +77,13 @@ def split_after_prev(y, sr, prev, cur):
     k, j = min(runs, key=lambda r: abs((r[0] + r[1]) / 2 - exp))
     if abs((k + j) / 2 - exp) > 0.22 * len(db): return None
     return y[max(0, j * h - int(0.03 * sr)):]
+_O = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split()
+_T = "_ _ twenty thirty forty fifty sixty seventy eighty ninety".split()
+def num_words(n):   # Whisper writes numbers as digits; compare them as words
+    if n < 20: return _O[n]
+    if n < 100: return _T[n // 10] + ("" if n % 10 == 0 else " " + _O[n % 10])
+    if n < 1000: return _O[n // 100] + " hundred" + ("" if n % 100 == 0 else " " + num_words(n % 100))
+    return str(n)
 ASR = None
 def asr_score(y, sr, text):
     global ASR
@@ -87,11 +95,14 @@ def asr_score(y, sr, text):
         st = ASR.create_stream(); st.accept_waveform(sr, np.concatenate([np.zeros(int(0.3 * sr)), np.asarray(y, dtype=np.float32), np.zeros(int(0.5 * sr))]).astype(np.float32)); ASR.decode_stream(st); hyp = st.result.text
     except Exception as e:
         return 1.0, f"(asr unavailable: {e})"
-    norm = lambda s: re.sub(r"[^a-z0-9' ]", " ", s.lower().replace("-", " ")).split()
+    norm = lambda s: re.sub(r"[^a-z0-9' ]", " ", re.sub(r"\d+", lambda m: num_words(int(m.group())), s.lower().replace("-", " "))).split()
     return difflib.SequenceMatcher(None, norm(text), norm(hyp)).ratio(), hyp
 
-VMODE = os.environ.get("VOICE_MODE", "passage") if engine == "clone" and not os.environ.get("ONLY") else "line"
-STEPS = int(os.environ.get("VOICE_STEPS", "8"))   # 16 is not better with the distilled model
+VMODE = os.environ.get("VOICE_MODE", "passage") if engine == "clone" else "line"
+STEPS = int(os.environ.get("VOICE_STEPS", "8"))
+# delivery tags in script.txt (put on any line; applies to its whole passage): (tempo factor, gain dB). Match the voice to the scene:
+# {excited} chases/surprises, {tense} creeping danger, {slow} sad or awed beats, {soft} tender moments, {whisper} whispered lines.
+DELIVERY = {"normal": (1.0, 0), "excited": (1.1, 1.5), "tense": (0.97, -1), "slow": (0.92, -1), "soft": (0.95, -3), "whisper": (0.94, -5)}   # 16 is not better with the distilled model
 LIGHT = (f"atempo={TEMPO}," if abs(TEMPO - 1) > 1e-3 else "") + "highpass=f=70,lowpass=f=12500,aresample=48000"   # passage mode: gentle tempo, no compressor
 # NOTE: never pass speed != 1.0 to ZipVoice - it truncates and garbles sentence endings (tested 2026-11-17)
 
@@ -142,43 +153,121 @@ def split_passage(y, sr, texts):
     cuts = [0] + cuts[::-1] + [len(y)]
     return [y[cuts[i]:cuts[i + 1]] for i in range(n)]
 
+def align(z, texts, sr=48000):
+    """line boundaries inside one continuous take: for each boundary, try the quiet spots near the expected position and keep the one
+    whose left piece Whisper hears as exactly that line (greedy, left to right). Returns sample cuts [0, ..., len(z)]."""
+    n = len(texts)
+    if n == 1: return [0, len(z)]
+    db, h = rms_db(z, sr); nf = len(db); loud = db > db.max() - 36
+    # candidate frames: centres of quiet runs + local energy minima (for lines spoken without a pause)
+    cand, k = set(), 0
+    while k < nf:
+        if not loud[k]:
+            j = k
+            while j < nf and not loud[j]: j += 1
+            if j - k >= 3 and k > 0 and j < nf: cand.add((k + j) // 2)
+            k = j
+        else: k += 1
+    sm = np.convolve(db, np.ones(5) / 5, "same")
+    for i in range(3, nf - 3):
+        if sm[i] == sm[i - 3:i + 4].min(): cand.add(i)
+    cand = sorted(cand)
+    speech = np.cumsum(loud); w = np.cumsum([len(t.replace(" ", "")) + 3 for t in texts]); W = w[-1]
+    cuts = [0]
+    for i in range(n - 1):
+        # expected boundary: where the spoken (loud) time reaches this line's share of the characters
+        target = speech[-1] * w[i] / W; e = int(np.searchsorted(speech, target))
+        left = cuts[-1] // h + 5; win = [c for c in cand if left < c < nf - 5 and abs(c - e) < 0.35 * nf / n + 40]
+        win = sorted(win, key=lambda c: abs(c - e))[:7] or [max(left + 1, min(e, nf - 6))]
+        best = None
+        for c in win:
+            sc = asr_score(z[cuts[-1]:c * h], sr, texts[i])[0] - 0.0004 * abs(c - e)
+            if best is None or sc > best[0]: best = (sc, c)
+        cuts.append(best[1] * h)
+    return cuts + [len(z)]
 def to48(y, sr, chain):
     rp = f"{OUT}/lines/_tmp.wav"; lp = f"{OUT}/lines/_tmp48.wav"; sf.write(rp, y, sr)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", rp, "-af", chain, "-ar", "48000", "-ac", "1", lp], check=True)
     return sf.read(lp)[0].astype(np.float32)
 
 if VMODE == "passage":
-    # group lines into breath-sized passages: <= 4 lines / ~18 words, and always break after a [pause] line
+    # Owner feedback 2026-11-18: narration sounded robotic, had random silences, cut-offs and repeated words.
+    # So: each passage (a run of lines up to a [pause]) is ONE continuous take that is never cut apart or re-spaced —
+    # line boundaries are only *timestamps* for the shot cuts. Every take is checked with Whisper; takes with repeated or
+    # missing words are regenerated (up to VOICE_TRIES), long silences inside a take are shortened, endings are never clipped.
+    TRIES = int(os.environ.get("VOICE_TRIES", "6"))
+    FORCE = {int(x) for x in os.environ.get("ONLY", "").split(",") if x.strip()}   # ONLY=7,30: regenerate the passages containing these lines
+    PD = f"{OUT}/passages"; os.makedirs(PD, exist_ok=True)
     groups, cur = [], []
     for i, l in enumerate(lines):
         cur.append(i)
-        if long_pause[i] or len(cur) >= 4 or sum(len(lines[j].split()) for j in cur) >= 18: groups.append(cur); cur = []
+        if long_pause[i] or len(cur) >= 5 or sum(len(lines[j].split()) for j in cur) >= 26: groups.append(cur); cur = []
     if cur: groups.append(cur)
-    pieces = [None] * len(lines)
+    def delivery(g):
+        tg = {t for i in g for t in tags[i]}
+        return next((DELIVERY[t] for t in ("excited", "tense", "slow", "soft", "whisper") if t in tg), DELIVERY["normal"])
+    def squeeze(z, sr=48000, keep=0.32, maxgap=0.5):
+        """shorten silences inside a take that are longer than maxgap s (they sound like random stops) to `keep` s"""
+        db, h = rms_db(z, sr); sil = db < db.max() - 40; out, k, last = [], 0, 0
+        while k < len(sil):
+            if sil[k]:
+                j = k
+                while j < len(sil) and sil[j]: j += 1
+                if k > 0 and j < len(sil) and (j - k) * h > maxgap * sr:
+                    a0, b0 = k * h + int(keep * sr / 2), j * h - int(keep * sr / 2)
+                    out.append(z[last:a0]); last = b0
+                k = j
+            else: k += 1
+        out.append(z[last:]); return np.concatenate(out)
+    def repeats(hyp, text):
+        """True if the take repeats a word/phrase that the script does not repeat ('the the', 'she wasn't sick she wasn't sick')"""
+        n = lambda s: re.sub(r"[^a-z0-9' ]", " ", s.lower()).split()
+        h, t = n(hyp), n(text)
+        for k in (1, 2, 3):
+            hg = [tuple(h[i:i + k]) for i in range(len(h) - k + 1)]; tg = [tuple(t[i:i + k]) for i in range(len(t) - k + 1)]
+            for i in range(len(hg) - k):
+                if hg[i] == hg[i + k] and not any(tg[j] == tg[j + k] for j in range(len(tg) - k)): return True
+        return False
+    pieces = [None] * len(lines); report = []
     for gi, g in enumerate(groups):
-        texts = [lines[i].replace('"', '') for i in g]; best = None
-        for attempt in range(3):
-            a = gen(" ".join(texts), speed=1.0, steps=STEPS); y = clean_trim(np.array(a.samples, dtype=np.float32), a.sample_rate, rel=-40)
-            z = to48(y, a.sample_rate, LIGHT); parts = split_passage(z, 48000, texts)
-            if parts is None: continue
-            scores = [asr_score(p, 48000, t) for p, t in zip(parts, texts)]; worst = min(s for s, _ in scores)
-            if best is None or worst > best[0]: best = (worst, parts, scores)
-            if worst >= 0.9: break
-        if best is None or best[0] < 0.75:   # passage could not be split cleanly: single-line takes for this group
-            parts = []
-            for t in texts:
-                a = gen(t, speed=1.0, steps=STEPS); parts.append(to48(clean_trim(np.array(a.samples, dtype=np.float32), a.sample_rate), a.sample_rate, LIGHT))
-            scores = [asr_score(p, 48000, t) for p, t in zip(parts, texts)]; tag = "solo"
-        else: parts, scores, tag = best[1], best[2], "passage"
-        for k, (i, z) in enumerate(zip(g, parts)):
-            fi = int(0.008 * 48000); z = z.copy(); z[:fi] *= np.linspace(0, 1, fi)
-            last = k == len(g) - 1
-            if last or tag == "solo": z = clean_trim(z, 48000, rel=-40)
-            on, off = speech_bounds(z); gap = (0.6 if long_pause[i] else 0.28) if (last or tag == "solo") else 0.0
-            if tag == "solo" and not last: gap = 0.18
-            pieces[i] = (z, on, off, gap); sf.write(f"{OUT}/lines/l{i:03d}.wav", z, 48000)
-            sc, hyp = scores[k]; print(f"line {i+1}/{len(lines)} [{tag}] asr={sc:.2f}" + ("" if sc >= 0.9 else f"  CHECK: heard '{hyp}'"), flush=True)
-    write_out(pieces); raise SystemExit(0)
+        texts = [lines[i].replace('"', '') for i in g]; text = " ".join(texts); dv = delivery(g)
+        key = hashlib.md5(f"{text}|{dv}|{TEMPO}|{STEPS}".encode()).hexdigest()[:10]; cf = f"{PD}/g{gi:03d}_{key}.wav"
+        if os.path.exists(cf) and not (FORCE & {i + 1 for i in g}):
+            z = sf.read(cf)[0].astype(np.float32); sc, hyp = asr_score(z, 48000, text); rep = repeats(hyp, text)
+        else:
+            best = None
+            for attempt in range(TRIES):
+                a = gen(text, speed=1.0, steps=STEPS); y = clean_trim(np.array(a.samples, dtype=np.float32), a.sample_rate, rel=-48)
+                chain = (f"atempo={TEMPO * dv[0]:.3f}," if abs(TEMPO * dv[0] - 1) > 1e-3 else "") + f"volume={dv[1]}dB,highpass=f=70,lowpass=f=12500,aresample=48000"
+                z = squeeze(to48(y, a.sample_rate, chain)); z = np.concatenate([z, np.zeros(int(0.12 * 48000), np.float32)])   # keep the tail, never clip endings
+                sc, hyp = asr_score(z, 48000, text); rep = repeats(hyp, text)
+                if best is None or (not rep, sc) > (not best[3], best[1]): best = (z, sc, hyp, rep)
+                if sc >= 0.95 and not rep: break
+            z, sc, hyp, rep = best
+            for old in os.listdir(PD):
+                if old.startswith(f"g{gi:03d}_"): os.remove(f"{PD}/{old}")
+            sf.write(cf, z, 48000)
+        # line boundaries inside the continuous take = timestamps only (audio is never cut)
+        cuts = align(z, texts)
+        for k, i in enumerate(g):
+            seg = z[cuts[k]:cuts[k + 1]]; on, off = speech_bounds(seg); pieces[i] = (cuts[k] / 48000 + on, cuts[k] / 48000 + off)
+        gap = 0.75 if long_pause[g[-1]] else 0.3
+        report.append((gi, g, sc, hyp, rep))
+        print(f"passage {gi+1}/{len(groups)} lines {g[0]+1}-{g[-1]+1} asr={sc:.2f}" + (" REPEAT" if rep else "") + ("" if sc >= 0.95 and not rep else f"  CHECK: heard '{hyp}'"), flush=True)
+        groups[gi] = (g, z, gap)
+    out = [np.zeros(int(48000 * 0.25))]; timing = []; t = 0.25
+    for g, z, gap in groups:
+        for i in g: timing.append({"line": lines[i], "start": round(t + pieces[i][0], 3), "end": round(t + pieces[i][1], 3)})
+        out += [z, np.zeros(int(48000 * gap))]; t += len(z) / 48000 + gap
+    sf.write(f"{OUT}/narr_pre.wav", np.concatenate(out), 48000); json.dump(timing, open(f"{OUT}/timing.json", "w"), indent=1)
+    total = t + 2.0
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{OUT}/narr_pre.wav", "-af", f"apad,atrim=0:{total:.3f},loudnorm=I=-15:TP=-1.5:LRA=11",
+                    "-ar", "48000", f"{OUT}/narration.wav"], check=True)
+    bad = [r for r in report if r[2] < 0.9 or r[4]]
+    print(f"voice={engine} mode=passage lines={len(lines)} passages={len(groups)} words={sum(len(l.split()) for l in lines)} duration={total:.1f}s")
+    print("QUALITY: all passages clean" if not bad else "QUALITY: %d passage(s) still flagged - reword those lines (simpler words, spell out numbers/names) and rerun with ONLY=<line>: %s"
+          % (len(bad), ", ".join(f"lines {r[1][0]+1}-{r[1][-1]+1}" for r in bad)))
+    raise SystemExit(0)
 
 segs = []
 # ONLY="51,55": regenerate just these line numbers (solo takes), reuse out/lines/lNNN.wav for the rest

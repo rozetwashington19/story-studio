@@ -40,3 +40,23 @@ Opening still follows the formula ("In this world, …" + the rule + "You see, �
 - **Expressive animation:** more acting than usual — hesitation before signing, trembling hands, slumped walk home in the rain,
   running, head in hands, a big hug at the end. Use the full range of faces.
 - Rain/thunder ambience as subtle sfx under the narration (per the sfx rules), never louder than the voice. Still no music.
+
+---
+
+## R2 — Day Creatures — OPEN
+Requested 2026-11-18 by the owner.
+
+**Premise (owner's words):** "Every morning creatures attack during the day, and it's only safe at night."
+Flip the usual horror rule: daylight is dangerous, night is the safe time. Use a **cold open** (no "In this world") and open with the hook.
+
+**Mode:** wild (spooky + adventure). Go big and wild — this is the owner's example of the "wilder stories" they want.
+
+**Creature design (owner's reference):** https://skfb.ly/pyIVQ — Sketchfab "Creepy Monster 3D Model" by Regulator (free, no credit
+required). The page itself has no description; its tags are creepy / uncanny / horror / flesh / realistic / low-poly. The preview image could not
+be loaded from the cloud workspace (host blocked), so match it from those tags — or from a screenshot if the owner adds one to this folder as
+`episodes/requests/R2-creature.png` (check for it first). Build it as a new `creature()` kind in engine/themes.js (reusable): an uncanny,
+gaunt, pale flesh-toned humanoid with long limbs and an unsettling face. **Kid-friendly: no blood, no gore** (ignore the "bloody" tags), nobody gets
+hurt, the kids win by being clever.
+
+**Guidance:** bright, sunny daytime sets that feel *threatening* (long hard shadows, creatures in the sunlight, boarded windows), and warm, cozy,
+safe night scenes (lanterns, stars, kids finally playing outside) — the opposite of normal. Clouds in every sky. Plant the twist early.

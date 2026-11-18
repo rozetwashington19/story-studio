@@ -32,7 +32,7 @@ class Episode:
         cur = [w for w in self.words if w[0] <= t < w[1]] or [w for w in self.words if w[1] <= t and t - w[1] < 0.15][-1:]
         if cur:
             ws, we, wd = cur[0]; cl = caption_layer(wd, t - ws)
-            fr.alpha_composite(cl, (int(W / 2 - cl.width / 2), int(H * 0.6 - cl.height / 2)))
+            fr.alpha_composite(cl, (int(W / 2 - cl.width / 2), int(H * 0.7 - cl.height / 2)))
         return fr.convert("RGB")
 
 def caption_layer(word, age):

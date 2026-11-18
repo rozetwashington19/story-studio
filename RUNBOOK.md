@@ -1,7 +1,14 @@
 # Daily episode runbook
 
 Goal: one new, original **1:20–1:30** vertical (1080×1920) 3D Roblox-style story short per day, in the
-"In this world…" format. New premise, new characters every day. **Narration + small sound effects, no music.**
+"In this world…" format (or a cold open — see step 1). New premise, new characters every day. **Narration + small sound effects, no music.**
+
+**Owner feedback (2026-11-18) — applies to every episode:**
+- Keep: the lighting on the models (motivated key + rim, practical lights on faces) and the clean animation. Keep improving the writing.
+- Fixed in the engine: narration must sound natural — no robotic delivery, random silences, clipped endings or repeated words (voice.py now records each
+  passage as one continuous take and Whisper-checks it; see step 2). The voice should match the scene: use delivery tags (step 2).
+- Captions now sit lower (70% height). Every episode opens with a 1–2 s **hook** (flash-forward of the climax). More **wild** stories (~60%), and only
+  about half the episodes open with "In this world" (`pick_mode.py` rolls the OPENER).
 
 **Length: 1:20–1:30 (80–90 s), chosen per story.** Owner decision 2026-11-17: shorter than the old ~2:20, but long enough for a real arc.
 Lighter/funny premises land near 1:20; emotional ones with a search + reveal can use the full 1:30. Never under 1:15 or over 1:35.
@@ -30,8 +37,9 @@ Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked e
   anything else* (so the other daily run can't take the same request), then build the episode from it. The request's premise,
   visual style and guidance override the random mode and premise steps below (all other runbook rules still apply). At delivery,
   set it to `DONE (episode NNN)`. If no request is OPEN, continue with the random mode below.
-- **Roll the story mode:** `python3 tools/pick_mode.py` → `heartfelt` (~60%) or `wild` (~40%). It is random on purpose so the
-  series mixes both; don't override it. Record it in `notes.md` (`Mode:` line) and in the INDEX `mode` column.
+- **Roll the story mode:** `python3 tools/pick_mode.py` → `wild` (~60%) or `heartfelt` (~40%), plus the OPENER (`in-this-world` or `cold-open`).
+  It is random on purpose so the series mixes both; don't override it. Owner wants wilder stories: go big — bigger creatures, bigger stakes,
+  stranger rules (owner's example of the kind: "Every morning creatures attack during the day, and it's only safe at night"). Record it in `notes.md` (`Mode:` line) and in the INDEX `mode` column.
 - **heartfelt:** one impossible rule about the world that is visual and has emotional potential
   (examples of the *kind*: "every word costs money", "rumors come true", "the sea drains every 100 years",
   "your shadow shows how you really feel"). Everyday settings (home, school, street). Ends on an emotional beat.
@@ -50,8 +58,11 @@ Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked e
 
 ## 2. Write `episodes/NNN-slug/script.txt` (NNN = next number)
 Formula (80–90 s version — the full arc, kept tight):
-1. Line 1: "In this world," — line 2: the rule.
-2. "You see, …" explains how it works (1 line).
+0. **Line 1 = the hook** (1–2 s, ≤ 6 words): a flash-forward of the climax, spoken over the climax shot (`hook()` in kit.js reuses that shot),
+   e.g. "Forty years. That's what I traded." / "It was right behind me." End it with a `rewind` sfx, then the story starts from the beginning.
+1. Opener per the rolled OPENER — `in-this-world`: line 2 "In this world," — line 3: the rule. `cold-open`: state the rule as a fact in one punchy
+   line, no "In this world" (e.g. "Every morning, the creatures come."), then go on.
+2. One line explains how it works ("You see, …" or any natural phrasing).
 3. 2–3 quick gags showing the rule on side characters (teacher, parent, sibling, neighbor…), 2 lines each: setup + punchline.
 4. "I'm <Name>. I'm <age>." + a hook that breaks the rule for the narrator.
 5. Fun at first (2 beats), then it goes wrong (2 beats).
@@ -59,22 +70,28 @@ Formula (80–90 s version — the full arc, kept tight):
 7. Emotional reveal + a choice or sacrifice (4–6 lines, give it room — this is what the extra time is for).
    Wild mode: the big twist / clever trick that beats the chaos instead (a small heartfelt beat is optional).
 8. Resolution + a callback to one gag + a short final line that lands emotionally.
-- 42–50 lines, 260–300 words → about 1:20–1:30 at the narrator's pace (≈3.4 words/s incl. pauses; ~265 words ≈ 1:20, ~295 ≈ 1:30). One line = one shot. Keep lines short (≤ 10 words).
+- 43–51 lines (incl. the hook), 260–300 words → about 1:20–1:30 at the narrator's pace (≈3.4 words/s incl. pauses; ~265 words ≈ 1:20, ~295 ≈ 1:30). One line = one shot. Keep lines short (≤ 10 words).
 - Every line must earn its place: one idea per line, no recap lines, at most 3 speaking characters besides the narrator.
 - First-person kid narrator. Dialogue goes in "double quotes" and also gets a speech bubble.
-- End a line with ` [pause]` for a dramatic beat (use ~6–8 times: big reveals, sad moments, final line).
+- End a line with ` [pause]` for a dramatic beat (use ~6–8 times: big reveals, sad moments, final line). Lines up to a [pause] are read as one
+  continuous passage (≤ 5 lines / 26 words), so write them to flow as connected sentences.
+- **Delivery tags** (make the voice match what is on screen): add `{excited}` (chases, surprises), `{tense}` (creeping danger), `{slow}` (sad/awed),
+  `{soft}` (tender), `{whisper}` anywhere on a line; it applies to that line's whole passage, so put a [pause] before/after a mood change.
+  Tags are stripped from the spoken text and the captions.
+- Avoid words the voice model stumbles on: spell numbers out ("forty"), keep names simple, avoid strings of short words that blur together.
 - Write `notes.md`: mode, premise, characters (name, look), sets needed, one-sentence logline.
 
-Then run `python3 engine/voice.py episodes/NNN-slug` (≈7–10 min; run it with nohup and poll) → prints duration.
-Narration is read in natural passages (`VOICE_MODE=passage`, default) — write lines that flow as connected sentences when read aloud.
-Adjust the script if outside 1:15–1:35. voice.py speaks each line in context with the previous one (smoother flow), trims tails
-cleanly (no ringing), and checks every line with Whisper (`~/models/sherpa-onnx-whisper-base.en`, from setup.sh). Read the
-`CHECK:` lines it prints: most are spelling quirks ("Juneau", "10"), but if a line is garbled or contains a word from the
-previous line, redo just those lines solo: `ONLY=51,55 python3 engine/voice.py episodes/NNN-slug` (keeps all other lines).
+Then run `python3 engine/voice.py episodes/NNN-slug` (≈7–12 min; run it with nohup and poll) → prints duration and a QUALITY line.
+Narration (`VOICE_MODE=passage`, default): each passage is generated as ONE continuous take (never cut apart, never re-spaced), checked with
+Whisper and regenerated up to 6× if it has repeated/missing words; silences > 0.5 s inside a take are shortened and endings are never clipped. Line
+boundaries are only timestamps for the cuts. Read the `passage … CHECK:` lines and the final `QUALITY:` line: number spellings are fine, but if a
+passage is still flagged (REPEAT or wrong words), reword those lines and rerun just them: `ONLY=12,13 python3 engine/voice.py episodes/NNN-slug`
+(other passages are reused from out/passages/). Adjust the script if the duration is outside 1:15–1:35. **Listen-check:** do not deliver with a
+flagged passage.
 
 ## 3. Write `bubbles.json`
 `{"<line number>": ["Bubble text", x 0–1, y 0–1]}` — x is the bubble center, y the top edge
-(0.06–0.17 typical; keep above the speaker's head, never over the caption zone at y≈0.55–0.65).
+(0.06–0.17 typical; keep above the speaker's head, never over the caption zone at y≈0.65–0.75 — captions sit at 70% height).
 
 ## 3b. Write `sfx.json` (small sound effects — mandatory)
 The owner wants sound effects that play exactly on the action and overlap the narration like normal SFX, as subtle background
@@ -82,7 +99,7 @@ sounds that never drown the voice. `engine/sfx.py` synthesizes them (no samples,
 while the narrator speaks they duck 5 dB, are thinned in the 1–4 kHz speech band, and are capped 13 dB under the voice.
 Time every cue to its action — never shift a cue into a pause to make room for the voice.
 `[[line, at, name, gain_db?], …]` — `line` = script line, `at` = seconds after that shot starts or `"40%"` of the shot, `gain_db` = trim (-10…+3).
-Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud knock chirp flap drip buzz tap typing ding rustle wind gasp zip tada rain (bed, -6..-10) thunder (on lightning) coins scribble creak.
+Hook: put `[1, "92%", "rewind", -2]` on line 1. Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud knock chirp flap drip buzz tap typing ding rustle wind gasp zip tada rain (bed, -6..-10) thunder (on lightning) coins scribble creak rewind (hook cut).
 - Put cues on visible actions, timed to the animation (a snap when a string breaks, steps while walking, a whoosh on a fast move,
   a chime/sparkle/glow on magic, a buzz on a phone, wind outdoors). About one cue per 1–3 shots (~20–35 per episode). Silence on
   the saddest lines and on the final line is fine — leave room for the voice.
@@ -91,7 +108,8 @@ Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud
   `python3 engine/sfx.py episodes/NNN-slug --remux`. Worked example: `episodes/003-kite/sfx.json`.
 
 ## 4. Write `shots.js` (export `SHOTS`, exactly one function per script line)
-Copy the pattern from `episodes/001-shadow/shots_b.js`. Each entry `(S, cam) => { build set + actors; return (t, dur) => { animate } }`.
+Copy the pattern from `episodes/001-shadow/shots_b.js`. Line 1 is the hook: `export const SHOTS = [hook(SHOTS_B[k], { at, len }), ...SHOTS_A, ...SHOTS_B]`
+(k = the climax shot, `at` = its most dramatic second). Each entry `(S, cam) => { build set + actors; return (t, dur) => { animate } }`.
 Split into `shots_a.js` / `shots_b.js` if long. Lessons learned (follow these):
 - **Everything moves.** Every shot has a camera move (`camPath` push-in/pan/drift) AND character motion
   (idle sway, gestures via `track` keyframes, walk cycles, `sob`, jumps). No frozen frames.

@@ -181,3 +181,8 @@ export function lookAt(A, p) {
 }
 // anticipation: a small opposite dip right before an action at time t0 (add to the pose), e.g. before a jump or a throw
 export function anticipate(t, t0, k = 1) { const u = (t - (t0 - 0.25)) / 0.25; if (u < 0 || u > 1) return {}; const s = Math.sin(u * Math.PI); return { bob: -0.12 * s * k, lean: 6 * s * k, nod: 4 * s * k }; }
+
+// ---- hook (owner request 2026-11-18): open every episode with a 1–2 s flash-forward of the climax ----
+// SHOTS = [hook(SHOTS_B[9], { at: 1.2, len: 3.5 }), ...SHOTS_A, ...SHOTS_B]  — reuses the climax shot's builder for script line 1,
+// playing it from `at` s of an assumed `len`-s shot (pick the most dramatic moment). Put a 'rewind' sfx at the end of line 1.
+export const hook = (shotFn, { at = 0.8, len = 3.0, speed = 1 } = {}) => (S, cam) => { const u = shotFn(S, cam); S.userData.hook = true; return (t, dur) => u(at + t * speed, len); };
