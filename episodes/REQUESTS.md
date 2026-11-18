@@ -43,7 +43,7 @@ Opening still follows the formula ("In this world, …" + the rule + "You see, �
 
 ---
 
-## R2 — Day Creatures — CLAIMED (episode 006, 2026-11-18)
+## R2 — Day Creatures — DONE (episode 006)
 Requested 2026-11-18 by the owner.
 
 **Premise (owner's words):** "Every morning creatures attack during the day, and it's only safe at night."

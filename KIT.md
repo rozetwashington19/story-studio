@@ -124,3 +124,16 @@ body — backpack cape scarf vest apron belt badge armor overalls labcoat tie bo
 beanie/helmet/hardhat/bandana/hood hide the hair (`{ hair: true }` keeps it). All pieces are tagged for the collision checker (a backpack/cape needs room behind).
 Extra shirt styles: stripes plaid jacket sweater uniform spacesuit knight. Skin also accepts any hex (e.g. 0xa3a2a5 classic gray).
 `python3 tools/cast_lineup.py episodes/NNN-slug out.jpg` renders `CAST` from the episode's common.js (front + 3/4, labelled).
+
+## Episode 006 kit — farm town that lives at night (`engine/sets7.js`)
+Sets (all return `{ update(t) }`, call every frame): `fernway(S, { night, dawn, sunPos, balloon, busstop })` main street — boarded houses back-left (front z=-14),
+cornfield behind a fence (x > 5, z < -7), bus-stop shelter at (-12, -2.6) (roof y 5.4 over x -15.2..-8.8, z -4.8..-0.4), lamp posts, string lights at night, Moon Fair
+balloon tethered at (-1.5, -8.8) (`env.balloon`, glows at night; `env.corn.sway(t, k)` for a rustle). `cornfield(S, { night, dawn, sunPos })` dirt clearing (x ±8, z > -9)
++ path (|x| < 4.2) in corn, sun disc at dawn. `park(S, { sunPos })` wide open meadow, corn far away. `bedroomDay(S, { night })` two beds (x -5 / 4.5, mattress top 1.7),
+boarded window with sunlight slits (patternLight), `env.door.open(k)` floods sunlight in, `env.blankets`. `nightClass(S)` classroom at 9 PM.
+Props: `cornRows(S, { x, z, step, dx, night })` alpha-tested crossed-plane corn with shadows (`.sway(t, k)`), `moonBalloon(S, { glow, r })` (`.userData.rope(a, b, sag)`),
+`busStop`, `lawnChair(S, [x,z], ry)` (seat top ≈1.1, lean -40 to lounge), `beachUmbrella(S, [x,y,z], col, r)`, `stringLights(S, a, b, n)`, `boardedWindow`, `sunDisc`, `stars`.
+Day lighting tip: put the sun where its shadow lands where the story needs shade (the shadow offset per unit height is −sun.x/sun.y, −sun.z/sun.y);
+directional-light shadows only include objects in front of the light position, so for tall props (balloons) use a far sun position (e.g. [10, 40, 14]).
+Husk v2 (themes.js): deeper slanted sockets under a brow ridge, cheekbones, sunken cheeks, dim eye glow (no more "pumpkin" face light).
+Freeze/unfreeze helpers and the scarecrow pose live in episodes/006-daycreatures/common.js (`husk()`, `scarecrow()`, `sitUp()`, `lie()`).

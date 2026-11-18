@@ -400,8 +400,12 @@ export function creature(S, { kind = 'stalker', name = 'creature', col, eyeCol, 
     head = G(J.neck, 0, 1.15, 0.05);
     const skull = part(head, new THREE.SphereGeometry(0.62, 18, 14), hs); skull.scale.set(0.8, 1.3, 0.9);
     const jaw = part(head, new THREE.SphereGeometry(0.42, 14, 10), hs, 0, -0.5, 0.12); jaw.scale.set(0.72, 1.0, 0.8);
-    for (const sx of [-1, 1]) { const so = part(head, new THREE.SphereGeometry(0.11, 12, 10), M({ color: 0x1a0c05, roughness: 1 }), sx * 0.16, 0.08, 0.49); so.scale.set(0.85, 1.45, 0.45); so.rotation.z = -sx * 0.4;   // slanted sockets, inner corners down (menacing)
-      eye(head, sx * 0.16, 0.05, 0.53, 0.016); }
+    const voidM = new THREE.MeshBasicMaterial({ color: 0x030201 });
+    for (const sx of [-1, 1]) { const so = part(head, new THREE.SphereGeometry(0.15, 14, 10), voidM, sx * 0.17, 0.06, 0.47); so.scale.set(0.95, 1.5, 0.5); so.rotation.z = -sx * 0.35;   // deep, dark, slanted sockets (R2 v2)
+      const brow = part(head, new THREE.SphereGeometry(0.17, 12, 8), hs, sx * 0.18, 0.25, 0.44); brow.scale.set(1.2, 0.45, 0.6); brow.rotation.z = sx * 0.3;   // heavy brow ridge shades the sockets
+      const ck = part(head, new THREE.SphereGeometry(0.1, 10, 8), hd2, sx * 0.25, -0.2, 0.42); ck.scale.set(1, 0.6, 0.6);   // sharp cheekbones
+      const hol = part(head, new THREE.SphereGeometry(0.12, 10, 8), crease, sx * 0.22, -0.4, 0.33); hol.scale.set(0.7, 1.3, 0.5);   // sunken cheeks
+      eye(head, sx * 0.17, 0.03, 0.55, 0.018); }
     const nose = part(head, new THREE.ConeGeometry(0.05, 0.16, 4), crease, 0, -0.2, 0.55); nose.scale.z = 0.5;
     const hm = grin(head, 0.3, -0.6, 0.45, 5); hm.scale.set(1, 0.25, 1); const ho = hm.userData.open;   // closed thin mouth; teeth only show when it opens
     hm.userData.open = (k) => { ho(k); hm.children.forEach((c, i) => { if (i) c.visible = k > 0.25; }); };
@@ -426,13 +430,13 @@ export function creature(S, { kind = 'stalker', name = 'creature', col, eyeCol, 
       const el = G(sh, 0, -1.8, 0); const hn = G(el); part(hn, new THREE.BoxGeometry(0.3, 0.4, 0.15), M({ color: 0x8a8a90 })); claws(hn, 4, 0.55); return { sh, el }; });
     J.legs = [];
   }
-  const glowL = new THREE.PointLight(E, 4, 6, 2); head.add(glowL); glowL.position.set(0, 0, 1.2);
+  const glowK = kind === 'husk' ? 0.5 : 4; const glowL = new THREE.PointLight(E, glowK, kind === 'husk' ? 2.5 : 6, 2); if (kind !== 'husk') head.add(glowL); glowL.position.set(0, 0, 1.2);   // husk: no eye light (cheaper, no 'pumpkin' glow)
   const mouthG = head.children.find(c => c.userData && c.userData.open);
   root.traverse(m => { if (m.isMesh) { m.userData.avatar = name; m.userData.part = kind; } });
   const target = new THREE.Vector3(0, 4.6, 20), tmp = new THREE.Vector3();
   const api = { root, head, joints: J, kind, name,
     look(v) { target.copy(v); },
-    eyesOn(k) { eyes.forEach(e => e.visible = k > 0.5); glowL.intensity = 4 * k; },
+    eyesOn(k) { eyes.forEach(e => e.visible = k > 0.5); glowL.intensity = glowK * k; },
     animate(t, mood = 'lurk') {
       const L = J.legs || [], A = J.arms || [];
       const walkK = mood === 'stalk' ? 1 : mood === 'lunge' ? 2.2 : 0;
