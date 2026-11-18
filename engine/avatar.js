@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { outfit } from './outfits.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { hairGeometry, beardGeometry, hashStr, COILY } from './hair.js';
 export { HAIR_STYLES, HAIR_COLORS, BEARDS } from './hair.js';
@@ -56,6 +57,18 @@ export function fabricTex(col, style = 'plain') {
       x.fillStyle = shade(col, 0.75); x.beginPath(); x.ellipse(128, 0, 50, 24, 0, 0, Math.PI); x.fill();
       x.fillStyle = 'rgba(255,255,255,0.85)'; x.font = 'bold 70px Inter, sans-serif'; x.textAlign = 'center'; x.fillText('★', 128, 150);
     }
+    if (style === 'stripes') { x.fillStyle = shade(col, 0.55); for (let y = 0; y < h; y += 44) x.fillRect(0, y, w, 18); }
+    if (style === 'plaid') { x.fillStyle = 'rgba(0,0,0,0.28)'; for (let i = 0; i < w; i += 64) { x.fillRect(i, 0, 22, h); x.fillRect(0, i, w, 22); }
+      x.fillStyle = 'rgba(255,255,255,0.18)'; for (let i = 40; i < w; i += 64) { x.fillRect(i, 0, 4, h); x.fillRect(0, i, w, 4); } }
+    if (style === 'jacket') { x.fillStyle = shade(col, 0.7); x.fillRect(122, 0, 12, h); x.fillStyle = '#c8c8c8'; for (let y = 6; y < h; y += 14) x.fillRect(125, y, 6, 7);
+      x.fillStyle = shade(col, 0.8); x.fillRect(30, 150, 70, 50); x.fillRect(156, 150, 70, 50); x.fillStyle = shade(col, 0.6); x.beginPath(); x.ellipse(128, 0, 72, 30, 0, 0, Math.PI); x.fill(); }
+    if (style === 'sweater') { x.strokeStyle = shade(col, 0.75); x.lineWidth = 3; for (let y = 10; y < h; y += 18) for (let xx = 0; xx < w; xx += 18) { x.beginPath(); x.moveTo(xx, y); x.lineTo(xx + 9, y + 9); x.lineTo(xx + 18, y); x.stroke(); }
+      x.fillStyle = shade(col, 0.6); x.fillRect(0, 100, w, 26); x.fillStyle = '#f2f2f2'; for (let xx = 8; xx < w; xx += 32) { x.beginPath(); x.moveTo(xx, 120); x.lineTo(xx + 8, 106); x.lineTo(xx + 16, 120); x.fill(); } }
+    if (style === 'uniform') { x.fillStyle = shade(col, 0.75); x.fillRect(36, 60, 64, 52); x.fillRect(156, 60, 64, 52); x.fillStyle = shade(col, 0.55); for (let y = 40; y < 240; y += 44) { x.beginPath(); x.arc(128, y, 6, 0, 7); x.fill(); }
+      x.fillStyle = '#f2c420'; x.beginPath(); x.arc(190, 40, 14, 0, 7); x.fill(); x.fillStyle = shade(col, 0.6); x.beginPath(); x.moveTo(80, 0); x.lineTo(128, 40); x.lineTo(176, 0); x.fill(); }
+    if (style === 'spacesuit') { x.fillStyle = '#e8eaee'; x.fillRect(0, 0, w, h); noise(x, w, h, 0.4, 0.05); x.fillStyle = hex(col); x.fillRect(0, 170, w, 26); x.fillRect(150, 40, 70, 40);
+      x.fillStyle = '#3a6ae8'; x.fillRect(40, 60, 60, 40); x.fillStyle = '#e8302a'; x.fillRect(46, 66, 14, 10); x.fillStyle = '#9aa0a8'; x.fillRect(110, 110, 36, 36); }
+    if (style === 'knight') { x.fillStyle = shade(col, 0.6); x.fillRect(0, 0, w, h); x.fillStyle = hex(col); x.fillRect(96, 0, 64, h); x.fillRect(0, 96, w, 64); x.fillStyle = '#f2c420'; x.beginPath(); x.arc(128, 128, 22, 0, 7); x.fill(); }
     if (style === 'jeans') {
       x.fillStyle = shade(col, 0.7); x.fillRect(0, 0, w, 26);
       x.strokeStyle = 'rgba(230,180,90,0.7)'; x.setLineDash([6, 5]); x.lineWidth = 2;
@@ -275,6 +288,7 @@ export function makeAvatar(o = {}) {
     A.headMesh.traverse(m => { if (m.isMesh && m !== A.headMesh) { m.userData.avatar = A.name; m.userData.part = 'hair/hat'; } });
     tag(A.neck, 'head'); tag(A.body, 'torso');
   }
+  if (o.outfit && !shadow) outfit(A, o.outfit);   // themed costume pieces (engine/outfits.js)
   A.pose = p => setPose(A, p);
   return A;
 }

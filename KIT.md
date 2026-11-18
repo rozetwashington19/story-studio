@@ -116,3 +116,11 @@ Lesson from 005: cyan practical lights on 'yellow' skin read green — keep colo
 (plus a few on the camera side for reverse shots), unaffected by fog, drifting slowly. Already called by `dayLight`, `rig()` (all themed worlds; `cloud: false`
 for space/underwater, `cloud: {…}` to pass options), `hill` (sunset tint), `ocean`, `stoop`, `cityNight`. Drift runs through `S.userData.tickers` (functions of shot time,
 run every frame by engine/main.html) — usable for any other ambient motion too.
+
+## Outfits + cast lineup (`engine/outfits.js`, `tools/cast_lineup.py`)
+`makeAvatar({ ...preset, outfit: ['cap', ['backpack', { col: 0x2a6ae8 }], 'boots'] })` (or `outfit(A, items)` later). Items: head — cap {col, back} beanie
+helmet {visor} spacehelmet hardhat headband headlamp {light} crown wizardhat cowboyhat piratehat bandana goggles glasses sunglasses bow headphones antennae hood;
+body — backpack cape scarf vest apron belt badge armor overalls labcoat tie bowtie sash satchel lifevest jetpack; limbs — gloves boots wristband kneepads.
+beanie/helmet/hardhat/bandana/hood hide the hair (`{ hair: true }` keeps it). All pieces are tagged for the collision checker (a backpack/cape needs room behind).
+Extra shirt styles: stripes plaid jacket sweater uniform spacesuit knight. Skin also accepts any hex (e.g. 0xa3a2a5 classic gray).
+`python3 tools/cast_lineup.py episodes/NNN-slug out.jpg` renders `CAST` from the episode's common.js (front + 3/4, labelled).

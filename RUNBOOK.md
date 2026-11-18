@@ -89,6 +89,20 @@ passage is still flagged (REPEAT or wrong words), reword those lines and rerun j
 (other passages are reused from out/passages/). Adjust the script if the duration is outside 1:15–1:35. **Listen-check:** do not deliver with a
 flagged passage.
 
+## 2b. Design the cast for this story (mandatory — owner request 2026-11-18)
+Every episode gets a brand-new cast whose **designs come from the theme and the story**, not just new colours:
+- Give each named character a **signature look** that says who they are in this world: a shirt style (`plain hoodie shirt blazer tee stripes plaid jacket
+  sweater uniform spacesuit knight`) + 2–4 outfit pieces from `engine/outfits.js` (`outfit: [...]` in the preset). Examples of the idea: space → spacesuit +
+  spacehelmet + jetpack; pirates → piratehat/bandana + sash + boots; knights → knight shirt + armor + cape/crown; survival/creatures → headlamp + backpack +
+  boots + gloves; lab/science → labcoat + goggles; farm → overalls + cowboyhat; winter → beanie + scarf + gloves; school → backpack/tie/glasses.
+  Side characters get role props too (a ranger's badge + hat, a chef's apron, a coach's cap).
+- Readable at a glance: every character has a different silhouette (hat/hair shape), a different main colour, and fits the age table (KIT.md).
+  Don't reuse an earlier episode's exact look.
+- New pieces are welcome: if the story needs a costume piece that doesn't exist, add it to `engine/outfits.js` (reusable).
+- Put the cast in `common.js` as `export const CAST = { 'Name': preset, … }` (+ `CAST_SET = 'night'` for a dark lineup), list it in notes.md (name, role, look),
+  then render and look at it: `python3 tools/cast_lineup.py episodes/NNN-slug out/cast.jpg`. Fix clashes (hair poking through hats, same colours) before shots.
+  Example lineup: `episodes/requests/cast-example.jpg` (a survivor cast for a creature story).
+
 ## 3. Write `bubbles.json`
 `{"<line number>": ["Bubble text", x 0–1, y 0–1]}` — x is the bubble center, y the top edge
 (0.06–0.17 typical; keep above the speaker's head, never over the caption zone at y≈0.65–0.75 — captions sit at 70% height).
@@ -129,7 +143,7 @@ Split into `shots_a.js` / `shots_b.js` if long. Lessons learned (follow these):
   Put reusable new sets/helpers into `engine/kit.js` or `engine/sets2.js` so future episodes can use them.
 - New faces: draw with PIL like `tools/faces2.py` (512×512 transparent PNG, eyes ≈ y 200, mouth ≈ y 330),
   save to `engine/faces/<name>.png`. Existing: smile grin shock sad smirk neutral worried cry teary fakesmile determined softsmile.
-- New characters: vary skin (tan, light, brown, yellow, pale), shirt colors/styles, pants, hair style and hair color (see the
+- New characters (see 2b for themed costumes): vary skin (tan, light, brown, yellow, pale, or any hex), shirt colors/styles, pants, hair style and hair color (see the
   age table in KIT.md — no two characters in an episode share a style), and hats. Make ages read at a glance: grandparents get
   gray/white hair + `wrinkles` (+ beard/mustache for grandpas), dads/teachers adult styles, kids `freckles`/`rosy`.
 - Use the full range of expressions (33 faces, KIT.md); switch faces mid-shot for reactions instead of holding one face. Give the narrator a distinct look from previous episodes.

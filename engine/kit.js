@@ -11,6 +11,7 @@ export * from './sets4.js';
 export * from './sets5.js';
 export * from './sets6.js';
 export * from './clouds.js';
+export * from './outfits.js';
 export * from './themes.js';
 
 export const LEO = { skin: 'tan', shirt: 0xc0262b, shirtStyle: 'hoodie', pants: 0x24304f, hair: 'short', hairCol: 0x2a1708 };
