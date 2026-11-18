@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { T, std, box, repeatMat, room } from './sets.js';
 import { cityNight, rain, wetFloor, lightStreak, rainGlass, patternLight } from './themes.js';
+import { clouds } from './clouds.js';
 
 const D = Math.PI / 180;
 function ctex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
@@ -276,13 +277,13 @@ export function apartment(S, { morning = false, lightning = [], lamp = true } = 
 export function stoop(S, { morning = false, lightning = [] } = {}) {
   if (morning) {
     S.background = ctex(16, 512, (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#6a9ad8'); g.addColorStop(0.6, '#ffd0a0'); g.addColorStop(1, '#ffb080'); c.fillStyle = g; c.fillRect(0, 0, w, h); });
-    S.fog = new THREE.Fog(0xffd8b0, 40, 120); S.add(new THREE.HemisphereLight(0xfff0d8, 0x6a5040, 1.1));
+    S.fog = new THREE.Fog(0xffd8b0, 40, 120); S.add(new THREE.HemisphereLight(0xfff0d8, 0x6a5040, 1.1)); clouds(S, { tint: 0xfff0e0 });
     const sun = new THREE.DirectionalLight(0xffc890, 3.2); sun.position.set(-14, 9, 12); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
     Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 0.5, far: 80 }); sun.shadow.bias = -0.0005; S.add(sun, sun.target);
     wetFloor(S, { col: '#4a4a52', puddles: 10, area: [-10, 10, -3, 8] });
     for (let i = 0; i < 8; i++) { const x = -40 + i * 11; const h = 10 + (i * 37 % 9); box(S, [10, h, 6], [x, h / 2, -20], std({ map: T.brick([0xa05a3a, 0x8a6a5a, 0xb07a4a][i % 3]) }), { r: 0, cast: false, solid: false }); }
   } else {
-    S.background = new THREE.Color(0x070a14); S.fog = new THREE.Fog(0x0a0e1a, 18, 70); S.userData.look = 'night';
+    S.background = new THREE.Color(0x070a14); S.fog = new THREE.Fog(0x0a0e1a, 18, 70); S.userData.look = 'night'; clouds(S, { night: true });
     S.add(new THREE.HemisphereLight(0x4a5a8a, 0x101018, 0.45));
     const moon = new THREE.DirectionalLight(0x8aa0e8, 0.7); moon.position.set(-8, 14, 8); moon.castShadow = true; moon.shadow.mapSize.set(2048, 2048); Object.assign(moon.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20 }); S.add(moon, moon.target);
     wetFloor(S, { area: [-10, 10, -3, 10] });

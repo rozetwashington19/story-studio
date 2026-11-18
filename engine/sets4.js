@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { T, std, box, dayLight, interiorLight, room, repeatMat } from './sets.js';
 import { T2 } from './sets2.js';
+import { clouds } from './clouds.js';
 
 const D = Math.PI / 180;
 function ctex(w, h, draw) {
@@ -153,7 +154,7 @@ export function fedora(A, col = 0x6a4a32) {
 export const hillY = (x, z) => { const r = Math.hypot(x, z); return r <= 16 ? 0 : -Math.min(20, (r - 16) * 20 / 44); };
 export function hill(S, { sunset = false, cottage: withCottage = false, trees = true } = {}) {
   if (sunset) {
-    S.background = T.sky('#3a3a8a', '#ffa860'); S.fog = new THREE.Fog(0xf0a070, 50, 170);
+    S.background = T.sky('#3a3a8a', '#ffa860'); S.fog = new THREE.Fog(0xf0a070, 50, 170); clouds(S, { tint: 0xffc8a0 });
     S.add(new THREE.HemisphereLight(0xffc0a0, 0x4a3a5a, 1.0));
     const sun = new THREE.DirectionalLight(0xffa860, 3.0); sun.position.set(-14, 6, -20); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
     Object.assign(sun.shadow.camera, { left: -25, right: 25, top: 25, bottom: -25, near: 0.5, far: 90 }); S.add(sun);

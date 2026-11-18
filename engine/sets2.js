@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { T, std, box, dayLight, interiorLight, room, repeatMat } from './sets.js';
 import { noise } from './avatar.js';
+import { clouds } from './clouds.js';
 
 function tex(w, h, draw, rep = [1, 1]) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
@@ -131,7 +132,7 @@ export function airplane(S, [x, y, z], s = 1) {
   g.position.set(x, y, z); g.scale.setScalar(s); S.add(g); return g;
 }
 export function ocean(S) {
-  S.background = T.sky('#3a6fc8', '#ffcf9a'); S.fog = new THREE.Fog(0xf4cfa0, 60, 260);
+  S.background = T.sky('#3a6fc8', '#ffcf9a'); S.fog = new THREE.Fog(0xf4cfa0, 60, 260); clouds(S);
   S.add(new THREE.HemisphereLight(0xcfe0ff, 0x204060, 1.0));
   const sun = new THREE.DirectionalLight(0xffd0a0, 2.2); sun.position.set(-20, 10, -40); S.add(sun);
   const water = new THREE.Mesh(new THREE.PlaneGeometry(800, 800, 1, 1), std({ color: 0x1f5f9a, roughness: 0.15, metalness: 0.2 }));

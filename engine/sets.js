@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { noise } from './avatar.js';
+import { clouds } from './clouds.js';
 
 function tex(w, h, draw, rep = [1, 1]) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
@@ -71,7 +72,7 @@ function repeatMat(t, rx, ry, extra = {}) { const c = t.clone(); c.repeat.set(rx
 
 // ---------- lighting ----------
 export function dayLight(S, { sunPos = [-8, 14, 10], intensity = 3.4, hemi = 0.85, area = 18 } = {}) {
-  S.background = T.sky('#4f86d8', '#ffd9b0');
+  S.background = T.sky('#4f86d8', '#ffd9b0'); clouds(S);
   S.fog = new THREE.Fog(0xf2d2b0, 35, 105);
   S.add(new THREE.HemisphereLight(0xbcd4ff, 0x6a5040, hemi));
   const rim = new THREE.DirectionalLight(0xffc890, 1.6); rim.position.set(sunPos[0] * -0.6, 7, -12); S.add(rim);

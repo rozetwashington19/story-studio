@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { T, std, box, repeatMat } from './sets.js';
 import { T2 } from './sets2.js';
 import { noise } from './avatar.js';
+import { clouds } from './clouds.js';
 
 const D = Math.PI / 180;
 function rng(seed = 1) { let s = seed * 9301 + 49297; return () => (s = (s * 9301 + 49297) % 233280) / 233280; }
@@ -22,8 +23,9 @@ const floorTex = (base, speck, amt = 1.5) => ctex(512, 512, (x, w, h) => { x.fil
   if (speck) { x.fillStyle = speck; for (let i = 0; i < 400; i++) x.fillRect(Math.random() * w, Math.random() * h, 3, 3); } });
 
 // lighting rig: key sun with shadows + hemisphere + rim, and sky/fog
-function rig(S, { sky, fog, hemi = [0xbcd4ff, 0x404040, 0.9], sun = [0xffffff, 3.0, [-8, 12, 10]], rim = [0xffc890, 1.2], look = null, area = 22 }) {
+function rig(S, { sky, fog, hemi = [0xbcd4ff, 0x404040, 0.9], sun = [0xffffff, 3.0, [-8, 12, 10]], rim = [0xffc890, 1.2], look = null, area = 22, cloud = {} }) {
   S.background = skyTex(sky); if (fog) S.fog = new THREE.Fog(...fog);
+  if (cloud !== false) clouds(S, look === 'night' ? { night: true, ...cloud } : cloud);   // every outdoor sky gets clouds (cloud:false = none)
   S.add(new THREE.HemisphereLight(...hemi));
   const r = new THREE.DirectionalLight(rim[0], rim[1]); r.position.set(6, 7, -12); S.add(r);
   const k = new THREE.DirectionalLight(sun[0], sun[1]); k.position.set(...sun[2]); k.castShadow = true; k.shadow.mapSize.set(2048, 2048);
@@ -154,7 +156,7 @@ export function spooky(S) {   // haunted hill: kid-friendly spooky (purple sky, 
   return { update: particles(S, 40, { col: 0xc0a0ff, size: 0.07, box: [-14, 14, 0.5, 8, -16, 6], wobble: 1.0 }) };
 }
 export function space(S) {    // moon surface: craters, starfield, ringed planet, distant earth
-  rig(S, { sky: [[0, '#000006'], [1, '#0a0a24']], fog: null, hemi: [0x8090c0, 0x202024, 0.6], sun: [0xffffff, 3.4, [-12, 9, 6]], rim: [0x6a8aff, 1.6], look: 'night' });
+  rig(S, { sky: [[0, '#000006'], [1, '#0a0a24']], fog: null, hemi: [0x8090c0, 0x202024, 0.6], sun: [0xffffff, 3.4, [-12, 9, 6]], rim: [0x6a8aff, 1.6], look: 'night', cloud: false });
   ground(S, tm(TX.moon(), 14, 14, { bump: 3, roughness: 1 })); rocks(S, 18, 7, 36, 31, 0x8a8a90);
   const R = rng(5), cm = tm(TX.moon(), 1, 1, { bump: 3, roughness: 1, color: 0xb0b0b8 });
   around(16, 7, 40, 21, (x, z, Rr) => { const s = 1 + Rr() * 2.5; const c = mesh(new THREE.TorusGeometry(s, s * 0.22, 6, 20), cm); c.rotation.x = Math.PI / 2; c.position.set(x, 0, z); c.scale.z = 0.6; S.add(c); });
@@ -169,7 +171,7 @@ export function space(S) {    // moon surface: craters, starfield, ringed planet
   return { update: (t) => { pl.rotation.y = t * 0.02; earth.rotation.y = t * 0.1; } };
 }
 export function underwater(S) {   // sea floor: sand, kelp, coral, light shafts, bubbles
-  rig(S, { sky: [[0, '#0a6aa8'], [1, '#04304a']], fog: [0x0a5a88, 8, 48], hemi: [0x6ad0ff, 0x0a2a3a, 1.0], sun: [0xb8f0ff, 2.2, [-4, 16, 6]], rim: [0x40c0ff, 1.0] });
+  rig(S, { sky: [[0, '#0a6aa8'], [1, '#04304a']], fog: [0x0a5a88, 8, 48], hemi: [0x6ad0ff, 0x0a2a3a, 1.0], sun: [0xb8f0ff, 2.2, [-4, 16, 6]], rim: [0x40c0ff, 1.0], cloud: false });
   ground(S, tm(TX.dune(0xd8c08a), 18, 18, { bump: 1.5 })); rocks(S, 16, 6, 24, 41, 0x6a8a8a);
   const kelp = []; around(18, 6, 26, 3, (x, z, R) => { const g = new THREE.Group(); g.position.set(x, 0, z); S.add(g); const h = 4 + R() * 6, m = tm(TX.leaf(R() < 0.5 ? 0x3a8a3a : 0x5a9a2a), 0.5, 1, { bump: 1.5 });
     for (let i = 0; i < 6; i++) { const seg = mesh(new THREE.BoxGeometry(0.35, h / 6, 0.12), m); seg.position.y = h / 12 + i * h / 6; g.add(seg); } kelp.push(g); });
@@ -182,7 +184,7 @@ export function underwater(S) {   // sea floor: sand, kelp, coral, light shafts,
   return { update: (t) => { bub(t); kelp.forEach((g, i) => g.children.forEach((c, k) => { c.rotation.z = Math.sin(t * 1.2 + i + k * 0.5) * 0.12 * k; c.position.x = Math.sin(t * 1.2 + i) * 0.04 * k * k; })); } };
 }
 export function candy(S) {    // candy land: pink ground, lollipop trees, gumdrops, candy canes, cotton-candy clouds
-  rig(S, { sky: [[0, '#ff9ad8'], [1, '#ffe8f6']], fog: [0xffd8f0, 45, 150], hemi: [0xffe0f8, 0x8a4a7a, 1.0], sun: [0xfff0f8, 3.0, [-8, 14, 10]], rim: [0xffc0e0, 1.2] });
+  rig(S, { sky: [[0, '#ff9ad8'], [1, '#ffe8f6']], fog: [0xffd8f0, 45, 150], hemi: [0xffe0f8, 0x8a4a7a, 1.0], sun: [0xfff0f8, 3.0, [-8, 14, 10]], rim: [0xffc0e0, 1.2], cloud: { tint: 0xfff0fa } });
   ground(S, M({ map: (() => { const t = ctex(256, 256, (x, w, h) => { for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) { x.fillStyle = (i + j) % 2 ? '#ffb8e0' : '#ffe0f2'; x.fillRect(i * 32, j * 32, 32, 32); } }); t.repeat.set(30, 30); return t; })() }));
   const cols = [0xff4a8a, 0x4ad8c8, 0xffd84a, 0xa86aff, 0xff8a3a];
   around(14, 9, 28, 6, (x, z, R) => { const g = new THREE.Group(); g.position.set(x, 0, z); S.add(g); const h = 4 + R() * 3; const stick = mesh(new THREE.CylinderGeometry(0.15, 0.15, h, 8), M({ color: 0xf8f8f8 })); stick.position.y = h / 2; g.add(stick);

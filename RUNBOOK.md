@@ -124,6 +124,9 @@ Per scene you can tune: `S.userData.rimIntensity`, `S.userData.rim = false`, `S.
 Your job per shot:
 - **Lighting:** every set has a motivated key (sun/lamp/window) plus a warm/cool contrast. Emotional climaxes at golden hour or by a lamp;
   night shots get a practical light near the faces. Check previews for flat, evenly-lit frames and add a key `PointLight`/`SpotLight` if needed.
+- **Clouds in every sky** (owner request 2026-11-18): every outdoor shot with visible sky shows clouds. They are automatic in `dayLight()`, all themed
+  worlds (day and night), `hill`, `ocean`, `stoop` and `cityNight`, and drift on their own. For any custom sky call `clouds(S)` (`{ night: true }` at night,
+  `{ tint: 0xffc8a0 }` at sunset). Frame establishing/exterior shots so some sky shows; check clouds are visible in the previews.
 - **Lenses:** establishing 22–26, mediums 28–30, close-ups 34–40 (DOF kicks in). At least 1/3 of shots are close-ups on faces.
 - **Camera:** always moving with intent — slow push-in on emotional lines, low angle for triumph, dolly alongside walkers, a reveal
   (tilt/pan) for discoveries. Use `faceCam` (episodes/003-kite/common.js) so close-ups are from the front or 3/4.

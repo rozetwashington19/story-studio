@@ -110,3 +110,9 @@ table top 2.6 at (4.5,-2.5), door on right wall `env.door`, rainy/sunny back win
 `lightStream(S, col, n)` → `update(a, b, k, t, arc)` particles flowing a→b; `yearJar(S, pos, col, {s, light})`; `paperSheet`, `pen`, `broom`, `consoleBox`.
 Render cost (005): cityNight + rain + several shadow-casting spot lights renders ≈4.5–5 s/frame at q=1 (vs ≈2 s for daylight sets) — budget ≈3 h for an all-rainy episode, or use fewer point lights.
 Lesson from 005: cyan practical lights on 'yellow' skin read green — keep coloured face lights weak (≤1.5) or lerp them toward white (lifeClock does).
+
+## Clouds (`engine/clouds.js`) — every outdoor sky has them
+`clouds(S, { n, y: [min,max], z: [near,far], x, size, speed, tint, night, opacity, seed, front })` → puffy low-poly clouds in a band far behind the set
+(plus a few on the camera side for reverse shots), unaffected by fog, drifting slowly. Already called by `dayLight`, `rig()` (all themed worlds; `cloud: false`
+for space/underwater, `cloud: {…}` to pass options), `hill` (sunset tint), `ocean`, `stoop`, `cityNight`. Drift runs through `S.userData.tickers` (functions of shot time,
+run every frame by engine/main.html) — usable for any other ambient motion too.
