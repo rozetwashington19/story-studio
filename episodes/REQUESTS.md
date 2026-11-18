@@ -51,12 +51,14 @@ Flip the usual horror rule: daylight is dangerous, night is the safe time. Use a
 
 **Mode:** wild (spooky + adventure). Go big and wild — this is the owner's example of the "wilder stories" they want.
 
-**Creature design (owner's reference):** https://skfb.ly/pyIVQ — Sketchfab "Creepy Monster 3D Model" by Regulator (free, no credit
-required). The page itself has no description; its tags are creepy / uncanny / horror / flesh / realistic / low-poly. The preview image could not
-be loaded from the cloud workspace (host blocked), so match it from those tags — or from a screenshot if the owner adds one to this folder as
-`episodes/requests/R2-creature.png` (check for it first). Build it as a new `creature()` kind in engine/themes.js (reusable): an uncanny,
-gaunt, pale flesh-toned humanoid with long limbs and an unsettling face. **Kid-friendly: no blood, no gore** (ignore the "bloody" tags), nobody gets
-hurt, the kids win by being clever.
+**Creature design (owner's reference):** https://skfb.ly/pyIVQ (Sketchfab "Creepy Monster" by Regulator, free, no credit required).
+The owner's screenshot is `episodes/requests/R2-creature.png`: a tall, emaciated humanoid — bald elongated skull with deep dark eye sockets and a
+closed thin mouth, visible ribs and collarbones, sunken stomach, very long thin arms hanging past the hips with long clawed fingers, thin legs,
+mottled ochre/olive-brown skin with dark creases. Already built as a reusable creature: `creature(S, { kind: 'husk' })` in engine/themes.js
+(~9 tall; moods lurk/stalk/lunge/roar/hide; `eyesOn()` lights pinpoint eyes). First look: `episodes/requests/R2-creature-husk-v1.jpg`.
+Compare it with the reference before building shots and refine the face if needed (aim: creepy and gaunt, not cute — keep the sockets dark and the
+mouth a thin slit). **Kid-friendly: no blood, no gore, no open wounds** (the reference's red/open belly is replaced by a darker sunken stomach),
+nobody gets hurt, the kids win by being clever.
 
 **Guidance:** bright, sunny daytime sets that feel *threatening* (long hard shadows, creatures in the sunlight, boarded windows), and warm, cozy,
 safe night scenes (lanterns, stars, kids finally playing outside) — the opposite of normal. Clouds in every sky. Plant the twist early.

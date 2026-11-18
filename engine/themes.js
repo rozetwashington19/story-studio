@@ -315,12 +315,14 @@ export function monster(S, { name = 'monster', col = 0x6ad86a, belly = null, sha
 //   brute:   hulking hunched shoulders, curved horns, glowing slit eyes, tusks, big clawed fists
 //   crawler: low spider-thing with jointed legs and a cluster of glowing eyes
 //   shade:   floating hooded shadow, void face with glowing eyes + grin, trailing wisps
+//   husk:    owner's R2 reference (sketchfab 'Creepy Monster'): ~9 tall emaciated humanoid, elongated bald skull, deep dark eye sockets with
+//            pinpoint eyes, ribs, sunken belly, very long thin arms + long clawed fingers, mottled ochre skin. Works in daylight too. No gore.
 // Returns { root, head, animate(t, mood), look(vec3), eyesOn(0..1) }  mood: 'lurk'|'stalk'|'lunge'|'roar'|'hide'
 // Glowing eyes + bloom read best in dark worlds (spooky, forest night, cityNight, castle night, lab). Feet on y=0, faces +Z.
 export function creature(S, { kind = 'stalker', name = 'creature', col, eyeCol, size = 1, seed = 1 } = {}) {
   const R = rng(seed + 11); const root = new THREE.Group(); root.scale.setScalar(size); S.add(root);
-  const C = col ?? { stalker: 0x2a2630, brute: 0x3a2a2a, crawler: 0x1e2a22, shade: 0x0c0a12 }[kind];
-  const E = eyeCol ?? { stalker: 0xf4f4ff, brute: 0xff7a1a, crawler: 0xd8ff3a, shade: 0xff2a3a }[kind];
+  const C = col ?? { stalker: 0x2a2630, brute: 0x3a2a2a, crawler: 0x1e2a22, shade: 0x0c0a12, husk: 0xa87a42 }[kind];
+  const E = eyeCol ?? { stalker: 0xf4f4ff, brute: 0xff7a1a, crawler: 0xd8ff3a, shade: 0xff2a3a, husk: 0xffb040 }[kind];
   const skin = M({ color: C, roughness: 0.85 }), dark = M({ color: new THREE.Color(C).multiplyScalar(0.5), roughness: 0.9 });
   const bone = M({ color: 0xe8e0c8, roughness: 0.5 }), maw = M({ color: 0x120206, roughness: 0.9 });
   const eyeM = new THREE.MeshBasicMaterial({ color: E }), eyes = [];
@@ -373,6 +375,45 @@ export function creature(S, { kind = 'stalker', name = 'creature', col, eyeCol, 
       const up = G(hp); part(up, new THREE.BoxGeometry(1.8, 0.18, 0.18), dark, s * 0.9, 0, 0); up.rotation.z = s * 0.7;
       const kn = G(up, s * 1.8, 0, 0); const lo = G(kn); part(lo, new THREE.BoxGeometry(0.16, 2.1, 0.16), dark, 0, -1.0, 0); lo.rotation.z = -s * 0.5; J.legs.push({ hp, up, lo, s, k }); }
     J.arms = [];
+  } else if (kind === 'husk') {
+    // owner's reference creature (R2, sketchfab "Creepy Monster"): ~9 tall, gaunt and emaciated, bald elongated skull with deep dark eye sockets,
+    // visible ribs, sunken belly, very long thin arms with long clawed fingers, thin legs; mottled ochre-brown skin with dark creases. No blood/gore.
+    const mott = ctex(256, 256, (x, w, h) => { x.fillStyle = '#' + new THREE.Color(C).getHexString(); x.fillRect(0, 0, w, h); noise(x, w, h, 1.0, 0.1);
+      for (let i = 0; i < 26; i++) { x.fillStyle = `rgba(${90 + Math.random() * 60},${50 + Math.random() * 30},20,${0.2 + Math.random() * 0.25})`; x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, 12 + Math.random() * 30, 8 + Math.random() * 20, Math.random() * 3, 0, 7); x.fill(); }
+      for (let i = 0; i < 22; i++) { x.strokeStyle = `rgba(${40 + Math.random() * 30},${18 + Math.random() * 12},8,${0.25 + Math.random() * 0.35})`; x.lineWidth = 1 + Math.random() * 2.5;
+        x.beginPath(); let px = Math.random() * w, py = Math.random() * h; x.moveTo(px, py); for (let k = 0; k < 6; k++) { px += (Math.random() - 0.5) * 30; py += Math.random() * 22; x.lineTo(px, py); } x.stroke(); }
+      for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(230,200,140,${Math.random() * 0.25})`; x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, 4 + Math.random() * 10, 2 + Math.random() * 6, Math.random() * 3, 0, 7); x.fill(); } });
+    const hs = M({ map: mott, bumpMap: mott, bumpScale: 1.2, roughness: 0.5, metalness: 0.05 }), hd2 = M({ map: mott, bumpMap: mott, bumpScale: 1.2, color: 0xe8c890, roughness: 0.45 });
+    const crease = M({ color: 0x2a1408, roughness: 1 });
+    const limb = (parent, r0, r1, len, mat = hs) => { const m = part(parent, new THREE.CylinderGeometry(r0, r1, len, 10, 4), mat, 0, -len / 2, 0); return m; };
+    J.hips = G(root, 0, 4.2, 0); J.body = G(J.hips);
+    // torso: wide bony chest tapering to a thin waist
+    const chest = part(J.body, new THREE.CylinderGeometry(0.95, 0.5, 2.4, 14, 6), hs, 0, 2.0, 0); chest.scale.z = 0.62;
+    part(J.body, new THREE.CylinderGeometry(0.5, 0.55, 0.9, 12), hs, 0, 0.45, 0).scale.z = 0.7;
+    part(J.body, new THREE.SphereGeometry(0.95, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), hs, 0, 3.18, 0).scale.set(1, 0.32, 0.62);   // rounded shoulders
+    for (let i = 0; i < 6; i++) { const y = 2.85 - i * 0.28, r = 0.5 + (y - 0.8) / 2.4 * 0.45 + 0.05;   // ribs: raised arcs across the front of the chest
+      for (const [mat, dy, th] of [[hd2, 0, 0.038], [crease, -0.1, 0.026]]) { const g = G(J.body, 0, y + dy, 0); g.rotation.x = Math.PI / 2; g.scale.set(1, 0.66, 1);
+        const rb = mesh(new THREE.TorusGeometry(r, th, 6, 20, Math.PI * 0.6), mat); rb.rotation.z = Math.PI * 0.2; g.add(rb); } }
+    const belly = part(J.body, new THREE.SphereGeometry(0.34, 12, 10), M({ color: 0x5a3a1e, roughness: 1 }), 0, 1.05, 0.22); belly.scale.set(0.9, 1.4, 0.3);   // sunken stomach (dark, no gore)
+    const coll = part(J.body, new THREE.BoxGeometry(1.7, 0.16, 0.3), hd2, 0, 3.15, 0.18); coll.rotation.x = 0.2;   // collarbones
+    J.neck = G(J.body, 0, 3.25, 0.05); part(J.neck, new THREE.CylinderGeometry(0.2, 0.26, 0.7, 10), hs, 0, 0.3, 0);
+    head = G(J.neck, 0, 1.15, 0.05);
+    const skull = part(head, new THREE.SphereGeometry(0.62, 18, 14), hs); skull.scale.set(0.8, 1.3, 0.9);
+    const jaw = part(head, new THREE.SphereGeometry(0.42, 14, 10), hs, 0, -0.5, 0.12); jaw.scale.set(0.72, 1.0, 0.8);
+    for (const sx of [-1, 1]) { const so = part(head, new THREE.SphereGeometry(0.11, 12, 10), M({ color: 0x1a0c05, roughness: 1 }), sx * 0.16, 0.08, 0.49); so.scale.set(0.85, 1.45, 0.45); so.rotation.z = -sx * 0.4;   // slanted sockets, inner corners down (menacing)
+      eye(head, sx * 0.16, 0.05, 0.53, 0.016); }
+    const nose = part(head, new THREE.ConeGeometry(0.05, 0.16, 4), crease, 0, -0.2, 0.55); nose.scale.z = 0.5;
+    const hm = grin(head, 0.3, -0.6, 0.45, 5); hm.scale.set(1, 0.25, 1); const ho = hm.userData.open;   // closed thin mouth; teeth only show when it opens
+    hm.userData.open = (k) => { ho(k); hm.children.forEach((c, i) => { if (i) c.visible = k > 0.25; }); };
+    J.arms = [-1, 1].map(s => { const sh = G(J.body, s * 1.0, 2.95, 0); part(sh, new THREE.SphereGeometry(0.28, 10, 8), hs);
+      limb(sh, 0.22, 0.15, 2.9); const el = G(sh, 0, -2.9, 0); part(el, new THREE.SphereGeometry(0.17, 8, 6), hs); limb(el, 0.16, 0.13, 2.7);
+      const hn = G(el, 0, -2.75, 0); const palm = part(hn, new THREE.BoxGeometry(0.34, 0.5, 0.14), hs, 0, -0.2, 0);
+      for (let f = 0; f < 4; f++) { const fg = G(hn, (f - 1.5) * 0.1, -0.42, 0); fg.rotation.z = (f - 1.5) * 0.12; limb(fg, 0.045, 0.03, 0.75);
+        const cl = part(fg, new THREE.ConeGeometry(0.035, 0.22, 5), bone, 0, -0.85, 0); cl.rotation.x = Math.PI; }
+      return { sh, el }; });
+    J.legs = [-1, 1].map(s => { const hp = G(root, s * 0.36, 4.2, 0); limb(hp, 0.26, 0.17, 2.2); const kn = G(hp, 0, -2.2, 0); part(kn, new THREE.SphereGeometry(0.19, 8, 6), hs);
+      limb(kn, 0.17, 0.12, 2.0); const ft = part(kn, new THREE.BoxGeometry(0.3, 0.16, 0.7), hs, 0, -2.0, 0.2); return hp; });
+    J.body.rotation.x = 0.12; J.neck.rotation.x = 0.1;
   } else {   // shade
     J.hips = G(root, 0, 0.6, 0); J.body = G(J.hips);
     const cloak = new THREE.ConeGeometry(1.4, 4.4, 14, 6, true); const p = cloak.attributes.position;
@@ -398,9 +439,9 @@ export function creature(S, { kind = 'stalker', name = 'creature', col, eyeCol, 
       const sw = Math.sin(t * (kind === 'crawler' ? 9 : 3.2) * Math.max(walkK, 0.001));
       if (kind === 'crawler') L.forEach(({ up, lo, s, k }, i) => { const ph = t * 9 * Math.max(walkK, 0.2) + i * 1.9; up.rotation.z = s * (0.7 + Math.max(0, Math.sin(ph)) * 0.35 * (walkK ? 1 : 0.15)); up.rotation.y = Math.cos(ph) * 0.3 * (walkK ? 1 : 0.1); });
       else if (kind !== 'shade') L.forEach((l, i) => { l.rotation.x = (i ? 1 : -1) * sw * 0.5 * Math.min(walkK, 1); });
-      J.hips.position.y = (kind === 'stalker' ? 3.6 : kind === 'brute' ? 2.2 : kind === 'crawler' ? 1.3 : 0.6 + Math.sin(t * 1.8) * 0.25) + (walkK ? Math.abs(sw) * 0.12 : 0);
+      J.hips.position.y = (kind === 'stalker' ? 3.6 : kind === 'husk' ? 4.2 : kind === 'brute' ? 2.2 : kind === 'crawler' ? 1.3 : 0.6 + Math.sin(t * 1.8) * 0.25) + (walkK ? Math.abs(sw) * 0.12 : 0);
       const lean = { lurk: 0, stalk: 0.12, lunge: 0.45, roar: -0.25, hide: -0.15 }[mood] ?? 0;
-      J.body.rotation.x = (kind === 'stalker' ? 0.35 : kind === 'brute' ? 0.3 : 0) + lean + (mood === 'roar' ? Math.sin(t * 40) * 0.02 : 0);
+      J.body.rotation.x = (kind === 'stalker' ? 0.35 : kind === 'husk' ? 0.12 : kind === 'brute' ? 0.3 : 0) + lean + (mood === 'roar' ? Math.sin(t * 40) * 0.02 : 0);
       J.body.rotation.z = mood === 'lurk' ? Math.sin(t * 0.9) * 0.06 : 0;
       A.forEach(({ sh, el }, i) => { const s = i ? 1 : -1;
         if (mood === 'lunge') { sh.rotation.x = -1.35 - lean + Math.sin(t * 6 + i) * 0.1; el.rotation.x = -0.25; sh.rotation.z = s * 0.2; }
@@ -411,7 +452,7 @@ export function creature(S, { kind = 'stalker', name = 'creature', col, eyeCol, 
       root.updateMatrixWorld(true); head.parent.worldToLocal(tmp.copy(target)); tmp.sub(head.position);
       const yaw = Math.max(-1, Math.min(1, Math.atan2(tmp.x, tmp.z))), pitch = Math.max(-0.6, Math.min(0.6, -Math.atan2(tmp.y, Math.hypot(tmp.x, tmp.z))));
       const tw = mood === 'lurk' && (t % 2.3) < 0.15 ? 0.45 : 0;
-      head.rotation.set(pitch, yaw, (mood === 'lurk' ? 0.25 + tw : mood === 'hide' ? 0.4 : 0) * (kind === 'stalker' || kind === 'shade' ? 1 : 0.4));
+      head.rotation.set(pitch, yaw, (mood === 'lurk' ? 0.25 + tw : mood === 'hide' ? 0.4 : 0) * (kind === 'stalker' || kind === 'shade' || kind === 'husk' ? 1 : 0.4));
     } };
   return api;
 }
