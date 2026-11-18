@@ -55,7 +55,7 @@ void main(){ vec3 c=texture2D(tDiffuse,vUv).rgb;
   // grain
   c+= (h(vUv*res+time*97.0)-0.5)*0.035;
   gl_FragColor=vec4(clamp(c,0.0,1.0),1.0);}`};
-const gp=new ShaderPass(Grade); comp.addPass(gp);
+const gp=new ShaderPass(Grade); comp.addPass(gp); if(q.get('grade')==='0') gp.enabled=false;   // ?grade=0: no colour grade/vignette/grain (cut-outs, stills)
 let cur=-1, S=null, upd=null, rim=null;
 // rim light: sits behind the subject, opposite the camera and above, so characters get a bright edge (cinematic separation)
 function placeRim(){ if(!rim) return; const tg=cam.userData.target||cam.position.clone().add(cam.getWorldDirection(new THREE.Vector3()).multiplyScalar(8));

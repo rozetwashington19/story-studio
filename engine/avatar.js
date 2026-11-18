@@ -191,7 +191,7 @@ function capGeometry(R, H, rr, from) {   // top part of a slightly bigger head s
   return new THREE.LatheGeometry(pts, 96, Math.PI, Math.PI * 2);
 }
 
-const SKIN = { tan: 0xd9a066, light: 0xf2c9a0, brown: 0x8a5a3a, yellow: 0xf5cd30, pale: 0xf0d5c0 };
+const SKIN = { tan: 0xd9a066, light: 0xf2c9a0, brown: 0x8a5a3a, yellow: 0xf5cd30, pale: 0xf0d5c0, gray: 0xa3a2a5 };
 
 function mesh(geo, mat, cast = false) { const m = new THREE.Mesh(geo, mat); m.castShadow = cast; m.receiveShadow = true; return m; }
 function rbox(w, h, d, r = 0.06) { return new RoundedBoxGeometry(w, h, d, 3, r); }
@@ -212,7 +212,7 @@ function blob() {
 let avatarCount = 0;
 export function makeAvatar(o = {}) {
   const shadow = o.shadow;
-  const skinHex = SKIN[o.skin || 'tan'];
+  const skinHex = SKIN[o.skin || 'tan'] ?? o.skin;   // preset name or any hex colour
   const skinM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ color: skinHex, roughness: 0.55 });
   const shirtTex = shadow ? null : fabricTex(o.shirt ?? 0xcc2222, o.shirtStyle || 'plain');
   const sideTex = shadow ? null : fabricTex(o.shirt ?? 0xcc2222, 'plain');
