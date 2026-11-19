@@ -105,6 +105,20 @@ Cast designs: Rico (pastel-teal Hawaiian shirt, white tee, shorts, sneakers, sun
 roller skates feel), Grandpa Sal (faded flamingo Hawaiian shirt, white hair, mustache, kneepads/wristbands for skating), best friend
 Dani (neon windbreaker, headphones). The Wait: a cute-blocky `monster()` blob in neon pink with big eyes — silly, never scary.
 
+**Go further with GTA 6 (owner approved 2026-11-19 — overrides the "original city name" line above):**
+- Name the real setting: the town is **Vice City, Leonida** (where GTA 6 is set) — use it in narration/captions and on made-up signs
+  ("Welcome to Vice City"), instead of "Palm Bay". Still an original-looking city; not a copy of the game's map or key art.
+- The delays drive the plot: the game was delayed twice — each delay announcement makes the Wait grow a size (show it: a phone buzz /
+  TV news ticker "DELAYED", the crowd groans, the blob puffs up with a boing). Rico's age line: "I was eight when the first trailer dropped."
+- Fan-recognizable moments, done as original kid-safe gags (pick 2–3 for the opening/side beats): an alligator wandering into a
+  convenience store (it just wants a slushie), flamingos everywhere (Grandpa skates through a flock), a Florida swamp with an airboat,
+  jet skis / a boat party off the beach, a kid with a sign "GTA 6 BEFORE MY HOMEWORK", the whole town replaying the first trailer.
+- Game-world touches: a short original radio-jingle style sfx cue (no copyrighted music — sfx.py synth only), a big neon minimap-style
+  countdown sign (circle with a "6" blip), retro sports cars *cruising* the strip at golden hour (never chasing), pastel neon everywhere.
+- Launch night payoff: the kids boot it up on the couch — show the console, the TV glow on their faces and their reactions; the TV screen
+  itself shows only an original abstract neon glow / loading bar with a "6", never game footage, logo or characters.
+Still out: crime, heists, guns, police chases, wanted stars, Lucia/Jason, Rockstar logo, box/key art, trailer shots, real store brands.
+
 **Rules (important):** the game may be named in the narration/captions ("GTA 6"), but do **not** recreate Rockstar's logo, the game's
 box art or key art, its characters (Lucia/Jason), or any real store or brand logos — use an original "6" countdown display and made-up
 shop names. No real people. New narrator, new cast (2b), one hook, sfx as usual, 1:20–1:30.
