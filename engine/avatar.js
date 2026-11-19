@@ -69,6 +69,22 @@ export function fabricTex(col, style = 'plain') {
     if (style === 'spacesuit') { x.fillStyle = '#e8eaee'; x.fillRect(0, 0, w, h); noise(x, w, h, 0.4, 0.05); x.fillStyle = hex(col); x.fillRect(0, 170, w, 26); x.fillRect(150, 40, 70, 40);
       x.fillStyle = '#3a6ae8'; x.fillRect(40, 60, 60, 40); x.fillStyle = '#e8302a'; x.fillRect(46, 66, 14, 10); x.fillStyle = '#9aa0a8'; x.fillRect(110, 110, 36, 36); }
     if (style === 'knight') { x.fillStyle = shade(col, 0.6); x.fillRect(0, 0, w, h); x.fillStyle = hex(col); x.fillRect(96, 0, 64, h); x.fillRect(0, 96, w, 64); x.fillStyle = '#f2c420'; x.beginPath(); x.arc(128, 128, 22, 0, 7); x.fill(); }
+    // hawaiian (hibiscus print), flamingo (faded flamingo print), polo (collar + chest logo). '*Side' = print without the collar (sides/back).
+    if (style.startsWith('hawaiian') || style.startsWith('flamingo')) { const fl = style.startsWith('flamingo'); let sd = 7;
+      const R = () => (sd = (sd * 9301 + 49297) % 233280) / 233280;
+      for (let i = 0; i < 14; i++) { const cx = R() * w, cy = R() * h, r = 14 + R() * 10;
+        if (!fl) { x.fillStyle = 'rgba(40,110,60,0.75)'; x.beginPath(); x.ellipse(cx + r, cy + 6, r * 1.1, r * 0.45, 0.6, 0, 7); x.fill(); x.beginPath(); x.ellipse(cx - r, cy - 4, r * 1.0, r * 0.4, -0.5, 0, 7); x.fill();
+          x.fillStyle = i % 2 ? 'rgba(255,245,235,0.92)' : 'rgba(255,214,90,0.92)'; for (let k = 0; k < 5; k++) { const a = k * 1.256; x.beginPath(); x.ellipse(cx + Math.cos(a) * r * 0.55, cy + Math.sin(a) * r * 0.55, r * 0.55, r * 0.32, a, 0, 7); x.fill(); }
+          x.fillStyle = 'rgba(230,80,60,0.95)'; x.beginPath(); x.arc(cx, cy, r * 0.22, 0, 7); x.fill(); }
+        else { x.fillStyle = 'rgba(255,150,190,0.55)'; x.beginPath(); x.ellipse(cx, cy, r * 0.8, r * 0.5, 0.2, 0, 7); x.fill(); x.fillRect(cx - 1, cy + r * 0.4, 3, r * 1.4);
+          x.strokeStyle = 'rgba(255,150,190,0.55)'; x.lineWidth = 4; x.beginPath(); x.moveTo(cx + r * 0.6, cy - 2); x.quadraticCurveTo(cx + r * 1.2, cy - r * 1.6, cx + r * 0.5, cy - r * 1.4); x.stroke();
+          x.fillStyle = 'rgba(80,140,110,0.35)'; x.beginPath(); x.ellipse(cx - r * 1.2, cy + r, r * 0.9, r * 0.3, -0.7, 0, 7); x.fill(); } }
+      if (!style.endsWith('Side')) { x.fillStyle = shade(col, 0.8); x.beginPath(); x.moveTo(70, 0); x.lineTo(128, 70); x.lineTo(186, 0); x.fill();
+        x.fillStyle = '#f4f0e8'; x.beginPath(); x.moveTo(100, 0); x.lineTo(128, 46); x.lineTo(156, 0); x.fill(); x.fillStyle = shade(col, 0.7); x.fillRect(126, 60, 4, 196); }
+    }
+    if (style === 'polo') { x.fillStyle = shade(col, 0.7); x.beginPath(); x.moveTo(84, 0); x.lineTo(128, 30); x.lineTo(172, 0); x.fill(); x.fillStyle = '#f4f4f4'; x.fillRect(122, 20, 12, 60);
+      x.fillStyle = shade(col, 0.5); for (let y = 34; y < 80; y += 18) { x.beginPath(); x.arc(128, y, 4, 0, 7); x.fill(); }
+      x.fillStyle = '#ffe23a'; x.fillRect(158, 66, 50, 30); x.fillStyle = '#ff3ab8'; x.font = 'bold 24px Inter, sans-serif'; x.textAlign = 'center'; x.fillText('PP', 183, 90); }
     if (style === 'jeans') {
       x.fillStyle = shade(col, 0.7); x.fillRect(0, 0, w, 26);
       x.strokeStyle = 'rgba(230,180,90,0.7)'; x.setLineDash([6, 5]); x.lineWidth = 2;
@@ -228,7 +244,7 @@ export function makeAvatar(o = {}) {
   const skinHex = SKIN[o.skin || 'tan'] ?? o.skin;   // preset name or any hex colour
   const skinM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ color: skinHex, roughness: 0.55 });
   const shirtTex = shadow ? null : fabricTex(o.shirt ?? 0xcc2222, o.shirtStyle || 'plain');
-  const sideTex = shadow ? null : fabricTex(o.shirt ?? 0xcc2222, 'plain');
+  const st = o.shirtStyle || 'plain', sideTex = shadow ? null : fabricTex(o.shirt ?? 0xcc2222, st.startsWith('hawaiian') || st.startsWith('flamingo') ? st + 'Side' : 'plain');
   const pantsTex = shadow ? null : fabricTex(o.pants ?? 0x222233, o.pantsStyle || 'jeans');
   const shirtM = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ map: sideTex, roughness: 0.85 });
   const shirtFront = shadow ? o.shadowMat : new THREE.MeshStandardMaterial({ map: shirtTex, roughness: 0.85 });

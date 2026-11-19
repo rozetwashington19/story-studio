@@ -150,3 +150,19 @@ z ≤ -6.2 when arms reach forward) + counter/cabinets/cookie jar on the left (f
 step i top 0.7(i+1), z -(i+1)..-i; sit with `sitOn(A, 1.4)` at z -1.42 (step 1), whitelist 'step*'; moonlit window, warm lamp, banisters. `carInside(S, { sunset })`
 two front seats (seat top 1.6) at x ±2.3 facing +z, dash/wheel in front, scenery streaming past; frame through the windshield at z ≈ 9, lens 26–28.
 Props: `mug`, `cerealBowl`, `plate`, `pizzaTray` (+`slice`), `crib`, `dinoPancake`, `strawberry`, `strawberryBowl`, `swaddle(A)` (blanket around a small baby avatar), `handMirror`, `pan`.
+
+## Episode 008 kit — neon beach city + the Wait (`engine/sets9.js`)
+`neonBeach(S, { time: 'sunset'|'night'|'dark'|'dawn', view: 'strip'|'beach', shop, wires, billboard: [x,y,z], board: {text, sub}, cars, palms, sign: {x,y,z}, signText, signSub })` → env
+- strip: pastel art-deco hotels (fronts z=-16, 12–22 tall, neon trim + vertical neon name fins, awnings), street z -13..-6 with retro cars cruising along x (`cars:false` = empty),
+  pastel-tile promenade (characters at z > -6), palms at z=-5 (x ±9, ±21, ±33), deco lamps x ±15. `shop:true` = Pixel Palace storefront at x 0 (door x ±1.4, sign y 6.4, front z -16).
+  `wires:true` = poles x ±18 at z -7, three wires at y≈12 → `env.wires.sag(k, atX)`. Night: neon point lights + lit windows; `dark` = power cut (neon off, dim moonlight — add phone torches/fills for faces).
+- beach: sand to the waterline (z≈-22), rolling ocean, giant sun disc at sunset/dawn, palms, pastel lifeguard tower (-17,-12), umbrellas + towels, distant pastel skyline.
+- `env.neon(k)` neon power 0..1 (signs, trims, windows, billboard, neon lights) — animate it for blackouts/power-ups; `env.board` (countdown), `env.key` face light, `env.update(t)` (palms, waves, cars).
+`countdown(S, {pos, scale, text, sub, col})` minimap-style "6" billboard: `.set(text, sub, col)`, `.power(k)`, `.top` (y of top edge), `.group`.
+`waitBlob(S, {name, size, glow, light})` neon-pink cute blob (monster-based, height ≈ 4×size): `.grow(s)`, `.squash(k)` (k>1 = flattened), `.glow(k)`, `.animate/look/blink`.
+`flamingo(S, [x,z], ry, s)` (`.update(t, 'stand'|'walk'|'flap')`, `.head`), `retroCar(S, col, {lights})` (8 long, faces +x), `palm(S, [x,z], h, seed)` (`.sway(t)`), `powerLines(S, {x,z,y})`,
+`boombox(S)` (`.pulse(t,k)`), `tvSet(S)` (`.screen('off'|'glow'|'load'|'seven', k, t)` — original abstract graphics only), `gameConsole(S)`, `controller(S, col)`.
+`gameRoom(S, { dawn, flash, night })` living room: 3-seat couch along the back (seat top 2.0, seats x -4.6/0/4.6, sit at z -7.0, whitelist 'couch*' + 'box*'), TV (centre y 5.2) + console
+(top y 2.1 at (-2.2, 10.6)) on the camera-side wall z 12.2, sunrise window, posters, plant, lamp, rug, ceiling. Camera for the couch wide: (0, 6, 11) lens 22.
+Shirt styles: `hawaiian` (hibiscus print all round), `flamingo` (faded flamingo print), `polo` (staff polo + chest logo). Outfit: `skates {col, wheel}`, `sunglasses {up, frame}`.
+Episode helpers (episodes/008-launchday/common.js): `SKATE(t)`, `DANCE(t,k,ph)`, `hold(prop, A, side)`, `PHONE_UP`, `hn()` numeric overshoot keys (hit() only works on pose objects!).

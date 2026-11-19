@@ -65,7 +65,7 @@ safe night scenes (lanterns, stars, kids finally playing outside) — the opposi
 
 ---
 
-## R3 — Launch Day (GTA 6 release) — CLAIMED (episode 008, 2026-11-19)
+## R3 — Launch Day (GTA 6 release) — DONE (episode 008)
 Requested 2026-11-19 by the owner: "For the next animation make it themed based on / around the release of GTA 6."
 Context: Grand Theft Auto VI launched on November 19, 2026 (Rockstar Newswire), after years of waiting and two delays.
 

@@ -4,8 +4,9 @@
 //  head: cap {col, back} · beanie · helmet {col, visor} (bike/hard) · spacehelmet (glass dome) · hardhat · headband · headlamp {light} ·
 //        crown · wizardhat · cowboyhat · piratehat · bandana · goggles (on the forehead) · glasses · sunglasses · bow · headphones · antennae · hood
 //  body: backpack · cape · scarf · vest · apron · belt · badge {col} · armor · overalls · labcoat · tie · bowtie · sash · satchel · lifevest · jetpack
-//  limbs: gloves · boots · wristband · kneepads
-// Shirt styles (fabricTex): plain hoodie shirt blazer tee + stripes plaid jacket overalls sweater uniform spacesuit knight.
+//  limbs: gloves · boots · wristband · kneepads · skates {col, wheel} (roller skates)
+// sunglasses {up: true} = pushed up on the head, {frame} = coloured frame
+// Shirt styles (fabricTex): plain hoodie shirt blazer tee + stripes plaid jacket overalls sweater uniform spacesuit knight hawaiian flamingo (faded flamingo print) polo (staff polo).
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
@@ -46,7 +47,9 @@ const ITEMS = {
     for (const s of [-1, 1]) { add(A.headMesh, new THREE.CylinderGeometry(0.16, 0.16, 0.12, 16), M(0x8a8a90, { metalness: 0.7, roughness: 0.3 }), [s * 0.2, 0.44, 0.62], [Math.PI / 2, 0, 0]);
       add(A.headMesh, new THREE.CircleGeometry(0.12, 16), M(0x6ad0ff, { roughness: 0.05, metalness: 0.3, emissive: 0x1a4a6a }), [s * 0.2, 0.44, 0.69]); } },
   glasses: (A, { col = 0x1a1a1e }) => { for (const s of [-1, 1]) add(A.headMesh, new THREE.TorusGeometry(0.13, 0.025, 6, 18), M(col), [s * 0.2, 0.12, 0.64]); add(A.headMesh, new THREE.BoxGeometry(0.16, 0.03, 0.03), M(col), [0, 0.13, 0.65]); },
-  sunglasses: (A, { col = 0x111111 }) => { for (const s of [-1, 1]) add(A.headMesh, rb(0.3, 0.17, 0.04, 0.05), M(col, { roughness: 0.15, metalness: 0.3 }), [s * 0.2, 0.12, 0.64]); add(A.headMesh, new THREE.BoxGeometry(0.14, 0.04, 0.03), M(col), [0, 0.16, 0.64]); },
+  sunglasses: (A, { col = 0x111111, up = false, frame }) => { const g = new THREE.Group(); A.headMesh.add(g); if (up) { g.position.set(0, 0.36, 0.1); g.rotation.x = -0.35; }
+    for (const s of [-1, 1]) add(g, rb(0.3, 0.17, 0.04, 0.05), M(col, { roughness: 0.15, metalness: 0.3 }), [s * 0.2, 0.12, 0.64]); add(g, new THREE.BoxGeometry(0.14, 0.04, 0.03), M(frame ?? col), [0, 0.16, 0.64]);
+    if (frame) for (const s of [-1, 1]) add(g, new THREE.BoxGeometry(0.34, 0.04, 0.05), M(frame), [s * 0.2, 0.22, 0.64]); },
   bow: (A, { col = 0xf25a9a }) => { for (const s of [-1, 1]) add(A.headMesh, new THREE.ConeGeometry(0.2, 0.36, 4), M(col), [0.35 + s * 0.18, 0.62, 0.15], [0, 0, s * Math.PI / 2]); add(A.headMesh, new THREE.SphereGeometry(0.09, 8, 6), M(shade(col, 0.8)), [0.35, 0.62, 0.15]); },
   headphones: (A, { col = 0x2a2a2e }) => { add(A.headMesh, new THREE.TorusGeometry(0.7, 0.06, 8, 24, Math.PI), M(col), [0, 0.05, 0]); for (const s of [-1, 1]) add(A.headMesh, new THREE.CylinderGeometry(0.22, 0.22, 0.14, 16), M(0xe8302a), [s * 0.68, 0.05, 0], [0, 0, Math.PI / 2]); },
   antennae: (A, { col = 0x6ad86a }) => { for (const s of [-1, 1]) { add(A.headMesh, new THREE.CylinderGeometry(0.03, 0.03, 0.7, 6), M(0x2a2a2a), [s * 0.25, 0.9, 0], [0, 0, -s * 0.3]); add(A.headMesh, new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshBasicMaterial({ color: col }), [s * 0.36, 1.24, 0]); } },
@@ -76,6 +79,8 @@ const ITEMS = {
   gloves: (A, { col = 0x3a3a3a }) => { for (const arm of [A.armR, A.armL]) add(arm, rb(1.06, 0.5, 1.06, 0.08), M(col, { roughness: 0.8 }), [0, -1.78, 0]); },
   boots: (A, { col = 0x3a2414 }) => { for (const leg of [A.legR, A.legL]) { add(leg, rb(1.06, 0.8, 1.1, 0.08), M(col, { roughness: 0.6 }), [0, -1.62, 0.03]); add(leg, new THREE.BoxGeometry(1.08, 0.1, 1.12), M(shade(col, 0.6)), [0, -1.25, 0.03]); } },
   wristband: (A, { col = 0xe8302a }) => { add(A.armR, new THREE.BoxGeometry(1.04, 0.22, 1.04), M(col, { roughness: 1 }), [0, -1.55, 0]); },
+  skates: (A, { col = 0xf4f4f0, wheel = 0xff4ab8 }) => { for (const leg of [A.legR, A.legL]) { add(leg, rb(1.06, 0.75, 1.2, 0.1), M(col, { roughness: 0.5 }), [0, -1.55, 0.06]);
+    add(leg, new THREE.BoxGeometry(0.5, 0.12, 1.3), M(0x8a8a90, { metalness: 0.6, roughness: 0.3 }), [0, -1.92, 0.06]); for (const z of [-0.42, 0.54]) add(leg, new THREE.CylinderGeometry(0.16, 0.16, 0.42, 14), M(wheel, { roughness: 0.4 }), [0, -1.88, z], [0, 0, Math.PI / 2]); } },
   kneepads: (A, { col = 0x2a2a2a }) => { for (const leg of [A.legR, A.legL]) add(leg, rb(0.7, 0.5, 0.2, 0.06), M(col), [0, -0.95, 0.52]); },
 };
 export const OUTFIT_ITEMS = Object.keys(ITEMS);
