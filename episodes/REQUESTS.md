@@ -85,6 +85,26 @@ motion: swaying palms, flickering/pulsing neon, rolling waves, cars' headlights.
 everyday sets (bedroom, living room with a console, a midnight line outside a game store on the neon strip).
 Give the city an original name (not "Vice City" itself) and keep it a fun, safe place — no crime, chases or violence.
 
+**Story (outline shared with the owner 2026-11-19 — build the script from this):** mode wild (silly, with a warm ending), cold open.
+- Hook: "It was taller than the hotels." (flash-forward of the giant Waiting creature looming over the neon strip at midnight).
+- Rule: in Palm Bay, when lots of people wait for the same thing, the waiting turns into a creature. Every check of the countdown feeds it.
+- Gags: Grandpa Sal has waited so long he roller-skates the boardwalk in a "DAY 1 FAN" Hawaiian shirt he bought years ago (it's faded);
+  big sister Lulu works at the Pixel Palace game shop and has answered "Is it out yet?" ten thousand times (her own little waiting-blob
+  follows her around); the beach crowd all stares at the giant neon "6" countdown billboard instead of the sunset.
+- Narrator: Rico, 11 — "I was eight when they showed the first trailer." He checks the countdown every few minutes. Every delay made the
+  town's creature, "the Wait", grow: first a cute pink blob on the billboard, then flamingo-sized, then a building-sized neon blob.
+- Launch night: the whole town lines up outside Pixel Palace. The Wait is now taller than the hotels, and it plops onto the power lines —
+  every neon sign on the strip goes dark ten minutes before midnight. Nobody can play anything.
+- Twist/clever fix: Rico notices it shrinks a tiny bit whenever someone looks away from the clock (Grandpa laughing at a joke, Lulu
+  skating). The Wait eats waiting — so the kids make everyone *stop* waiting: Rico starts a beach party right there in the line (a boombox
+  of sound effects, a conga line, sandcastles, Grandpa's skate show). Nobody looks at the countdown; the Wait shrinks back to a tiny
+  blob, rolls off the wires, and the neon blazes back on — exactly at midnight.
+- Ending: Rico, Lulu and Grandpa play together on the couch at sunrise. Callback: the tiny Wait blob curls up on top of the console —
+  "It's already waiting for GTA 7." Final line lands warm: the best part of the wait was who he waited with.
+Cast designs: Rico (pastel-teal Hawaiian shirt, white tee, shorts, sneakers, sunglasses pushed up), Lulu (Pixel Palace staff polo + cap,
+roller skates feel), Grandpa Sal (faded flamingo Hawaiian shirt, white hair, mustache, kneepads/wristbands for skating), best friend
+Dani (neon windbreaker, headphones). The Wait: a cute-blocky `monster()` blob in neon pink with big eyes — silly, never scary.
+
 **Rules (important):** the game may be named in the narration/captions ("GTA 6"), but do **not** recreate Rockstar's logo, the game's
 box art or key art, its characters (Lucia/Jason), or any real store or brand logos — use an original "6" countdown display and made-up
 shop names. No real people. New narrator, new cast (2b), one hook, sfx as usual, 1:20–1:30.
