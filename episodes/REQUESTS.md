@@ -75,10 +75,15 @@ delays, midnight launch, the whole town counting down, friends/family who waited
 violence from the game. Roll the mode as usual; a wild premise built on the wait suits it (e.g. a rule tied to the countdown, the
 "delays", or the day the game arrives), but heartfelt works too (e.g. someone who has waited since they were little).
 
-**Visual direction:** a sunny, neon, palm-tree beach city at sunset and night (pink/teal/orange sky, palm trees, ocean, pastel buildings,
-neon signs, shiny sports cars parked, a giant countdown clock/billboard) — an original city, built as a new reusable themed world in
-`engine/themes.js` (clouds in the sky, ambient motion: swaying palms, flickering neon, waves). Plus everyday sets (bedroom, living room
-with a console, a game-store line at midnight).
+**Visual direction (owner update 2026-11-19: "Do a vice city style setting"):** a Vice City-style world — a 1980s Miami-inspired
+neon beach city. Art-deco hotels in pastel pink, mint and peach with glowing neon trim along an ocean-front drive; rows of tall palm
+trees; white sand and turquoise water; a huge sunset sky in pink/orange/purple fading to a starry violet night; neon signs in
+hot pink and cyan; shiny retro sports cars and convertibles parked along the curb; wet streets reflecting the neon at night; a giant
+neon "6" countdown billboard over the beach. Kids' outfits fit the vibe (pastel tees, Hawaiian shirts, sunglasses, sneakers).
+Build it as a new reusable themed world in `engine/themes.js` (e.g. `neonBeach(S, { sunset, night })`) with clouds in the sky and ambient
+motion: swaying palms, flickering/pulsing neon, rolling waves, cars' headlights. Mostly golden-hour and night shots; contrast it with
+everyday sets (bedroom, living room with a console, a midnight line outside a game store on the neon strip).
+Give the city an original name (not "Vice City" itself) and keep it a fun, safe place — no crime, chases or violence.
 
 **Rules (important):** the game may be named in the narration/captions ("GTA 6"), but do **not** recreate Rockstar's logo, the game's
 box art or key art, its characters (Lucia/Jason), or any real store or brand logos — use an original "6" countdown display and made-up
