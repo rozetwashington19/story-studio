@@ -166,3 +166,18 @@ Props: `mug`, `cerealBowl`, `plate`, `pizzaTray` (+`slice`), `crib`, `dinoPancak
 (top y 2.1 at (-2.2, 10.6)) on the camera-side wall z 12.2, sunrise window, posters, plant, lamp, rug, ceiling. Camera for the couch wide: (0, 6, 11) lens 22.
 Shirt styles: `hawaiian` (hibiscus print all round), `flamingo` (faded flamingo print), `polo` (staff polo + chest logo). Outfit: `skates {col, wheel}`, `sunglasses {up, frame}`.
 Episode helpers (episodes/008-launchday/common.js): `SKATE(t)`, `DANCE(t,k,ph)`, `hold(prop, A, side)`, `PHONE_UP`, `hn()` numeric overshoot keys (hit() only works on pose objects!).
+
+## Episode 009 kit — living snowmen + snowy town (`engine/sets10.js`)
+`snowman(S, { name, size, scarf, earmuffs, hat: 'top'|'cap'|'bobble', hatCol, glasses, bag, crooked })` living snowman (≈4.6 × size tall, faces +Z; size 4.5 = a
+21-stud giant). `.pose({ rUp lUp rFwd lFwd nod turn tilt lean bob hop squash bodyTurn })` stick arms work like avatar arms (rest ≈45); `.face({ mouth -1..1, open 0..1
+(roar "O"), brows + angry / − worried, sleep 0..1 })`; `.hand('R'|'L')` world tip of a stick hand; `.head`, `.root`. Tagged for the collision checker (OBBs of the big
+spheres are boxy — keep avatars ~1 unit further away than it looks). `catSnowman(S, {name, s})` (`.update(t, 'sit'|'wag'|'hide')`), `pup(S, {name, col})` blocky dog
+(`.update(t, 'run'|'sit'|'bark')`), `knitting(S, col)` (needles + crooked scarf, `.click(t)`), `snoreZ(S)` (`.update(t, pos, k)`), `snowBurst(S, {n, size})` (`.fire(origin, t0,
+{up, spread, scale})` + `.update(t)` every frame), `snowAngel(S, [x,z], size)` imprint (`.set(k)`), `mailbox`, `bucket`, `rosette` (prize ribbon), `shovel`, `snowMat(rx, ry)`.
+Sets (all return `{ update(t) }`): `snowTown(S, { time: 'day'|'morning'|'sunset', mailbox: [x,z], bunting, lamps, fences })` snowy street — houses fronts z=-16 with thick
+roof snow (`env.roofSnow(k)` slides it all off), plowed road z -12..-6 (room for a giant at z≈-10 with `lamps:false, fences:false, bunting:false`), chimney smoke, snowfall.
+`snowPorch(S)` house front (wall z=-5.2), porch deck top 0.86 (z -5.2..-1.2), bench seat top 2.07 at (-2.6, -4.3) (sitOn + whitelist 'bench*'), icicles, sled.
+`frostFair(S, { time: 'day'|'sunset', clear: [[x,z,r]], arch, archX })` = `snow()` world + FROST FAIR banner arch (z -12, x archX±9), bunting, judges' table (top 2.4 at (8,-3.5)),
+entry snowmen; `clear` hides trees/rocks around big actors; sunset re-grades sky + sun (pink-gold, front-lit so snow stays white).
+Outfit: `earmuffs {col}`. Episode helpers (episodes/009-copycat/common.js): `giant()`, `stompK()` (hop + slam), `shake(cam, t, t0, k)`, `kidStomp()`, `fallBack(A, x, zFeet, k)`, `ANGEL(t)` snow-angel sweep.
+Framing lesson from 009: half-width ≈ 0.28 × distance × (30/lens) — two people 6 apart need distance ≥ 16 at lens 24; for a 21-tall giant + a kid use lens 22 at distance 20+.

@@ -2,7 +2,7 @@
 // Give any avatar a themed look straight from its preset:   makeAvatar({ ...preset, outfit: ['cap', ['backpack', { col: 0x2a6ae8 }], 'boots'] })
 // or later: outfit(A, [...]). Items are a name or [name, opts]; most take { col }. Everything is tagged for the collision checker.
 //  head: cap {col, back} · beanie · helmet {col, visor} (bike/hard) · spacehelmet (glass dome) · hardhat · headband · headlamp {light} ·
-//        crown · wizardhat · cowboyhat · piratehat · bandana · goggles (on the forehead) · glasses · sunglasses · bow · headphones · antennae · hood
+//        crown · wizardhat · cowboyhat · piratehat · bandana · goggles (on the forehead) · glasses · sunglasses · bow · headphones · earmuffs {col} · antennae · hood
 //  body: backpack · cape · scarf · vest · apron · belt · badge {col} · armor · overalls · labcoat · tie · bowtie · sash · satchel · lifevest · jetpack
 //  limbs: gloves · boots · wristband · kneepads · skates {col, wheel} (roller skates)
 // sunglasses {up: true} = pushed up on the head, {frame} = coloured frame
@@ -52,6 +52,7 @@ const ITEMS = {
     if (frame) for (const s of [-1, 1]) add(g, new THREE.BoxGeometry(0.34, 0.04, 0.05), M(frame), [s * 0.2, 0.22, 0.64]); },
   bow: (A, { col = 0xf25a9a }) => { for (const s of [-1, 1]) add(A.headMesh, new THREE.ConeGeometry(0.2, 0.36, 4), M(col), [0.35 + s * 0.18, 0.62, 0.15], [0, 0, s * Math.PI / 2]); add(A.headMesh, new THREE.SphereGeometry(0.09, 8, 6), M(shade(col, 0.8)), [0.35, 0.62, 0.15]); },
   headphones: (A, { col = 0x2a2a2e }) => { add(A.headMesh, new THREE.TorusGeometry(0.7, 0.06, 8, 24, Math.PI), M(col), [0, 0.05, 0]); for (const s of [-1, 1]) add(A.headMesh, new THREE.CylinderGeometry(0.22, 0.22, 0.14, 16), M(0xe8302a), [s * 0.68, 0.05, 0], [0, 0, Math.PI / 2]); },
+  earmuffs: (A, { col = 0xff8ad0, band = 0xf2f2f6 }) => { add(A.headMesh, new THREE.TorusGeometry(0.7, 0.05, 8, 24, Math.PI), M(band, { metalness: 0.3 }), [0, 0.05, 0]); for (const s of [-1, 1]) add(A.headMesh, new THREE.SphereGeometry(0.27, 16, 12), M(col, { roughness: 1 }), [s * 0.66, 0.02, 0]).scale.set(0.65, 1, 1); },
   antennae: (A, { col = 0x6ad86a }) => { for (const s of [-1, 1]) { add(A.headMesh, new THREE.CylinderGeometry(0.03, 0.03, 0.7, 6), M(0x2a2a2a), [s * 0.25, 0.9, 0], [0, 0, -s * 0.3]); add(A.headMesh, new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshBasicMaterial({ color: col }), [s * 0.36, 1.24, 0]); } },
   hood: (A, { col = 0x3a3a48 }) => { add(A.headMesh, new THREE.SphereGeometry(0.8, 24, 14, Math.PI * 0.15, Math.PI * 1.7), M(col, { roughness: 1, side: THREE.DoubleSide }), [0, 0.05, -0.05]); },
 
