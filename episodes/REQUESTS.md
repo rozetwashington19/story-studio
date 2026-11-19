@@ -62,3 +62,24 @@ nobody gets hurt, the kids win by being clever.
 
 **Guidance:** bright, sunny daytime sets that feel *threatening* (long hard shadows, creatures in the sunlight, boarded windows), and warm, cozy,
 safe night scenes (lanterns, stars, kids finally playing outside) — the opposite of normal. Clouds in every sky. Plant the twist early.
+
+---
+
+## R3 — Launch Day (GTA 6 release) — OPEN
+Requested 2026-11-19 by the owner: "For the next animation make it themed based on / around the release of GTA 6."
+Context: Grand Theft Auto VI launched on November 19, 2026 (Rockstar Newswire), after years of waiting and two delays.
+
+**Theme:** the hype and the long wait around the GTA 6 release — told as an original, kid-friendly "In this world…"/cold-open story.
+The series is kid-friendly and GTA is an M-rated crime game, so the story is about the *release* (the countdown, the waiting, the
+delays, midnight launch, the whole town counting down, friends/family who waited together), never about crime, guns, police chases or
+violence from the game. Roll the mode as usual; a wild premise built on the wait suits it (e.g. a rule tied to the countdown, the
+"delays", or the day the game arrives), but heartfelt works too (e.g. someone who has waited since they were little).
+
+**Visual direction:** a sunny, neon, palm-tree beach city at sunset and night (pink/teal/orange sky, palm trees, ocean, pastel buildings,
+neon signs, shiny sports cars parked, a giant countdown clock/billboard) — an original city, built as a new reusable themed world in
+`engine/themes.js` (clouds in the sky, ambient motion: swaying palms, flickering neon, waves). Plus everyday sets (bedroom, living room
+with a console, a game-store line at midnight).
+
+**Rules (important):** the game may be named in the narration/captions ("GTA 6"), but do **not** recreate Rockstar's logo, the game's
+box art or key art, its characters (Lucia/Jason), or any real store or brand logos — use an original "6" countdown display and made-up
+shop names. No real people. New narrator, new cast (2b), one hook, sfx as usual, 1:20–1:30.
