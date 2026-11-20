@@ -22,5 +22,6 @@ copy of one with minor changes (same layout/silhouette, e.g. another identical h
 | 008 | gameRoom neonBeach |
 | 009 | frostFair snowPorch snowTown snow |
 | 010 | backyard bakery careRoom familyKitchen houseFront kidRoomDay park street sunnyPines |
+| 011 | ferryDeck keeperAttic lighthouseCliff lanternRoom |
 
 Unused finished worlds that may still be used once (then list them): `spooky` `space` `underwater` `candy` `castle` `desert` `lab` (engine/themes.js).
