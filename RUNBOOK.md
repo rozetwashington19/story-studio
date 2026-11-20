@@ -10,6 +10,11 @@ Goal: one new, original **1:20–1:30** vertical (1080×1920) 3D Roblox-style st
 - Captions now sit lower (70% height). Every episode opens with a 1–2 s **hook** (flash-forward of the climax). More **wild** stories (~60%), and only
   about half the episodes open with "In this world" (`pick_mode.py` rolls the OPENER).
 
+**Owner rule (2026-11-20) — brand-new environments every episode:** "Always generate a new environment / background for the story.
+I don't want to see backgrounds used in previous videos." Never build a shot on a set/world listed in `episodes/SETS.md` (not even for a
+one-line gag). Every location in the episode is a new environment you build for it (step 4d), then you add them to SETS.md at delivery.
+This overrides older advice below to reuse everyday sets (bedroom, kitchen, street…) or the themed worlds already used.
+
 **Length: 1:20–1:30 (80–90 s), chosen per story.** Owner decision 2026-11-17: shorter than the old ~2:20, but long enough for a real arc.
 Lighter/funny premises land near 1:20; emotional ones with a search + reveal can use the full 1:30. Never under 1:15 or over 1:35.
 This overrides any older length in a scheduled prompt or earlier episode. Episodes 001–003 are the old 2:20 format — copy their code patterns, not their length.
@@ -148,6 +153,18 @@ Split into `shots_a.js` / `shots_b.js` if long. Lessons learned (follow these):
   gray/white hair + `wrinkles` (+ beard/mustache for grandpas), dads/teachers adult styles, kids `freckles`/`rosy`.
 - Use the full range of expressions (33 faces, KIT.md); switch faces mid-shot for reactions instead of holding one face. Give the narrator a distinct look from previous episodes.
 
+## 4d. New environments (mandatory — owner rule 2026-11-20)
+- Read `episodes/SETS.md` first. Plan the episode around **3–5 new locations** (fewer, richer sets beat many thin ones) and build each as a
+  new exported set function in a new `engine/setsNN.js` (export it from kit.js, document it in KIT.md). Pick settings that haven't appeared:
+  e.g. a lighthouse, a laundromat, a rooftop garden, a ferry deck, a train carriage, an aquarium tunnel, a treehouse, a night market, a
+  mountain cable car, a library tower, a bowling alley, a greenhouse — whatever the story needs.
+- An "everyday" home or school still has to be a new one: new architecture, layout, colour palette, textures and all-new dressing (e.g. an
+  attic bedroom with a round window instead of the kidRoomDay box; a houseboat kitchen instead of familyKitchen). `room()` is fine as a shell only.
+- Each new set: motivated key + practical lights, clouds in any visible sky, 6+ detail props, textured large surfaces, ambient motion via `update(t)`.
+  Render a quick look at each new set before shots (a still of the first shot that uses it) and fix bare or flat areas.
+- Budget: the new sets take ~25 min of the shots time; keep the shot count tight so the time fits.
+- At delivery, add the episode's environments to the table in `episodes/SETS.md`.
+
 ## 4c. Cinematic quality (mandatory — this is where the extra time goes)
 The renderer now adds automatically (engine/main.html, `q=1`): SMAA anti-aliasing, a rim light behind the subject (edge highlights),
 depth of field on lenses ≥ 30 (focus = the camPath look-at point, so aim it at the face), and a subtle handheld drift.
@@ -212,7 +229,8 @@ Sanity check: `ffprobe` duration ≈ narration duration; extract a 30-frame cont
 ## 7. Deliver
 - Send `out/final.mp4` to the user with a one-line caption: title + logline.
 - Add a line to `episodes/INDEX.md`: `NNN | date | title | premise | narrator name | logline | mode` (mode = `heartfelt` or `wild:<world>`).
-- Commit the episode source (script, bubbles, sfx.json, notes, shots, any new faces/sets — not `out/`) and push.
+- Add the episode's environments to `episodes/SETS.md`.
+- Commit the episode source (script, bubbles, sfx.json, notes, shots, any new faces/sets, SETS.md — not `out/`) and push.
   Two episodes are made per day by separate runs, so before pushing: `git fetch --depth=50 origin main` and
   `git rebase origin/main`. If another run already added an episode with your number, rename your folder to the next free
   number, fix its INDEX line, and also make sure your premise isn't the one it just added (if it is, say so in the final message).

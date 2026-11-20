@@ -1,0 +1,26 @@
+# Used environments (never reuse — owner rule 2026-11-20)
+
+Owner: "Moving forward always generate a new environment / background for the story. I don't want to see backgrounds used in previous videos."
+
+Every set/world below has already appeared in an episode. **Do not build any shot on them again** — not as the main set, not for a
+one-line gag, not with a recolour. Each new episode builds its own brand-new environments (see RUNBOOK step 4d) and adds them here.
+
+What still counts as allowed: low-level building blocks (`box`, `room()` as a bare shell *with new wall/floor textures, layout and all-new
+dressing*, `dayLight`/`interiorLight`/`clouds`/`rain`/`patternLight`, textures `T`/`T2`), small props (furniture pieces, mugs, drawings, pets,
+outfits), characters, monsters/creatures and particle effects. What is not allowed: any finished set function listed below, or a
+copy of one with minor changes (same layout/silhouette, e.g. another identical house front or the same kid bedroom).
+
+| episode | environments used |
+|---|---|
+| 001 | airport backyard bakery bedroom bus cafeteria classroom dining field hallway kidRoomDay kitchen ocean playground porch stage street wall |
+| 002 | classroom dining garage hallway houseFront kidRoomDay kitchen |
+| 003 | backyard bedroom bridge hallway hill cottage houseFront kidRoomDay livingRoom street |
+| 004 | bedroom field forest houseFront kidRoomDay kitchen street |
+| 005 | apartment rainStreet shopFront shopInside stoop cityNight |
+| 006 | bedroomDay cornfield fernway nightClass park |
+| 007 | backyard cafeteria carInside classroom familyKitchen hallway houseFront kidRoomDay nightStairs nursery |
+| 008 | gameRoom neonBeach |
+| 009 | frostFair snowPorch snowTown snow |
+| 010 | backyard bakery careRoom familyKitchen houseFront kidRoomDay park street sunnyPines |
+
+Unused finished worlds that may still be used once (then list them): `spooky` `space` `underwater` `candy` `castle` `desert` `lab` (engine/themes.js).
