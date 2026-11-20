@@ -181,3 +181,14 @@ roof snow (`env.roofSnow(k)` slides it all off), plowed road z -12..-6 (room for
 entry snowmen; `clear` hides trees/rocks around big actors; sunset re-grades sky + sun (pink-gold, front-lit so snow stays white).
 Outfit: `earmuffs {col}`. Episode helpers (episodes/009-copycat/common.js): `giant()`, `stompK()` (hop + slam), `shake(cam, t, t0, k)`, `kidStomp()`, `fallBack(A, x, zFeet, k)`, `ANGEL(t)` snow-angel sweep.
 Framing lesson from 009: half-width ≈ 0.28 × distance × (30/lens) — two people 6 apart need distance ≥ 16 at lens 24; for a 21-tall giant + a kid use lens 22 at distance 20+.
+
+## Episode 010 kit — missing-you petals + care home (`engine/sets11.js`)
+`petals(S, { n, size, seed })` → `update(t, center, { k, r, top, floor, wind: [x,z], speed, spin })` flutter-falling petals in a column over `center` (spawn at center.y+top, land flat on `floor`,
+appear out of nowhere); episode helper `shower(S, A, opts)` (episodes/010-petals/common.js) follows a character's head. `petalRiver(S, pts, { n, width, speed, size })` → `update(t, k)` a ribbon of
+petals flowing along a CatmullRom path (`.reach(u)`). `petalPile(S, [x,y,z], { rx, rz, h })` (`.set(k)`) textured pink mound (forts, buried beds), `petalCarpet(S, [x,y,z], [w,d], { density })`
+(`.set(k)`) petals lying on floors/tables, `onePetal(S)` hero petal. Props: `fishbowl(S, pos, s)` (`.update(t, look)`), `stopSign(S)` (hold at hand, off [0,-0.75,0.1]),
+`drawing(S, kind, w)` crayon drawings (rocket sun family flower grandpa cat house rainbow), `drawingStack`.
+Sets: `sunnyPines(S, { time: 'day'|'sunset', grandpaWin })` care-home front (building front z=-14, lit window `env.winPos` at x 9 y 4.6, path x ±2.5, lamps x ±4.5 z -4 — keep cameras off that line).
+`careRoom(S, { time: 'sunset'|'day' })` room with a big window (x -2.5, back wall z -9, sky plane `env.sky`), armchair seat top 1.7 at (-3.6,-5.3), wooden chair seat top 1.7 at (1.6,-5.4), lamp, bed on the
+right (x 4.5..8.7, z -3..4.75 — walk paths must stay at x < 2.6), front wall z 11.2. Seated two-shot: camera (-1, 7, 10) lens 24 looking at (-1, 4.3, -5.3).
+Lesson from 010: `street()` has no lights — call `dayLight()` first. Rooms are open toward +z: a far wide camera sees past the floor/ceiling edges (black bars) — extend them (`extendRoom` in 010 shots_a.js).
