@@ -2,7 +2,7 @@
 // Give any avatar a themed look straight from its preset:   makeAvatar({ ...preset, outfit: ['cap', ['backpack', { col: 0x2a6ae8 }], 'boots'] })
 // or later: outfit(A, [...]). Items are a name or [name, opts]; most take { col }. Everything is tagged for the collision checker.
 //  head: cap {col, back} · beanie · helmet {col, visor} (bike/hard) · spacehelmet (glass dome) · hardhat · headband · headlamp {light} ·
-//        crown · wizardhat · cowboyhat · piratehat · bandana · goggles (on the forehead) · glasses · sunglasses · bow · headphones · earmuffs {col} · antennae · hood
+//        crown · circlet {col, gem} · chefhat · knighthelm {col, plume} (open-face) · wizardhat · cowboyhat · piratehat · bandana · goggles (on the forehead) · glasses · sunglasses · bow · headphones · earmuffs {col} · antennae · hood
 //  body: backpack · cape · scarf · vest · apron · belt · badge {col} · armor · overalls · labcoat · tie · bowtie · sash · satchel · lifevest · jetpack
 //  limbs: gloves · boots · wristband · kneepads · skates {col, wheel} (roller skates)
 // sunglasses {up: true} = pushed up on the head, {frame} = coloured frame
@@ -35,6 +35,17 @@ const ITEMS = {
   crown: (A, { col = 0xf2c420 }) => { const m = M(col, { metalness: 0.85, roughness: 0.25 }); add(A.headMesh, new THREE.CylinderGeometry(0.6, 0.6, 0.3, 24, 1, true), m, [0, 0.75, 0]).material.side = THREE.DoubleSide;
     for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; add(A.headMesh, new THREE.ConeGeometry(0.12, 0.3, 4), m, [Math.sin(a) * 0.58, 1.0, Math.cos(a) * 0.58]); }
     add(A.headMesh, new THREE.SphereGeometry(0.08, 8, 6), M(0xe8302a, { roughness: 0.2 }), [0, 0.76, 0.61]); },
+  chefhat: (A, { col = 0xfafaf6 }) => { const m = M(col, { roughness: 0.95 }); add(A.headMesh, new THREE.CylinderGeometry(0.64, 0.64, 0.5, 24), m, [0, 0.72, 0]);
+    for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; add(A.headMesh, new THREE.SphereGeometry(0.42, 14, 10), m, [Math.sin(a) * 0.38, 1.22, Math.cos(a) * 0.38]); }
+    add(A.headMesh, new THREE.SphereGeometry(0.5, 14, 10), m, [0, 1.38, 0]); },
+  knighthelm: (A, { col = 0xb8bcc8, plume = 0xc8302a }) => { const m = M(col, { metalness: 0.85, roughness: 0.3 });   // open-face helm (face stays visible): dome, brow band, cheek guards, nose guard, plume
+    add(A.headMesh, new THREE.SphereGeometry(0.72, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2), m, [0, 0.3, 0]); add(A.headMesh, new THREE.CylinderGeometry(0.73, 0.73, 0.16, 24), m, [0, 0.33, 0]);
+    for (const s of [-1, 1]) add(A.headMesh, new THREE.BoxGeometry(0.14, 0.75, 0.7), m, [s * 0.66, -0.05, 0.05]);
+    add(A.headMesh, new THREE.BoxGeometry(0.1, 0.36, 0.08), m, [0, 0.22, 0.7]); add(A.headMesh, new THREE.BoxGeometry(1.3, 0.5, 0.12), m, [0, 0.0, -0.66]);
+    for (let i = 0; i < 6; i++) add(A.headMesh, new THREE.SphereGeometry(0.16 - i * 0.012, 8, 6), M(plume, { roughness: 1 }), [0, 1.08 - i * 0.06, 0.1 - i * 0.2]);
+    add(A.headMesh, new THREE.CylinderGeometry(0.05, 0.05, 0.3, 6), m, [0, 1.0, 0.1]); },
+  circlet: (A, { col = 0xd8dce4, gem = 0x3ad0a0 }) => { add(A.headMesh, new THREE.TorusGeometry(0.63, 0.045, 8, 30), M(col, { metalness: 0.9, roughness: 0.25 }), [0, 0.42, 0], [Math.PI / 2 + 0.12, 0, 0]);
+    add(A.headMesh, new THREE.OctahedronGeometry(0.1), M(gem, { roughness: 0.1, emissive: gem, emissiveIntensity: 0.3 }), [0, 0.5, 0.63]); },
   wizardhat: (A, { col = 0x4a2a9a }) => { add(A.headMesh, new THREE.CylinderGeometry(1.05, 1.05, 0.06, 28), M(col), [0, 0.62, 0]); const c = add(A.headMesh, new THREE.ConeGeometry(0.66, 1.9, 24), M(col), [0, 1.55, -0.1]); c.rotation.x = -0.15;
     for (let i = 0; i < 4; i++) add(A.headMesh, new THREE.OctahedronGeometry(0.09), new THREE.MeshBasicMaterial({ color: 0xffe070 }), [Math.sin(i * 1.7) * 0.4, 1.0 + i * 0.3, 0.45 - i * 0.12]); },
   cowboyhat: (A, { col = 0x8a5a2a }) => { add(A.headMesh, new THREE.CylinderGeometry(1.15, 1.15, 0.06, 28), M(col), [0, 0.64, 0]).scale.z = 0.85; add(A.headMesh, new THREE.CylinderGeometry(0.55, 0.65, 0.6, 24), M(col), [0, 0.95, 0]);
@@ -85,7 +96,7 @@ const ITEMS = {
   kneepads: (A, { col = 0x2a2a2a }) => { for (const leg of [A.legR, A.legL]) add(leg, rb(0.7, 0.5, 0.2, 0.06), M(col), [0, -0.95, 0.52]); },
 };
 export const OUTFIT_ITEMS = Object.keys(ITEMS);
-const HIDES_HAIR = ['beanie', 'helmet', 'hardhat', 'bandana', 'hood'];   // these sit tight on the head: hair would poke through ({ hair: true } keeps it)
+const HIDES_HAIR = ['beanie', 'helmet', 'hardhat', 'bandana', 'hood', 'knighthelm'];   // these sit tight on the head: hair would poke through ({ hair: true } keeps it)
 export function outfit(A, items = []) {
   for (const it of items) { const [n, o] = Array.isArray(it) ? it : [it, {}]; const f = ITEMS[n]; if (!f) { console.warn('unknown outfit item', n); continue; }
     if (HIDES_HAIR.includes(n) && A.hairMesh && !(o && o.hair)) A.hairMesh.visible = false;

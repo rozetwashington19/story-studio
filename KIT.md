@@ -204,3 +204,18 @@ Sets (all return `{ update(t) }`): `ferryDeck(S, { time: 'morning'|'sunset' })` 
 `lanternRoom(S)` inside the lighthouse lantern at night: round room r 8 (keep the camera at r < 7.4, or outside the glass at r > 9 looking in), giant turning lens at (0, 0, −3.2) (pedestal top 2.2; beams sweep out), floor hatch `env.hatch` (4.4, 0, 4.0) + `env.lid`, oil lantern practical, logbook desk, glass all round. Two seated kids: June (−2.2, 0.8), Milo (2.2, 0.8).
 Lessons from 011: the real 9:16 frame is narrower than the old rule of thumb — width ≈ 2 × distance × 0.5625 × 12/lens (lens 24 at 10 units ≈ 5.6 wide); two seated people 4.4 apart need lens 16–18 inside a small room. A lit near-mirror material (roughness ≤ 0.05) right next to a strong point light can output NaN pixels, which bloom smears into big black blocks — make glowing glass unlit (MeshBasicMaterial).
 
+
+## Episode 012 kit — candle dragons + castle at night (`engine/sets13.js`)
+`flameDragon(S, { name, s, body, belly, light, seed, dist })` cute glowing fire dragon (s 1 ≈ 4 long, 3 tall, faces +Z, feet y 0; tiny 0.13–0.2, grown 0.5, giant 3.6):
+`.root` (position/rotate), `.g` (inner group, scale it for grow/shrink), `.head`, `.update(t, 'fly'|'hover'|'perch'|'roar'|'curl'|'eat', k)`, `.look(vec3)`, `.jaw(k)`, `.breath(k)` fire cone, `.glow(k)`, `.blink(k)`, `.mouth()`.
+`flame(parent, { s, col, core })` teardrop flame (`.set(k)` 0 = out, `.update(t)`) · `torch(S, [x,y,z], { ry, lit, light, dist })` iron wall sconce (sticks out along its facing; `.set(k)`, `.tip`, `.update(t)`)
+· `candle(S, [x,y,z], { h, r, col, lit, light })` · `cake(S, [x,y,z], { n, s, lit })` two-tier birthday cake with n candles (`.candles`, `.set(k)`) · `spark(S)` (`.set(pos, k)`) · `embers(S, n)` trail (`.update(t, pos, k)`)
+· `shield(S, col)` · `flourSack(S, [x,y,z], { s, open })` (open = someone can hide inside) · `marshmallowStick(S)` (`.toast(k)`, `.tipLocal`) · `loaf(S, [x,y,z], toastK)`.
+Sets (all return `{ update(t) }`): `castleKitchen(S)` stone kitchen at night — bread oven left (glow light `env.oven`), bread table top 2.6 at (0.4, -2.6) x ±3.2 z ±1.1, candle `env.candle` at (2.9, 2.6, -1.9), copper pots, shelves, flour sacks right.
+`greatHall(S, { dark, cake, lit })` banquet hall: walls x ±11, back wall z -26 with rose window + throne dais (top 0.6, z -25.8..-21.8; stand at z -22.2, y 0.6), 10 torches (`env.torches`: 0–7 on side walls z -20/-14/-8/-2, even = left; 8–9 back wall), banquet table x -5.5 (top 2.6, z -18..-2), chandelier `env.chL`/`env.chC`, `env.set(k)` all lights; `cake:true` = low round table (top 1.6) at (2.5, -4.2), `env.cake`. Free floor x -2.5..8, z -22..8.
+`towerRoom(S)` round tower bedroom (wall r 9.5, arched moon window at the back, canopy bed left, nightstand candle `env.candle`, toy chest, bookshelf, tapestry, round rug at (1.6, 0.8)).
+`battlements(S, { lit })` castle courtyard at night: curtain wall front z -14 (h 10, wall-walk y 10 at z -17..-14), stair along the wall face climbing toward -x (step i x 11-0.5i, top 0.5(i+1), walk at z -12.2),
+towers x ±17, keep behind, 8 torches (`env.torches`, `env.set(k)`), well (-8, -4), cart (10.5, -2.5), barrels, banners, moon + stars + clouds. Giant dragon perch: (-6, 10, -16.5).
+Outfits: `chefhat`, `knighthelm { col, plume }` (open face), `circlet { col, gem }`.
+Lessons from 012: bump maps on big boxes seen at grazing angles produced NaN pixels that bloom smeared into huge black rectangles — sets13 uses no bump maps. Keep point lights out of geometry (a light inside a head overflows half-float buffers).
+Two-shots: `lookAt` turns heads up to 70°, which can hide faces from a front camera — scale it (×0.45) when both characters should stay readable.
