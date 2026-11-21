@@ -110,12 +110,16 @@ def scribble():  d = 0.8; return bp(noise(d), 1500, 6000) * (0.5 + 0.5 * np.sin(
 def rewind():    # tape-rewind swish for the cut from the hook back to the start
     d = 0.55; tt = t_(d); w = whoosh(d, up=True)[::-1]; warble = np.sin(2 * np.pi * np.cumsum(900 - 700 * tt / d + 80 * np.sin(2 * np.pi * 14 * tt)) / SR) * 0.25
     return (w + warble) * np.sin(np.linspace(0, np.pi, len(tt)))
+def impact():    # scroll-stopping hit for frame 0 of the hook (owner 2026-11-21): sub boom + cinematic crack + bright air
+    d = 1.1; tt = t_(d); boom = np.sin(2 * np.pi * np.cumsum(np.linspace(95, 32, len(tt))) / SR) * env(len(tt), 0.001, 0.45)
+    crack = hp(noise(d), 2500) * env(len(tt), 0.0005, 0.05); body = lp(noise(d), 900) * env(len(tt), 0.001, 0.18)
+    return boom + 0.55 * crack + 0.5 * body
 def creak():     d = 0.7; tt = t_(d); f = 140 + 60 * np.sin(2 * np.pi * 1.4 * tt); x = np.sign(np.sin(2 * np.pi * np.cumsum(f) / SR)) * (np.sin(2 * np.pi * 31 * tt) > 0); return bp(x, 300, 2200) * np.sin(np.linspace(0, np.pi, len(tt)))
 
 SOUNDS = {'pop': pop, 'boing': boing, 'whoosh': whoosh, 'swoosh_up': swoosh_up, 'snap': snap, 'twang': twang, 'chime': chime, 'sparkle': sparkle,
           'glow': glow, 'step': step, 'steps': steps, 'thud': thud, 'knock': knock, 'chirp': chirp, 'flap': flap, 'drip': drip, 'buzz': buzz,
           'tap': tap, 'typing': typing, 'ding': ding, 'rustle': rustle, 'wind': wind, 'gasp': gasp, 'zip': zip_, 'tada': tada,
-          'rain': rain, 'thunder': thunder, 'coins': coins, 'scribble': scribble, 'creak': creak, 'rewind': rewind}
+          'rain': rain, 'thunder': thunder, 'coins': coins, 'scribble': scribble, 'creak': creak, 'rewind': rewind, 'impact': impact}
 
 # Owner feedback (2026-11-17): effects must stay subtle background sounds that never cover the narrator.
 HOUSE_DB = -17.0      # cue loudness relative to the narration's speech RMS (between lines: clearly audible)
@@ -147,7 +151,9 @@ def build(ep):
         s, e = starts[line - 1], ends[line - 1]
         off = (e - s) * float(at[:-1]) / 100 if isinstance(at, str) and at.endswith('%') else float(at)
         x = SOUNDS[name](); x = x / (np.abs(x).max() + 1e-9); x *= vrms * db(HOUSE_DB + g) / active_rms(x)
-        x = np.clip(x, -db(-8), db(-8)); i = int((s + off) * SR)   # exactly on the action
+        lim = db(-3) if name == 'impact' else db(-8)   # the frame-0 hook hit may punch harder than ordinary cues (it lands before the first word)
+        if name == 'impact': x *= db(9)
+        x = np.clip(x, -lim, lim); i = int((s + off) * SR)   # exactly on the action
         if i >= total: continue
         bus[i:i + len(x)] += x[:total - i]
     # under speech: duck, carve the speech band (1-4 kHz) out of the effects, and cap them under the voice's level

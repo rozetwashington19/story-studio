@@ -15,6 +15,13 @@ I don't want to see backgrounds used in previous videos." Never build a shot on 
 one-line gag). Every location in the episode is a new environment you build for it (step 4d), then you add them to SETS.md at delivery.
 This overrides older advice below to reuse everyday sets (bedroom, kitchen, street…) or the themed worlds already used.
 
+**Owner request (2026-11-21) — three growth habits from "Shorts stuck at 1K views", built into the steps below:**
+- **Different ideas, same niche (step 1):** `pick_mode.py` now also rolls a story ANGLE (escalation, mystery, chase, secret-helper…) that
+  wasn't used in the last 3 episodes, and doubles down on any episode the owner marks **WINNER** in `episodes/PERFORMANCE.md`.
+- **Win the first 3–4 seconds (steps 2, 3b, 3c):** frame 0 is already mid-action on the climax, with a bold title card (`hook.json`), an
+  `impact` hit sound on frame 0, and a fast, visual line 2. No slow establishing shots before second 4.
+- **Custom thumbnail (step 6b):** every episode ships `out/thumbnail.jpg` (`thumb.json` + `render.py … thumb`), sent with the video.
+
 **Length: 1:20–1:30 (80–90 s), chosen per story.** Owner decision 2026-11-17: shorter than the old ~2:20, but long enough for a real arc.
 Lighter/funny premises land near 1:20; emotional ones with a search + reveal can use the full 1:30. Never under 1:15 or over 1:35.
 This overrides any older length in a scheduled prompt or earlier episode. Episodes 001–003 are the old 2:20 format — copy their code patterns, not their length.
@@ -42,7 +49,12 @@ Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked e
   anything else* (so the other daily run can't take the same request), then build the episode from it. The request's premise,
   visual style and guidance override the random mode and premise steps below (all other runbook rules still apply). At delivery,
   set it to `DONE (episode NNN)`. If no request is OPEN, continue with the random mode below.
-- **Roll the story mode:** `python3 tools/pick_mode.py` → `wild` (~60%) or `heartfelt` (~40%), plus the OPENER (`in-this-world` or `cold-open`).
+- **Read `episodes/PERFORMANCE.md`** (the owner's view counts). If it marks a WINNER, `pick_mode.py` may print `DOUBLE DOWN on winner NNN`:
+  then copy that episode's mode, tone, pacing and story shape (read its script + notes for *why* it worked) with a brand-new premise, cast and sets.
+- **Roll the story mode:** `python3 tools/pick_mode.py` → `wild` (~60%) or `heartfelt` (~40%), the OPENER (`in-this-world` or `cold-open`) and the
+  story ANGLE. Build the premise around the angle so consecutive episodes feel different (record `Angle:` in notes.md — the next runs avoid it).
+  Variety check before writing: the premise must not share its core twist type, setting type or main gag with the last 3 episodes in INDEX.md,
+  and it needs at least one genuinely surprising beat (a gag or reveal a viewer would not predict from the first 10 s).
   It is random on purpose so the series mixes both; don't override it. Owner wants wilder stories: go big — bigger creatures, bigger stakes,
   stranger rules (owner's example of the kind: "Every morning creatures attack during the day, and it's only safe at night"). Record it in `notes.md` (`Mode:` line) and in the INDEX `mode` column.
 - **heartfelt:** one impossible rule about the world that is visual and has emotional potential
@@ -65,6 +77,10 @@ Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked e
 Formula (80–90 s version — the full arc, kept tight):
 0. **Line 1 = the hook** (1–2 s, ≤ 6 words): a flash-forward of the climax, spoken over the climax shot (`hook()` in kit.js reuses that shot),
    e.g. "Forty years. That's what I traded." / "It was right behind me." End it with a `rewind` sfx, then the story starts from the beginning.
+   **The first 3–4 seconds decide whether YouTube keeps pushing the short (owner 2026-11-21):** the hook line is a curiosity gap (a shocking
+   fact, a number, a threat — never a greeting or setup); pick `hook(…, { at })` so frame 0 is already mid-action on the most striking image
+   (a creature's face, the big reveal), never a wide establishing frame; line 2 (the rule) is ≤ 9 words and its shot is the most visual
+   demonstration of the rule with motion in the first 10 frames. Lines 1–2 together should end by ~4 s.
 1. Opener per the rolled OPENER — `in-this-world`: line 2 "In this world," — line 3: the rule. `cold-open`: state the rule as a fact in one punchy
    line, no "In this world" (e.g. "Every morning, the creatures come."), then go on.
 2. One line explains how it works ("You see, …" or any natural phrasing).
@@ -118,13 +134,20 @@ sounds that never drown the voice. `engine/sfx.py` synthesizes them (no samples,
 while the narrator speaks they duck 5 dB, are thinned in the 1–4 kHz speech band, and are capped 13 dB under the voice.
 Time every cue to its action — never shift a cue into a pause to make room for the voice.
 `[[line, at, name, gain_db?], …]` — `line` = script line, `at` = seconds after that shot starts or `"40%"` of the shot, `gain_db` = trim (-10…+3).
-Hook: put `[1, "92%", "rewind", -2]` on line 1. Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud knock chirp flap drip buzz tap typing ding rustle wind gasp zip tada rain (bed, -6..-10) thunder (on lightning) coins scribble creak rewind (hook cut).
+Hook: put `[1, 0.0, "impact", 0]` and `[1, "92%", "rewind", -2]` on line 1. Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud knock chirp flap drip buzz tap typing ding rustle wind gasp zip tada rain (bed, -6..-10) thunder (on lightning) coins scribble creak rewind (hook cut) impact (frame 0 of the hook only).
 - Put cues on visible actions, timed to the animation (a snap when a string breaks, steps while walking, a whoosh on a fast move,
   a chime/sparkle/glow on magic, a buzz on a phone, wind outdoors). About one cue per 1–3 shots (~20–35 per episode). Silence on
   the saddest lines and on the final line is fine — leave room for the voice.
 - Ambient beds (`wind`) at -6 to -8; frequent sounds (`steps`, `rustle`) at -4 to -6; the big moments (the twist, the climax) at 0 (never above +2).
 - `render.py video` mixes it automatically (out/mix.wav). To fix levels after a render without re-rendering: edit sfx.json, then
   `python3 engine/sfx.py episodes/NNN-slug --remux`. Worked example: `episodes/003-kite/sfx.json`.
+
+## 3c. Write `hook.json` (title card on the hook — mandatory)
+`{"title": ["ELEVEN CANDLES.", "ONE GIANT DRAGON."], "arrow": [0.62, 0.42, 120]}` — 2 short lines, ≤ 18 characters each, all caps; the last line
+is yellow. It punches in on frame 0 at the top of the frame for the whole hook shot and fades out on the cut. It can echo the hook line or tease
+what the viewer will see ("HE SOLD 40 YEARS", "DON'T BLINK"). Optional `arrow` (tip x, y in 0–1 frame coords, direction in degrees, 90 = down)
+points at the thing to look at — keep it off faces and out of the caption zone (y 0.62–0.78). Check it in the stills/frame of line 1.
+In `sfx.json` put `[1, 0.0, "impact", 0]` (a scroll-stopping boom on frame 0, before the first word) next to the usual `rewind` at 92%.
 
 ## 4. Write `shots.js` (export `SHOTS`, exactly one function per script line)
 Copy the pattern from `episodes/001-shadow/shots_b.js`. Line 1 is the hook: `export const SHOTS = [hook(SHOTS_B[k], { at, len }), ...SHOTS_A, ...SHOTS_B]`
@@ -226,8 +249,18 @@ nohup python3 engine/render.py episodes/NNN-slug video > episodes/NNN-slug/out/r
 The render is resumable (finished 300-frame chunks are kept in out/parts/ and skipped on a re-run — if the container restarts, just run the same command again). ≈2.0–2.3 s per frame with the quality passes (rainy night sets with many lights: ≈4.5 s) (≈85–105 min for 1:20–1:30). Keep the quality passes on (`q=1`, the default). Poll the log. Output: `out/final.mp4` (~50 MB).
 Sanity check: `ffprobe` duration ≈ narration duration; extract a 30-frame contact sheet and look at it.
 
+## 6b. Custom thumbnail (mandatory — owner request 2026-11-21)
+Shorts surface on the home page and in search, where a strong thumbnail wins new viewers (and can revive a stuck short).
+Write `thumb.json` (format in `engine/thumbnail.py`) and run `python3 engine/render.py episodes/NNN-slug thumb` → `out/thumbnail.jpg` (1080×1920, clean
+frame without captions, contrast boost, big two-line title, optional red arrow / ring / emoji sticker, optional punch-in `zoom` + `focus`).
+- Pick the frame with the strongest emotion on a readable face plus the story's hook object (the creature, the glowing thing) — not the hook frame itself.
+- Title = 2–4 words of curiosity that the video answers ("SHE FORGOT TO WISH", "WHO TOOK MY WORRIES?"), not the episode title.
+- Keep faces and the title clear of each other and nothing important in the bottom 20 % (YouTube's buttons). Look at it at phone size (270 px wide)
+  and fix until the title reads instantly. It can run while the video renders (after the stills pass), or after.
+
 ## 7. Deliver
-- Send `out/final.mp4` to the user with a one-line caption: title + logline.
+- Send `out/final.mp4` to the user with a one-line caption: title + logline, then send `out/thumbnail.jpg` (caption: "Thumbnail — set it in the YouTube app
+  when uploading the short"). Commit `hook.json` and `thumb.json` with the episode source.
 - Add a line to `episodes/INDEX.md`: `NNN | date | title | premise | narrator name | logline | mode` (mode = `heartfelt` or `wild:<world>`).
 - Add the episode's environments to `episodes/SETS.md`.
 - Commit the episode source (script, bubbles, sfx.json, notes, shots, any new faces/sets, SETS.md — not `out/`) and push.

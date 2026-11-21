@@ -219,3 +219,8 @@ towers x ±17, keep behind, 8 torches (`env.torches`, `env.set(k)`), well (-8, -
 Outfits: `chefhat`, `knighthelm { col, plume }` (open face), `circlet { col, gem }`.
 Lessons from 012: bump maps on big boxes seen at grazing angles produced NaN pixels that bloom smeared into huge black rectangles — sets13 uses no bump maps. Keep point lights out of geometry (a light inside a head overflows half-float buffers).
 Two-shots: `lookAt` turns heads up to 70°, which can hide faces from a front camera — scale it (×0.45) when both characters should stay readable.
+
+## Growth kit (owner request 2026-11-21) — hook title card, impact hit, thumbnails, story angles
+`hook.json` → bold two-line title (+ optional red arrow) over the hook shot (engine/captions.py `title_layer`, `arrow_on`); sfx `impact` = frame-0 boom (may be louder than other cues).
+`thumb.json` + `python3 engine/render.py episodes/NNN-slug thumb` → `out/thumbnail.jpg` (engine/thumbnail.py: clean frame, contrast, title top/bottom, arrow, ring, emoji sticker, punch-in zoom).
+`tools/pick_mode.py` also rolls an ANGLE (not used in the last 3 notes.md) and doubles down on WINNER rows in `episodes/PERFORMANCE.md`.

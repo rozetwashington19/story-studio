@@ -1,4 +1,5 @@
 # 012 — Candle Dragons
+Angle: escalation
 Mode: wild (silly, castle at night) — opener: cold-open (pick_mode). Hook = line 32 (the giant fire dragon lowering its glowing head toward Wren on the castle wall).
 Premise: Blow out a candle and its flame hatches into a tiny fire dragon (flames don't go out — they fly off). Close your eyes and wish first, and the dragon flies back into the wick.
 Logline: On her eleventh birthday, Wren blows out all eleven candles without making a wish — her eleven tiny dragons eat every torch in the castle and merge into one giant dragon on the wall, until she remembers how Grandma does it, closes her eyes and wishes them a home.

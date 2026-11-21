@@ -1,4 +1,7 @@
-"""Overlays: one-word pop captions (60% height) and wrapped speech bubbles. Loaded per episode."""
+"""Overlays: one-word pop captions (70% height), wrapped speech bubbles and the hook title card. Loaded per episode.
+hook.json (optional, owner request 2026-11-21 "win the first 3-4 seconds"): {"title": ["ELEVEN CANDLES.", "ONE GIANT DRAGON."], "arrow": [x, y, angle_deg]}
+  -> a bold yellow/black title punches in at the top of the frame on frame 0 and stays for the whole hook shot (line 1);
+     optional red arrow (tip at x, y in 0-1 frame coords, angle = direction it points, 90 = down) bobs toward the thing to look at."""
 import json, os, re
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 W, H = 1080, 1920
@@ -12,6 +15,7 @@ class Episode:
         self.total = self.timing[-1]["end"] + 2.0
         bp = os.path.join(ep, "bubbles.json")
         self.bubbles = {int(k): v for k, v in json.load(open(bp)).items()} if os.path.exists(bp) else {}
+        hp = os.path.join(ep, "hook.json"); self.hook = json.load(open(hp)) if os.path.exists(hp) else None
         self.spans = []
         for i, t in enumerate(self.timing):
             st = 0.0 if i == 0 else t["start"]; en = self.timing[i + 1]["start"] if i + 1 < len(self.timing) else self.total
@@ -26,6 +30,12 @@ class Episode:
             if s <= t < e or k == len(self.spans) - 1: return k, t - s, e - s
     def overlay(self, fr, t, i):
         fr = fr.convert("RGBA"); s = self.spans[i][0]
+        if i == 0 and self.hook:
+            e = self.spans[0][1]; age, left = t - s, e - t
+            if self.hook.get("arrow"): ax, ay, ang = self.hook["arrow"]; arrow_on(fr, ax * W, ay * H, ang, age)
+            tl = title_layer(self.hook["title"], age); fade = min(1.0, max(0.0, left / 0.18))
+            if fade < 1: tl.putalpha(tl.getchannel("A").point(lambda v: int(v * fade)))
+            fr.alpha_composite(tl, (int(W / 2 - tl.width / 2), int(H * 0.085)))
         if (i + 1) in self.bubbles:
             txt, bx, by = self.bubbles[i + 1]; bl = bubble_layer(txt, t - s)
             fr.alpha_composite(bl, (int(W * bx - bl.width / 2), int(H * by)))
@@ -64,3 +74,33 @@ def bubble_layer(text, age):
     if sc != 1: lay = lay.resize((int(lay.width * sc), int(lay.height * sc)), Image.LANCZOS)
     if a < 1: lay.putalpha(lay.getchannel("A").point(lambda v: int(v * a)))
     return lay
+
+TITLE = FONT_DIR + "Inter-Black.otf"
+def title_layer(lines, age, size=112, fill=(255, 214, 0, 255), maxw=0.8):
+    """Big two-line hook title: yellow Inter Black, thick dark stroke + drop shadow; punches in (1.15x -> 1x in 0.16 s), always inside the frame."""
+    if isinstance(lines, str): lines = [lines]
+    font = ImageFont.truetype(TITLE, size)
+    while max(font.getlength(l) for l in lines) > W * maxw and size > 60: size -= 6; font = ImageFont.truetype(TITLE, size)
+    lh = int(size * 1.12); bw = int(max(font.getlength(l) for l in lines)) + 80; bh = lh * len(lines) + 70
+    lay = Image.new("RGBA", (bw, bh), (0, 0, 0, 0)); sh = Image.new("RGBA", lay.size, (0, 0, 0, 0))
+    for k, l in enumerate(lines):
+        ImageDraw.Draw(sh).text((bw / 2 + 6, 35 + k * lh + lh / 2 + 10), l, font=font, fill=(0, 0, 0, 170), anchor="mm", stroke_width=16, stroke_fill=(0, 0, 0, 170))
+    lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(8)))
+    d = ImageDraw.Draw(lay)
+    for k, l in enumerate(lines):
+        d.text((bw / 2, 35 + k * lh + lh / 2), l, font=font, fill=fill if k == len(lines) - 1 else (255, 255, 255, 255), anchor="mm", stroke_width=14, stroke_fill=(12, 10, 16, 255))
+    sc = 1.0 + 0.15 * max(0.0, 1 - age / 0.16)
+    if sc != 1: lay = lay.resize((int(bw * sc), int(bh * sc)), Image.LANCZOS)
+    return lay
+
+def arrow_on(fr, x, y, ang, age, col=(235, 30, 40, 255), size=150):
+    """Red scroll-stopping arrow, tip at (x, y), pointing along ang (deg, 0 = right, 90 = down); bobs toward the tip."""
+    import math
+    a = math.radians(ang); bob = 18 * abs(math.sin(age * 7)); ux, uy = math.cos(a), math.sin(a); px, py = -uy, ux
+    tx, ty = x - ux * bob, y - uy * bob
+    pts = [(0, 0), (-0.55, 0.42), (-0.55, 0.16), (-1.25, 0.16), (-1.25, -0.16), (-0.55, -0.16), (-0.55, -0.42)]
+    poly = [(tx + (u * ux + v * px) * size, ty + (u * uy + v * py) * size) for u, v in pts]
+    lay = Image.new("RGBA", fr.size, (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    d.polygon([(p[0] + 6, p[1] + 8) for p in poly], fill=(0, 0, 0, 120)); lay = lay.filter(ImageFilter.GaussianBlur(5)); d = ImageDraw.Draw(lay)
+    d.polygon(poly, fill=col, outline=(255, 255, 255, 255), width=8)
+    fr.alpha_composite(lay)
