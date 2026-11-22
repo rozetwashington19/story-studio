@@ -24,5 +24,6 @@ copy of one with minor changes (same layout/silhouette, e.g. another identical h
 | 010 | backyard bakery careRoom familyKitchen houseFront kidRoomDay park street sunnyPines |
 | 011 | ferryDeck keeperAttic lighthouseCliff lanternRoom |
 | 012 | castleKitchen greatHall towerRoom battlements |
+| 013 | fairGym schoolFront bathTest |
 
 Unused finished worlds that may still be used once (then list them): `spooky` `space` `underwater` `candy` `castle` `desert` `lab` (engine/themes.js).

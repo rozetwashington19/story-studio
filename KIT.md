@@ -220,6 +220,20 @@ Outfits: `chefhat`, `knighthelm { col, plume }` (open face), `circlet { col, gem
 Lessons from 012: bump maps on big boxes seen at grazing angles produced NaN pixels that bloom smeared into huge black rectangles — sets13 uses no bump maps. Keep point lights out of geometry (a light inside a head overflows half-float buffers).
 Two-shots: `lookAt` turns heads up to 70°, which can hide faces from a front camera — scale it (×0.45) when both characters should stay readable.
 
+## Episode 013 kit — living science-fair projects + school (`engine/sets14.js`)
+`spongeBuddy(S, { name, s })` cute living kitchen sponge (s 1 ≈ 1.65 tall, 1.5 wide; feet y 0, faces +Z): `.update(t, 'idle'|'hop'|'shy'|'yawn'|'giggle'|'drink'|'wave'|'tug'|'squeeze'|'sleep', k)`,
+`.plain(1)` = an ordinary sponge (no face/limbs, flat on its plate), `.look(vec3)`, `.face('smile'|'open'|'o'|'grin')`, `.eyes(k)`, `.body` (rotate it to bow). Scales to bus size (s 6+).
+`foamMonster(S, { name, s })` bubbly foam creature (s 1 ≈ 6.5 tall, base radius 2.6·s): `.rise(k)` (0 = foam puddle → 1 standing), `.eyesOn(k)`, `.mouth(k)`, `.update(t, 'idle'|'roar'|'chomp'|'reach', k)`, `.look(v)`, `.head`.
+`foamPuffs(S, n)` → `(t, origin, k, { up, spread, size, fall })` bubbling eruption · `foamCarpet(S, [x,y,z], [w,d], { n, size })` `.set(k)` floor foam spreading from the centre.
+`volcano(S, [x,y,z], s)` paper-mache MEGA VOLCANO with sleepy eyes: `.wake(k)`, `.burp(k)`, `.update(t)`, `.crater` · `potatoClock(S, s)` (`.update(t, 'idle'|'walk'|'hop')`) · `robotMop(S, s)` bucket robot with a mop
+(`.update(t, 'idle'|'mop'|'roll')`; mop head at local (0.75, 0, 1.95)) · `robotArm(S, [x,y,z], s)` `.pose(base, shoulder, elbow, wrist)` · `paperPlane(S, col)` (+ `fly()` in episodes/013-sponge/shots_a.js) ·
+`handBell(S)` (`.ring(t, k)`) · `triPoster(S, [x,y,z], title, col, ry, s)` · `fairTable(S, [x,z], { w, d, cloth })` (top 2.6, solid) · `eyeDropper(S)` (`.drop`) · `trophy2`.
+Sets (all return `{ update(t) }`): `fairGym(S, { clean })` school gym science fair — floor x ±16, z -16..26, ceiling 16; back wall: hoop + SCIENCE FAIR banner + scoreboard; bleachers on the left (x -16..-9);
+sun shafts from high right windows; tables: Dex (0,-8.3) with `env.volcano`, Benji (8,-2) (plate (8, 2.68, -1.7), `env.poster`), Priya (-6,-3), robot arm (-5,-9.5) `env.arm`, solar oven, bean maze; `env.foam` carpet; `clean:true` = no tables.
+`schoolFront(S)` Sparkhill School from the lawn (building front z -20, entrance block x ±6 front z -18, `env.windows`, flagpole, trees, marquee, bench) — a giant (foamMonster s 5.2) behind the roof at (0, 0, -36).
+`bathTest(S)` teal-tiled bathroom with a clawfoot tub (x -4.5..1.5, z -6.6..-3.8, `env.water`, `env.bub`, `env.duck`), test sponges on the rim, sink + mirror, chart; stand at (3, 0, -4.3) facing -x, camera from (-2.5, 4.8, -0.5).
+Framing lesson from 013: in a 9:16 frame, a medium of one standing kid needs distance ≥ 9 at lens 26–28; first-pass cameras at 6–8 units were all too tight. Rooms must extend behind the camera (fairGym runs to z 26).
+
 ## Growth kit (owner request 2026-11-21) — hook title card, impact hit, thumbnails, story angles
 `hook.json` → bold two-line title (+ optional red arrow) over the hook shot (engine/captions.py `title_layer`, `arrow_on`); sfx `impact` = frame-0 boom (may be louder than other cues).
 `thumb.json` + `python3 engine/render.py episodes/NNN-slug thumb` → `out/thumbnail.jpg` (engine/thumbnail.py: clean frame, contrast, title top/bottom, arrow, ring, emoji sticker, punch-in zoom).
