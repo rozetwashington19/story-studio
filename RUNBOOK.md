@@ -22,6 +22,21 @@ This overrides older advice below to reuse everyday sets (bedroom, kitchen, stre
   `impact` hit sound on frame 0, and a fast, visual line 2. No slow establishing shots before second 4.
 - **Custom thumbnail (step 6b):** every episode ships `out/thumbnail.jpg` (`thumb.json` + `render.py … thumb`), sent with the video.
 
+**Owner rule (2026-11-22) — stories for all ages, not only kids:** "Maintain the current Roblox style we have and make the story for all ages,
+not only for kids. In fact, moving forward don't make the animation stories to be only meant for kids." Same Roblox look; but the stories,
+stakes and narrators can be teens or adults, with real tension, real scares, grown-up worries and humour adults enjoy too. Still YouTube-safe:
+no gore, blood, graphic violence, weapons violence or swearing. This overrides every "kid-friendly" / "kid narrator" line below and in the
+scheduled prompts.
+
+**Owner request (2026-11-22) — choose-your-path series (5 parts), then back to normal:** an ACTIVE series lives in `episodes/series/<name>/SERIES.md`
+(currently `episodes/series/fog/`). Read it at step 1 on every run:
+- **Evening run only:** if a series is ACTIVE and its next part is unlocked (Part 1, or the previous part's vote result is filled in), make that part,
+  following SERIES.md (it overrides the premise, narrator, cast and opener steps; everything else in this runbook still applies) and write `vote.json`
+  (end card, engine/captions.py). If the next part is locked (vote result still `?`), make a normal standalone episode and say in the final message that the
+  series is waiting for the owner's Part N−1 vote. The midday run always makes normal standalone episodes.
+- **Any run:** if the owner tells you a vote result, record it in SERIES.md, commit and push it before anything else.
+- After the final part, SERIES.md is set to DONE and all runs go back to normal episodes.
+
 **Length: 1:20–1:30 (80–90 s), chosen per story.** Owner decision 2026-11-17: shorter than the old ~2:20, but long enough for a real arc.
 Lighter/funny premises land near 1:20; emotional ones with a search + reveal can use the full 1:30. Never under 1:15 or over 1:35.
 This overrides any older length in a scheduled prompt or earlier episode. Episodes 001–003 are the old 2:20 format — copy their code patterns, not their length.
@@ -71,7 +86,7 @@ Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked e
   **Backgrounds must match the theme:** build most shots in a themed world from `engine/themes.js` (pick_mode suggests two
   that weren't used recently — use one of them unless the premise clearly needs another) and contrast it with everyday sets
   (e.g. the bedroom where it starts). Use the world's `update(t)` for ambient motion in every shot that uses it.
-- Do not copy the example premises. Kid-friendly. Original story — never retell an existing film, book, show or someone else's video.
+- Do not copy the example premises. For all ages (owner rule 2026-11-22), YouTube-safe. Original story — never retell an existing film, book, show or someone else's video.
 
 ## 2. Write `episodes/NNN-slug/script.txt` (NNN = next number)
 Formula (80–90 s version — the full arc, kept tight):
@@ -93,7 +108,7 @@ Formula (80–90 s version — the full arc, kept tight):
 8. Resolution + a callback to one gag + a short final line that lands emotionally.
 - 43–51 lines (incl. the hook), 260–300 words → about 1:20–1:30 at the narrator's pace (≈3.4 words/s incl. pauses; ~265 words ≈ 1:20, ~295 ≈ 1:30). One line = one shot. Keep lines short (≤ 10 words).
 - Every line must earn its place: one idea per line, no recap lines, at most 3 speaking characters besides the narrator.
-- First-person kid narrator. Dialogue goes in "double quotes" and also gets a speech bubble.
+- First-person narrator (any age — a kid, a teen, a grandparent, a bus driver…; series parts use SERIES.md's voice). Dialogue goes in "double quotes" and also gets a speech bubble.
 - End a line with ` [pause]` for a dramatic beat (use ~6–8 times: big reveals, sad moments, final line). Lines up to a [pause] are read as one
   continuous passage (≤ 5 lines / 26 words), so write them to flow as connected sentences.
 - **Delivery tags** (make the voice match what is on screen): add `{excited}` (chases, surprises), `{tense}` (creeping danger), `{slow}` (sad/awed),
@@ -261,7 +276,8 @@ frame without captions, contrast boost, big two-line title, optional red arrow /
 ## 7. Deliver
 - Send `out/final.mp4` to the user with a one-line caption: title + logline, then send `out/thumbnail.jpg` (caption: "Thumbnail — set it in the YouTube app
   when uploading the short"). Commit `hook.json` and `thumb.json` with the episode source.
-- Add a line to `episodes/INDEX.md`: `NNN | date | title | premise | narrator name | logline | mode` (mode = `heartfelt` or `wild:<world>`).
+- Add a line to `episodes/INDEX.md`: `NNN | date | title | premise | narrator name | logline | mode` (mode = `heartfelt`, `wild:<world>` or `series:<name> P<N>`).
+- Series part: fill in the `episode` column of SERIES.md's table and the choice you offered (the vote result stays `?` until the owner reports it); send the thumbnail as usual.
 - Add the episode's environments to `episodes/SETS.md`.
 - Commit the episode source (script, bubbles, sfx.json, notes, shots, any new faces/sets, SETS.md — not `out/`) and push.
   Two episodes are made per day by separate runs, so before pushing: `git fetch --depth=50 origin main` and

@@ -238,3 +238,6 @@ Framing lesson from 013: in a 9:16 frame, a medium of one standing kid needs dis
 `hook.json` → bold two-line title (+ optional red arrow) over the hook shot (engine/captions.py `title_layer`, `arrow_on`); sfx `impact` = frame-0 boom (may be louder than other cues).
 `thumb.json` + `python3 engine/render.py episodes/NNN-slug thumb` → `out/thumbnail.jpg` (engine/thumbnail.py: clean frame, contrast, title top/bottom, arrow, ring, emoji sticker, punch-in zoom).
 `tools/pick_mode.py` also rolls an ANGLE (not used in the last 3 notes.md) and doubles down on WINNER rows in `episodes/PERFORMANCE.md`.
+`vote.json` (choose-your-path series, owner 2026-11-22) → "PART N / 5" badge top-left all video + red A / green B choice boxes at ~40–55 % height from script line `from`,
+with an optional "FOLLOW FOR / PART N+1" title above them (engine/captions.py `badge_layer`, `choice_layer`). Keep that part of the frame calm in the last shot.
+Series cast: `episodes/series/fog/cast.js` (YOU, NELL, ABE, BISCUIT) — import it from series parts.

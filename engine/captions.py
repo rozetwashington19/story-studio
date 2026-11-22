@@ -1,7 +1,11 @@
 """Overlays: one-word pop captions (70% height), wrapped speech bubbles and the hook title card. Loaded per episode.
 hook.json (optional, owner request 2026-11-21 "win the first 3-4 seconds"): {"title": ["ELEVEN CANDLES.", "ONE GIANT DRAGON."], "arrow": [x, y, angle_deg]}
   -> a bold yellow/black title punches in at the top of the frame on frame 0 and stays for the whole hook shot (line 1);
-     optional red arrow (tip at x, y in 0-1 frame coords, angle = direction it points, 90 = down) bobs toward the thing to look at."""
+     optional red arrow (tip at x, y in 0-1 frame coords, angle = direction it points, 90 = down) bobs toward the thing to look at.
+vote.json (optional, choose-your-path series, owner request 2026-11-22):
+  {"badge": "PART 1 / 5", "from": 44, "a": "STAY IN THE BUNKER", "b": "RUN TO YOUR MOM", "title": ["FOLLOW FOR", "PART 2"]}
+  -> a small "PART 1 / 5" tag in the top-left corner for the whole video; from script line `from` (default: the last line) a red "A" and a
+     green "B" choice box slide in at ~42% height, and `title` (omit it on the finale) punches in above them once both boxes are in."""
 import json, os, re
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 W, H = 1080, 1920
@@ -16,6 +20,7 @@ class Episode:
         bp = os.path.join(ep, "bubbles.json")
         self.bubbles = {int(k): v for k, v in json.load(open(bp)).items()} if os.path.exists(bp) else {}
         hp = os.path.join(ep, "hook.json"); self.hook = json.load(open(hp)) if os.path.exists(hp) else None
+        vp = os.path.join(ep, "vote.json"); self.vote = json.load(open(vp)) if os.path.exists(vp) else None
         self.spans = []
         for i, t in enumerate(self.timing):
             st = 0.0 if i == 0 else t["start"]; en = self.timing[i + 1]["start"] if i + 1 < len(self.timing) else self.total
@@ -36,6 +41,18 @@ class Episode:
             tl = title_layer(self.hook["title"], age); fade = min(1.0, max(0.0, left / 0.18))
             if fade < 1: tl.putalpha(tl.getchannel("A").point(lambda v: int(v * fade)))
             fr.alpha_composite(tl, (int(W / 2 - tl.width / 2), int(H * 0.085)))
+        if self.vote:
+            if self.vote.get("badge"): b = badge_layer(self.vote["badge"]); fr.alpha_composite(b, (36, 40))
+            vf = int(self.vote.get("from", len(self.spans))) - 1
+            if i >= vf and self.vote.get("a"):
+                age = t - self.spans[vf][0]
+                for k, key in enumerate(("a", "b")):
+                    a = ease(min(1.0, max(0.0, (age - 0.25 * k) / 0.3)))
+                    if a <= 0: continue
+                    cl = choice_layer(key.upper(), self.vote[key], k); cl.putalpha(cl.getchannel("A").point(lambda v: int(v * a)))
+                    fr.alpha_composite(cl, (int(W / 2 - cl.width / 2 + (1 - a) * (-140 if k == 0 else 140)), int(H * 0.40 + k * 150)))
+                if self.vote.get("title") and age > 0.6:
+                    tl = title_layer(self.vote["title"], age - 0.6, size=100); fr.alpha_composite(tl, (int(W / 2 - tl.width / 2), int(H * 0.40 - tl.height - 10)))
         if (i + 1) in self.bubbles:
             txt, bx, by = self.bubbles[i + 1]; bl = bubble_layer(txt, t - s)
             fr.alpha_composite(bl, (int(W * bx - bl.width / 2), int(H * by)))
@@ -104,3 +121,20 @@ def arrow_on(fr, x, y, ang, age, col=(235, 30, 40, 255), size=150):
     d.polygon([(p[0] + 6, p[1] + 8) for p in poly], fill=(0, 0, 0, 120)); lay = lay.filter(ImageFilter.GaussianBlur(5)); d = ImageDraw.Draw(lay)
     d.polygon(poly, fill=col, outline=(255, 255, 255, 255), width=8)
     fr.alpha_composite(lay)
+
+def badge_layer(text):
+    font = ImageFont.truetype(TITLE, 44); tw = int(font.getlength(text)); lay = Image.new("RGBA", (tw + 56, 80), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    d.rounded_rectangle([0, 0, tw + 52, 74], radius=16, fill=(15, 15, 20, 190)); d.rounded_rectangle([0, 0, 14, 74], radius=6, fill=(235, 40, 50, 255))
+    d.text((34, 37), text, font=font, fill=(255, 255, 255, 255), anchor="lm"); return lay
+
+def choice_layer(letter, text, k):
+    """Vote option box: dark panel with a coloured border (A red, B green) and a letter tab."""
+    col = (230, 45, 55, 255) if k == 0 else (40, 190, 90, 255)
+    font = ImageFont.truetype(TITLE, 58); size = 58
+    while font.getlength(text) > W * 0.62 and size > 36: size -= 4; font = ImageFont.truetype(TITLE, size)
+    bw, bh = int(W * 0.84), 124; lay = Image.new("RGBA", (bw + 20, bh + 20), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    d.rounded_rectangle([8, 12, bw + 8, bh + 12], radius=22, fill=(0, 0, 0, 110))
+    d.rounded_rectangle([0, 0, bw, bh], radius=22, fill=(18, 18, 24, 235), outline=col, width=8)
+    d.rounded_rectangle([18, 18, 18 + bh - 36, bh - 18], radius=14, fill=col)
+    d.text((18 + (bh - 36) / 2, bh / 2), letter, font=ImageFont.truetype(TITLE, 64), fill=(255, 255, 255, 255), anchor="mm")
+    d.text((bh + 16, bh / 2), text, font=font, fill=(255, 255, 255, 255), anchor="lm"); return lay
