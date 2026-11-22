@@ -26,5 +26,6 @@ copy of one with minor changes (same layout/silhouette, e.g. another identical h
 | 012 | castleKitchen greatHall towerRoom battlements |
 | 013 | fairGym schoolFront bathTest |
 | 014 | alpineVillage logCabin liftStation kellValley |
+| 015 | harborStreet harborFlat truckCab hospitalRoof (series THE FOG — a later part of that series may revisit one of them, nothing else) |
 
 Unused finished worlds that may still be used once (then list them): `spooky` `space` `underwater` `candy` `castle` `desert` `lab` (engine/themes.js).

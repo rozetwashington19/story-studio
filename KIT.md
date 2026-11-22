@@ -259,3 +259,14 @@ Props: `gondola(S, { num, col, people, s })` (origin = cable grip, body hangs ~8
 `marker(S, col)`, `mountains(S, { z, n, h, night })`, `pine(S, [x,z], h)`, `chalet(S, [x,z], opts)`.
 Shirt style `jerseyN` (avatar.js): soccer jersey with a white V-collar + big number N. Episode helpers (episodes/014-cabinseven): `swapper()` (two avatars, one visible — outfit swap on a poof), `poof()` sparkle ring,
 `far(cam)` (camera far plane 900 for big valleys), HEAD/BODY outfit swap presets in common.js. Voice: `PAUSE_GAP=0.45` shortens the silence after [pause] passages (default 0.75).
+
+## Series kit — THE FOG (`engine/sets_fog.js`, first used in episode 015)
+Fog: `fogBank(S, { n, area: [x0,x1,z0,z1], y, size, col, opacity, seed })` soft unlit puffs → `.update(t, mask, { k, drift })` with masks `fogFront(x, soft, dir)` (wall rolling along x)
+and `fogRing(cx, cz, r, soft)` (clear circle); `fogWisp(S, n, col, size)` small curl (position it, e.g. under a door or around feet); `fogTouch(A, k)` drains a person's colour (pair with face `sleepy`).
+Props: `fogPhone(S)` (`.screen('alerts'|'nell1'|'nell2'|'lock', k)`, `.glow`; hold it with `rotation.set(0.5, Math.PI, 0)` so the screen faces the holder; POV camera = head + (0, 0.1, 1.0));
+`iceTruck(S)` ABE'S ICE CREAM truck (faces +x, x ±6.5, z ±2.6, `.update(t, { jingle, head })` blinking bulbs).
+Sets (all return `{ update(t) }`): `harborStreet(S, { time: 'predawn'|'day', truck: [x,z], siren, pellLit })` · `harborFlat(S, { tv })` (env.tv(mode, k, t), env.door.open(k), env.under(k), landing behind the door) ·
+`truckCab(S, { ring })` (two seats facing +z, env.sw switch, env.meter(text, red, k), env.badge, env.spk; `env.update(t, { jingle, r, flicker })`; windshield two-shot: camera (0, 5.3, 9.6) lens 20–22) ·
+`hospitalRoof(S)` (env.rise(k) fog sea). Layout details are in the file header. Lessons from 015: the 9:16 frame needs lens ≤ 22 for a two-shot through a windshield; any wall a door opens in needs a real hole;
+keep coloured siren lights weak (≤ 55 at 34 range) or the whole street turns red; cameras inside the fog bank white out — keep them inside the clear area.
+

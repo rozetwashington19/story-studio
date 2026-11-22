@@ -15,11 +15,11 @@ with two options (A red / B green) + "FOLLOW FOR PART 2".
   table below (letter + the option text + date), commit and push that change straight away, before anything else.
 - After Part 5 is delivered, set the status line to DONE; every run then goes back to normal episodes (RUNBOOK as before).
 
-Status: ACTIVE — next: Part 1
+Status: ACTIVE — next: Part 2 (waiting for the Part 1 vote)
 
 | part | episode | choice offered at the end (A / B) | vote result |
 |---|---|---|---|
-| 1 | — | A: STAY IN ABE'S TRUCK · B: RUN TO NELL (planned) | ? |
+| 1 | 015 | A: STAY IN ABE'S TRUCK · B: RUN TO NELL | ? |
 | 2 | — | (decided by the Part 2 run) | ? |
 | 3 | — | (decided by the Part 3 run) | ? |
 | 4 | — | (decided by the Part 4 run) | ? |
@@ -77,3 +77,11 @@ His truck sits in a perfect circle of clear air while it plays its jingle — RU
 says 10 minutes. On the dashboard: an old Kessler Hill tower ID badge with Abe's photo on it. Then your phone buzzes — Nell: "Fog's at the
 hospital. I'm on the roof with a little girl. Please." The bridge is six minutes away. The jingle has ten minutes left. Abe is reaching to close
 the door. Do you STAY IN ABE'S TRUCK, or RUN TO NELL? Follow for part two.
+
+## Part 1 as made (episode 015, 2026-11-22) — continuity for Part 2
+- Time: the fog hits Harbor Street at ~5:46; the truck's battery reads 10:00 at ~5:47 and 9:51 when Part 1 ends (so ~9 min of jingle left).
+- Where everyone is: YOU + BISCUIT in Abe's truck (passenger seat) parked mid-road on Harbor Street inside a ~15-stud ring of clear air; ABE at the wheel, gripping your arm,
+  promising to tell you "what's really out there" if you stay; MR. PELL frozen and grey by his trash cans, just outside the ring; NELL + PIP (a little girl in a yellow raincoat
+  she found) on the Mainland General roof with the fog rising up the building; the bridge is ~6 minutes away on foot.
+- Planted: Abe's old badge "KESSLER HILL TOWER · CHIEF ENGINEER · A. MORROW" (you have it now); the tower's red light blinks above the town; the street laughed at Abe for years.
+- Sets/kit: engine/sets_fog.js (harborStreet, harborFlat, truckCab, hospitalRoof, iceTruck, fogBank/fogFront/fogRing/fogTouch/fogPhone). Part 2 may revisit ONE of these (new angle/time).
