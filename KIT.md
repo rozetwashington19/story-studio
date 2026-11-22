@@ -241,3 +241,21 @@ Framing lesson from 013: in a 9:16 frame, a medium of one standing kid needs dis
 `vote.json` (choose-your-path series, owner 2026-11-22) → "PART N / 5" badge top-left all video + red A / green B choice boxes at ~40–55 % height from script line `from`,
 with an optional "FOLLOW FOR / PART N+1" title above them (engine/captions.py `badge_layer`, `choice_layer`). Keep that part of the frame calm in the last shot.
 Series cast: `episodes/series/fog/cast.js` (YOU, NELL, ABE, BISCUIT) — import it from series parts.
+
+## Episode 014 kit — mountain cable-car town (`engine/sets15.js`)
+Sets (all return `{ update(t) }`): `alpineVillage(S)` Kell village street (cobbles along x, free x -18..18 / z -8..8; timber chalets fronts z -14 at x -30/-16/-2 (POST)/12/26, yellow mailbox (4.6,-10.4),
+fountain (-24,-3), bench (16,-10.2), lamps, bunting, peaks + cable line with moving cabins). `logCabin(S, { time: 'night'|'morning', bed: 'sol'|'mom' })` open-plan log cabin (walls x ±11, back z -9,
+ceiling 10, front wall z 12): bed back-left (x -10.2..-5.6, z -8.8..-2.6, mattress top 1.9; sit on its edge at z -2.0 with root y 0.4), big painted mountain window x -2..4.4, dining table top 2.6 at (3.6,-2.2),
+counter (back right), wood stove (9.4,-2.6) `env.stove`, door + coat hooks on the right wall; 'sol' = soccer posters/trophies + blue quilt, 'mom' = photos/lift map + red quilt; `env.blanket`.
+`liftStation(S, { icy, stuck })` cable-car base station: open hall x ±18 (floor to z 26, roof y 15 over z -16..12), giant bullwheel (0,10,-8) turning (`env.spin(k)`), cabins circling, outgoing line up the slope
+(`env.cableY(z)` = 12 + (-8 - z)·0.24, cabins `env.outs`), console top 2.6 at x 5.5..12.5 z -2..-0.4 (operator at (9,-3.4) facing +z; `env.levers[i].rotation.x`, `env.btn`, `env.radio`), CABIN STATUS board
+(`env.board(n)` lights cabin n red), Otto's workbench along the left wall (top 3.0, x -17.6..-15.2, z -2..8, thermos + steaming mugs), drums, spare wheel. `icy` = icicles + frosted cables; `stuck` = swaying cabin of tourists `env.stuck`.
+`kellValley(S, { time: 'golden'|'night', focus: 'pitch'|'cabin' })` valley soccer pitch (x ±30, z -22..2, goals x ±30 mouth z -15..-5 `env.goals`), bleachers + blocky crowd `env.update(t, cheer 0..1)`, scoreboard,
+village ring, mountains; cable along x at z -10 (`VALLEY.cableY(x)`); CABIN 7 hangs above the field with a full interior (`VALLEY.cab` = { x0 0, x1 12, z0 -15, z1 -5, y 30 }: floor top y 30, glass
+y 32.4–37.4, side benches seat top 31.7) — handwritten window on the back glass (`env.write`, readable from inside, mirrored from outside), `env.newLine(k)` reveals a new written line, `env.binos`, `env.radio`,
+`env.lantern` (night). `focus: 'cabin'` moves the sun's shadow box to the cabin. Night = stars, moon, lit village windows.
+Props: `gondola(S, { num, col, people, s })` (origin = cable grip, body hangs ~8 below; `.userData.body` to sway), `stroller(S, { col })` giant pram (seat top 2.7, solid 'stroller'), `letterStack(S, n)`,
+`soccerBall(S, r)`, `fan(S, [x,y,z], { col, seated })` cheap blocky crowd person (`.update(t, cheer)`), `binoMask(S)` binocular vignette glued to the camera (`.update(cam)` after camPath; set `S.userData.dof = false`),
+`marker(S, col)`, `mountains(S, { z, n, h, night })`, `pine(S, [x,z], h)`, `chalet(S, [x,z], opts)`.
+Shirt style `jerseyN` (avatar.js): soccer jersey with a white V-collar + big number N. Episode helpers (episodes/014-cabinseven): `swapper()` (two avatars, one visible — outfit swap on a poof), `poof()` sparkle ring,
+`far(cam)` (camera far plane 900 for big valleys), HEAD/BODY outfit swap presets in common.js. Voice: `PAUSE_GAP=0.45` shortens the silence after [pause] passages (default 0.75).

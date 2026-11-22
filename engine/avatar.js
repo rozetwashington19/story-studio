@@ -57,6 +57,11 @@ export function fabricTex(col, style = 'plain') {
       x.fillStyle = shade(col, 0.75); x.beginPath(); x.ellipse(128, 0, 50, 24, 0, 0, Math.PI); x.fill();
       x.fillStyle = 'rgba(255,255,255,0.85)'; x.font = 'bold 70px Inter, sans-serif'; x.textAlign = 'center'; x.fillText('★', 128, 150);
     }
+    if (style.startsWith('jersey')) {   // soccer kit: white V-collar + big number (style 'jersey7' -> number 7)
+      x.fillStyle = shade(col, 0.6); x.fillRect(0, 0, 26, h); x.fillRect(w - 26, 0, 26, h);
+      x.fillStyle = '#f6f6f2'; x.beginPath(); x.moveTo(86, 0); x.lineTo(128, 56); x.lineTo(170, 0); x.lineTo(152, 0); x.lineTo(128, 34); x.lineTo(104, 0); x.fill();
+      x.fillStyle = 'rgba(255,255,255,0.95)'; x.font = '900 120px Inter, sans-serif'; x.textAlign = 'center'; x.fillText(style.slice(6) || '7', 128, 200);
+    }
     if (style === 'stripes') { x.fillStyle = shade(col, 0.55); for (let y = 0; y < h; y += 44) x.fillRect(0, y, w, 18); }
     if (style === 'plaid') { x.fillStyle = 'rgba(0,0,0,0.28)'; for (let i = 0; i < w; i += 64) { x.fillRect(i, 0, 22, h); x.fillRect(0, i, w, 22); }
       x.fillStyle = 'rgba(255,255,255,0.18)'; for (let i = 40; i < w; i += 64) { x.fillRect(i, 0, 4, h); x.fillRect(0, i, w, 4); } }

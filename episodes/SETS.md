@@ -25,5 +25,6 @@ copy of one with minor changes (same layout/silhouette, e.g. another identical h
 | 011 | ferryDeck keeperAttic lighthouseCliff lanternRoom |
 | 012 | castleKitchen greatHall towerRoom battlements |
 | 013 | fairGym schoolFront bathTest |
+| 014 | alpineVillage logCabin liftStation kellValley |
 
 Unused finished worlds that may still be used once (then list them): `spooky` `space` `underwater` `candy` `castle` `desert` `lab` (engine/themes.js).
