@@ -270,3 +270,17 @@ Sets (all return `{ update(t) }`): `harborStreet(S, { time: 'predawn'|'day', tru
 `hospitalRoof(S)` (env.rise(k) fog sea). Layout details are in the file header. Lessons from 015: the 9:16 frame needs lens ≤ 22 for a two-shot through a windshield; any wall a door opens in needs a real hole;
 keep coloured siren lights weak (≤ 55 at 34 range) or the whole street turns red; cameras inside the fog bank white out — keep them inside the clear area.
 
+
+## Episode 016 kit — living alarm clocks + clockmaker's town (`engine/sets16.js`)
+`alarmClock(S, { name, s, col, bell, glasses, seed })` living twin-bell alarm clock (s 1 ≈ 4.6 tall, feet y 0, faces +Z; tiny 0.16, giant 6–8.5): `.update(t, 'idle'|'run'|'stomp'|'crawl'|'ring'|'knock'|'knit'|'wave'|'cheer'|'squeeze', k)`,
+`.time(h, m)`, `.spin(turns)` (extra whirl of the hands), `.face('smile'|'grin'|'o'|'flat'|'frown', brow -1 angry..+1 worried)`, `.look(vec3)`, `.blink(k)`, `.ringK` (ring arcs), `.hand('R'|'L')`, `.legs/.arms` pivots (scale legs 0→1 to "grow legs"),
+`.root .g .body .shell`. A rider sits on top at body-local (0, 1.25, 0.1) (`riderSeat()` in episodes/016-snooze/common.js — call `root.updateMatrixWorld(true)` first). Sinking a giant into the ground (`root.y < 0`) works as a crouch.
+Props: `phoneBooth(S, [x,z])` (`.open(k)`, glass with crossbars at y 2.1/6.7 so faces stay clear), `testCar(S, { col })` open-top hatchback facing +x (`.drive(dist)`, `.seat(-1 driver | 1 passenger)` world seat, top 1.7), `cone(S, [x,z])` (`.knock(k, dirDeg)`),
+`clipboard(S)`, `knitScarf(S, text, { len, col })` (curved knitted scarf with big lettering, `.set(k)`), `tinyGear(S, r, col)`.
+Sets (all return `{ update(t) }`): `clockLoft(S, { time })` brick loft inside a clock tower — round mirrored clock window centre (2, 5.8, -8.35) r 3.6 (`env.hands.set(h,m)`), bed left (mattress top 1.9, room for tiny clocks underneath),
+nightstand top 2.2 at (-4.3, -6.9), desk + car posters right, rug, string lights, gear mobile, `env.blanket`, `env.sunK(k)`. `clockShop(S, { time: 'morning'|'night' })` Tick & Sons: wall of ticking clocks (`env.update(t, shakeK)` rattles them),
+grandfather clocks, counter top 3.0 (z -6.2..-4.6), workbench right, rocking chair seat top 1.7 at (-7.2, -2.0) ry 35 (sit at (-7.35, -2.2), `env.rock(t)`), footstool top 1.0 at (-4.2, -1.0), big left window, spiral stair, pendant lamps.
+`tickStreet(S)` brick road along x, Dutch-gable pastel townhouses (fronts z -14), the TICK & SONS clock tower at x 4 (tower clock = `env.hands`, centre (4, 19.6, -14.45); rotate it about y to swing it open), door `env.door.open(k)`,
+flower market x -36..-14, teal phone booth `env.booth` at (-47, -10.6), lamps, planters, bunting, pigeons (`env.pigeonsFly(t, k)`). `roofscape(S)` row of flat roofs along x at z 0 (top `ROOF.y` 14) with gabled roofs all round; call `env.follow(x)` (moves the sun's
+shadow box) + `env.update(t, x)`. `testLot(S)` DRIVING TEST CENTER: asphalt lot, cone slalom (`env.cones`, first 10 at x -12..15, z 2±0.6), test car `env.car`, wall clock `env.wallClock.set(h,m)`, flags, fence, gate.
+Lesson from 016: `body.updateMatrixWorld(true)` does NOT refresh a stale parent — use `root.updateMatrixWorld(true)` before reading child positions (stills jump between frames). Houses ~16–20 tall hide anything behind them from a street-level camera: a giant "over the roofs" needs s ≥ 8 and a camera 45+ units back.
