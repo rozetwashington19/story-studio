@@ -28,11 +28,12 @@ stakes and narrators can be teens or adults, with real tension, real scares, gro
 no gore, blood, graphic violence, weapons violence or swearing. This overrides every "kid-friendly" / "kid narrator" line below and in the
 scheduled prompts.
 
-**Owner rule (2026-11-22, evening) — HOLD: no new videos while a vote is pending.** "Wait for results before generating any new videos!"
-While `episodes/series/fog/SERIES.md` shows a vote result of `?` for the latest delivered part, **no run makes any video — not a series part and not a standalone
-episode, midday or evening.** This overrides the "make a normal standalone episode instead" line in RUNBOOK and in the scheduled prompts. Such a run only: `git pull`,
-check SERIES.md, send the owner one push notification ("Waiting for your Part N vote — no video made"), and stop. As soon as the owner reports the result, record it
-(see below), and the next run makes the next part.
+**Owner schedule (2026-11-23) — while THE FOG series is ACTIVE: at most ONE Fog part + ONE standalone episode per day** (replaces the 2026-11-22 HOLD rule).
+Owner posts the Fog part at 4 PM Eastern (11 AM on weekends) and the standalone at ~7:30 PM Eastern. Every run (midday or evening), after `git pull`:
+1. If the previous part's vote result is filled in SERIES.md and the next part isn't in INDEX.md yet → make that Fog part.
+2. Otherwise, if no standalone episode has been added to INDEX.md today (Eastern date) → make a normal standalone episode.
+3. Otherwise → make no video; send one push notification ("Waiting for your Part N vote — today's standalone is done") and stop.
+Never two standalones in one day while the series runs. When SERIES.md is DONE, this rule ends and the normal two-standalones-a-day schedule returns.
 
 **Owner request (2026-11-22) — choose-your-path series (5 parts), then back to normal:** an ACTIVE series lives in `episodes/series/<name>/SERIES.md`
 (currently `episodes/series/fog/`). Read it at step 1 on every run:

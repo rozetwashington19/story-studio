@@ -17,8 +17,7 @@ with two options (A red / B green) + "FOLLOW FOR PART 2".
   table below (letter + the option text + date), commit and push that change straight away, before anything else.
 - After Part 5 is delivered, set the status line to DONE; every run then goes back to normal episodes (RUNBOOK as before).
 
-Status: ACTIVE — ON HOLD: waiting for the Part 1 vote. Owner 2026-11-22: "Wait for results before generating any new videos!" — no run makes ANY video
-(series part or standalone, midday or evening) until the Part 1 result is filled in below. See the HOLD rule at the top of RUNBOOK.md.
+Status: ACTIVE — next: Part 2 (waiting for the Part 1 vote). Daily schedule while the series runs: one Fog part (posted 4 PM ET) + one standalone (posted ~7:30 PM ET) — see the owner schedule at the top of RUNBOOK.md.
 
 | part | episode | choice offered at the end (A / B) | vote result |
 |---|---|---|---|
