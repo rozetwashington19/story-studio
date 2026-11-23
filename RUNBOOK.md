@@ -36,10 +36,13 @@ check SERIES.md, send the owner one push notification ("Waiting for your Part N 
 
 **Owner request (2026-11-22) — choose-your-path series (5 parts), then back to normal:** an ACTIVE series lives in `episodes/series/<name>/SERIES.md`
 (currently `episodes/series/fog/`). Read it at step 1 on every run:
-- **Evening run only:** if a series is ACTIVE and its next part is unlocked (Part 1, or the previous part's vote result is filled in), make that part,
+- **Owner 2026-11-23 — whichever run comes first:** once the owner has reported the previous part's vote, the NEXT run (midday or evening, whichever fires first) makes the next part,
+  so it is ready for the owner's 4 PM Eastern post (owner sends the result by ~11:30 AM; the 12:10 PM midday run builds it). The other run that day does not make another series part.
+  Before building, `git pull` and check SERIES.md/INDEX.md so two runs never make the same part.
+- **(older rule, superseded above) Evening run only:** if a series is ACTIVE and its next part is unlocked (Part 1, or the previous part's vote result is filled in), make that part,
   following SERIES.md (it overrides the premise, narrator, cast and opener steps; everything else in this runbook still applies) and write `vote.json`
   (end card, engine/captions.py). If the next part is locked (vote result still `?`), make a normal standalone episode and say in the final message that the
-  series is waiting for the owner's Part N−1 vote. The midday run always makes normal standalone episodes.
+  series is waiting for the owner's Part N−1 vote. (Superseded 2026-11-23: the midday run makes the series part when a result came in before it fires.)
 - **Any run:** if the owner tells you a vote result, record it in SERIES.md, commit and push it before anything else.
 - After the final part, SERIES.md is set to DONE and all runs go back to normal episodes.
 
