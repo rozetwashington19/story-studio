@@ -232,6 +232,9 @@ if VMODE == "passage":
     for gi, g in enumerate(groups):
         texts = [lines[i].replace('"', '') for i in g]; text = " ".join(texts); dv = delivery(g)
         key = hashlib.md5(f"{text}|{dv}|{TEMPO}|{STEPS}".encode()).hexdigest()[:10]; cf = f"{PD}/g{gi:03d}_{key}.wav"
+        if not os.path.exists(cf):   # same passage text at a different index (lines added/removed earlier): reuse that take
+            import glob as _g, shutil as _sh; old = _g.glob(f"{PD}/g*_{key}.wav")
+            if old: _sh.copy(old[0], cf)
         if os.path.exists(cf) and not (FORCE & {i + 1 for i in g}):
             z = sf.read(cf)[0].astype(np.float32); sc, hyp = asr_score(z, 48000, text); rep = repeats(hyp, text)
         else:
