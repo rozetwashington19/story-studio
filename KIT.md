@@ -269,6 +269,13 @@ Sets (all return `{ update(t) }`): `harborStreet(S, { time: 'predawn'|'day', tru
 `truckCab(S, { ring })` (two seats facing +z, env.sw switch, env.meter(text, red, k), env.badge, env.spk; `env.update(t, { jingle, r, flicker })`; windshield two-shot: camera (0, 5.3, 9.6) lens 20–22) ·
 `hospitalRoof(S)` (env.rise(k) fog sea). Layout details are in the file header. Lessons from 015: the 9:16 frame needs lens ≤ 22 for a two-shot through a windshield; any wall a door opens in needs a real hole;
 keep coloured siren lights weak (≤ 55 at 34 range) or the whole street turns red; cameras inside the fog bank white out — keep them inside the clear area.
+Part 2 additions (episode 017): `harborFront(S, { truck, flash })` Front Street along the water (road z -4..6, boardwalk z -14..-4, boats, pier x 44..50, DOT'S RECORDS x 26..42 front z -13 with `env.shopDoor.open(k)`,
+camera-side houses fronts z 18; `flash` = thirty years ago, everything lit) · `recordShop(S)` inside Dot's, power out (glass shopfront = back wall z -9 looking at `env.truck` (0, 0, -22); counter x 3.6..9.6 top 3.0, Dot at (6.8, 0, -3.8);
+bins, jukebox `env.juke(k)`, gramophone table (top 2.4) at (-7.6, 6.6) with `env.gram` under a dust sheet `env.cloth(k)`; `env.update(t, { jingle, ring, inside, music, spin, crank, cam })` — pass `cam` (after camPath) to clear a pocket for cameras outside) ·
+`gramophone(S)` wind-up record player (`.update(t, { spin, crank })`, `.bellPos()`, `.knobPos()`) · `musicNotes(S, n)` (`.update(t, origin, k, { up, spread, size })`) · `boat(S, [x, z], opts)` (`.bob(t)`) ·
+`fogPhone.screen('chat', k, { time, msgs: [[me, [lines]], …] })` text thread · `truckCab` `env.update(t, { drive })` scrolls the road and streams the fog past.
+Lessons from 017: an exterior fog bank needs a clear pocket around the camera too (`fmask` in episodes/017-fog-part2/shots_a.js = ring around the truck ∩ pocket around the camera, updated AFTER camPath — stills render single frames);
+a held prop with a tall part (the gramophone horn) must sit below chin height or it covers the face; for the vote end card a low camera (y ≈ 1.8) looking slightly down puts heads above the choice boxes.
 
 
 ## Episode 016 kit — living alarm clocks + clockmaker's town (`engine/sets16.js`)

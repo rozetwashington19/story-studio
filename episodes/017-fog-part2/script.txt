@@ -1,0 +1,42 @@
+{tense} When the music stopped, so did Abe. [pause]
+You chose the truck. [pause]
+Abe locks the doors. Five forty-eight.
+{tense} He drives, and the clear circle rolls with you.
+Outside, the fog has the whole town. [pause]
+A mailman, frozen mid-throw.
+A jogger, stopped mid-stride. [pause]
+{slow} A man and his dog. The dog still knows him. [pause]
+"Abe. What's really out there?"
+He keeps his eyes on the road. [pause]
+"Thirty years ago, this fog took the pier."
+"One night. Everyone on it. Nobody believed me." [pause]
+{tense} "It doesn't come from the sea, kid." [pause]
+{tense} Then the speaker crackles. Four minutes left.
+"We need more music. Dot's record shop." [pause]
+Your phone buzzes. It's Nell.
+"Fog's at the roof door. Pip is scared." [pause]
+You type back: "Hold on. I'm coming." [pause]
+{excited} Five fifty-one. The pier. One minute left.
+"Go. Find anything that plays."
+{excited} You run inside with Biscuit. [pause]
+Records everywhere. Old radios. A jukebox.
+And Dot, behind the counter, holding a record. [pause]
+{tense} But the power is out on the pier. [pause]
+Then Biscuit barks at the corner.
+An old wind-up record player. [pause]
+{excited} You crank it as fast as you can. [pause]
+{slow} A scratchy old song fills the shop.
+The fog slides back out under the door.
+And Dot blinks. [pause]
+"Is that Abe Morrow's truck out there?" [pause]
+{tense} Outside, the jingle hiccups. [pause]
+Then it stops. [pause]
+{tense} The fog rolls over the truck like a wave.
+Through the glass, Abe just stares at nothing. [pause]
+{whisper} He doesn't know who you are anymore. [pause]
+Dot grabs your arm. "Only Abe knows how to stop it."
+"But my boat can get you to the hospital." [pause]
+{tense} Five fifty-three. The song has two minutes.
+Nell texts again: "It's under the door." [pause]
+{slow} Do you carry the music out to Abe? [pause]
+Or take Dot's boat to Nell? Follow for part three.

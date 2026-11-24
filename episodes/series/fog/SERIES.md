@@ -17,12 +17,12 @@ with two options (A red / B green) + "FOLLOW FOR PART 2".
   table below (letter + the option text + date), commit and push that change straight away, before anything else.
 - After Part 5 is delivered, set the status line to DONE; every run then goes back to normal episodes (RUNBOOK as before).
 
-Status: ACTIVE — next: Part 2 (unlocked — Part 1 vote: A, stay in Abe's truck). Daily schedule while the series runs: one Fog part (posted 4 PM ET) + one standalone (posted ~7:30 PM ET) — see the owner schedule at the top of RUNBOOK.md.
+Status: ACTIVE — next: Part 3 (locked until the owner reports the Part 2 vote). Daily schedule while the series runs: one Fog part (posted 4 PM ET) + one standalone (posted ~7:30 PM ET) — see the owner schedule at the top of RUNBOOK.md.
 
 | part | episode | choice offered at the end (A / B) | vote result |
 |---|---|---|---|
 | 1 | 015 | A: STAY IN ABE'S TRUCK · B: RUN TO NELL | A: STAY IN ABE'S TRUCK (owner, 2026-11-24) |
-| 2 | — | (decided by the Part 2 run) | ? |
+| 2 | 017 | A: CARRY MUSIC TO ABE · B: TAKE DOT'S BOAT | ? |
 | 3 | — | (decided by the Part 3 run) | ? |
 | 4 | — | (decided by the Part 4 run) | ? |
 | 5 | — | finale — no vote ("comment what you would have done") | — |
@@ -87,3 +87,15 @@ the door. Do you STAY IN ABE'S TRUCK, or RUN TO NELL? Follow for part two.
   she found) on the Mainland General roof with the fog rising up the building; the bridge is ~6 minutes away on foot.
 - Planted: Abe's old badge "KESSLER HILL TOWER · CHIEF ENGINEER · A. MORROW" (you have it now); the tower's red light blinks above the town; the street laughed at Abe for years.
 - Sets/kit: engine/sets_fog.js (harborStreet, harborFlat, truckCab, hospitalRoof, iceTruck, fogBank/fogFront/fogRing/fogTouch/fogPhone). Part 2 may revisit ONE of these (new angle/time).
+
+## Part 2 as made (episode 017, 2026-11-24) — continuity for Part 3
+- Vote A (stay in the truck). Time: doors locked 5:48; Front Street + Dot's at 5:51 (battery 1:00); the jingle dies ~5:52; Part 2 ends 5:53.
+- Where everyone is: YOU + BISCUIT inside DOT'S RECORDS (base of the pier, Front Street) with a wound-up portable record player playing (~2 minutes of song left at 5:53) — it keeps a clear bubble in the shop;
+  DOT (new recurring, cast.js: record-shop owner, silver perm, headphones, purple stripes, teal scarf) is back to herself, knows Abe ("Abe Morrow"), says "Only Abe knows how to stop it",
+  and has a boat on the pier that can reach the hospital (orange-float boat keys). ABE is fogged (grey, blank) in the driver's seat of the truck parked outside the shop (battery 0:00).
+  NELL + PIP: Nell texted "Fog's at the roof door. Pip is scared." → you: "Hold on. I'm coming." → Nell: "It's under the door."
+- Told so far: Abe: "Thirty years ago, this fog took the pier. One night. Everyone on it. Nobody believed me." (flashback: young Abe in a hard hat on the pier, dancers frozen in fog) and
+  "It doesn't come from the sea, kid." (still no tower reveal). Shown: music brings a fogged person back after a little while (Dot); a fogged person's dog still knows him.
+- Options: A: CARRY MUSIC TO ABE (walk the record player out into the fog to wake Abe — he knows how to stop it; costs the song's last minutes / time for Nell) ·
+  B: TAKE DOT'S BOAT (cross the bay to the hospital roof with Dot; Abe stays fogged in the truck).
+- Sets: engine/sets_fog.js harborFront (Front Street, boats, pier, DOT'S RECORDS exterior; flash = 30 years ago), recordShop (interior, power out), gramophone, musicNotes, boat. Part 3 may revisit ONE series location.

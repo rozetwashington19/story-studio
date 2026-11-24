@@ -19,7 +19,10 @@ export const PELL = { skin: 'light', shirt: 0x7a2a3a, shirtStyle: 'sweater', pan
 // PIP — the little girl Nell is protecting on the hospital roof (Part 1 on). Yellow raincoat, two dark puffs, rosy cheeks, red boots.
 export const PIP = { skin: 'brown', shirt: 0xf2c420, shirtStyle: 'jacket', pants: 0x3a4a8a, pantsStyle: 'plain', hair: 'puffs', hairCol: 0x1a0e08, rosy: true,
   outfit: [['boots', { col: 0xd8302a }]] };
-export const CAST = { You: YOU, Nell: NELL, Abe: ABE, 'Mr. Pell': PELL, Pip: PIP };
+// DOT — owns DOT'S RECORDS at the base of the pier (Part 2 on). Elderly: silver perm, big headphones, purple striped top, teal scarf, wrinkles.
+export const DOT = { skin: 'pale', shirt: 0x6a3a8a, shirtStyle: 'stripes', pants: 0x2a2a3a, pantsStyle: 'plain', hair: 'perm', hairCol: 0xd8d8e0, wrinkles: true,
+  outfit: [['headphones', { col: 0x2a2a2e }], ['scarf', { col: 0x2a9a9a }], ['boots', { col: 0x3a2a2a }]] };
+export const CAST = { You: YOU, Nell: NELL, Abe: ABE, 'Mr. Pell': PELL, Pip: PIP, Dot: DOT };
 export const CAST_SET = 'night';
 
 export const mk = (S, o, name, face, pos, ry = 0, scale = 1) => { const A = add(S, makeAvatar({ ...o, name, face }), pos, ry); if (scale !== 1) A.root.scale.setScalar(scale); return A; };
@@ -28,5 +31,6 @@ export const nell = (S, face, pos, ry = 0) => mk(S, NELL, 'nell', face, pos, ry,
 export const abe = (S, face, pos, ry = 0) => mk(S, ABE, 'abe', face, pos, ry, 1.05);
 export const pell = (S, face, pos, ry = 0) => mk(S, PELL, 'pell', face, pos, ry, 1.0);
 export const pip = (S, face, pos, ry = 0) => mk(S, PIP, 'pip', face, pos, ry, 0.62);
+export const dot = (S, face, pos, ry = 0) => mk(S, DOT, 'dot', face, pos, ry, 0.97);
 // BISCUIT — your dog (orange blocky corgi-ish pup from sets10): .update(t, 'run'|'sit'|'bark')
 export const biscuit = (S) => pup(S, { name: 'biscuit', col: 0xd8892a });
