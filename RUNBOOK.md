@@ -30,7 +30,7 @@ scheduled prompts.
 
 **Owner feedback (2026-11-25) — YouTube's analysis said the voiceover "feels synthetic and lacks emotional weight" and asked for richer SFX
 (creaking roofs, thuds). Owner: "improve the narrator's audio quality in terms of emotion, natural speaking", "improve the overall video quality
-(animations, lighting, environment designs, textures, facial animations, character designs)". Runs use the Claude Fable 5 model from today. Built in:**
+(animations, lighting, environment designs, textures, facial animations, character designs)". Runs stay on Opus 5.5 until the owner upgrades to Fable 5 — every upgrade below is in the engine/runbook, so it applies whichever model runs. Built in:**
 - **Voice (engine/voice.py, automatic):** guidance 3.0 + mood-matched reference prompts per delivery tag (A/B-tested, owner picked it; moods never speed
   the voice up — the owner disliked fast excited lines) + a light narration master (warmth/presence EQ, de-ess, glue compression, tiny room).
   Your part is the WRITING (step 2): tag EVERY passage with the mood it needs ({tense} {excited} {slow} {soft} {whisper}; untagged = neutral, use it only
