@@ -17,12 +17,12 @@ with two options (A red / B green) + "FOLLOW FOR PART 2".
   table below (letter + the option text + date), commit and push that change straight away, before anything else.
 - After Part 5 is delivered, set the status line to DONE; every run then goes back to normal episodes (RUNBOOK as before).
 
-Status: ACTIVE — next: Part 3 (locked until the owner reports the Part 2 vote). Daily schedule while the series runs: one Fog part (posted 4 PM ET) + one standalone (posted ~7:30 PM ET) — see the owner schedule at the top of RUNBOOK.md.
+Status: ACTIVE — Part 3 IN PROGRESS (episode 019, being built in a live session started 2026-11-25 15:45 ET — scheduled runs must NOT build it; make a standalone instead). Daily schedule while the series runs: one Fog part (posted 4 PM ET) + one standalone (posted ~7:30 PM ET) — see the owner schedule at the top of RUNBOOK.md.
 
 | part | episode | choice offered at the end (A / B) | vote result |
 |---|---|---|---|
 | 1 | 015 | A: STAY IN ABE'S TRUCK · B: RUN TO NELL | A: STAY IN ABE'S TRUCK (owner, 2026-11-24) |
-| 2 | 017 | A: CARRY MUSIC TO ABE · B: TAKE DOT'S BOAT | ? |
+| 2 | 017 | A: CARRY MUSIC TO ABE · B: TAKE DOT'S BOAT | A: CARRY MUSIC TO ABE (owner, 2026-11-25) |
 | 3 | — | (decided by the Part 3 run) | ? |
 | 4 | — | (decided by the Part 4 run) | ? |
 | 5 | — | finale — no vote ("comment what you would have done") | — |
