@@ -17,13 +17,13 @@ with two options (A red / B green) + "FOLLOW FOR PART 2".
   table below (letter + the option text + date), commit and push that change straight away, before anything else.
 - After Part 5 is delivered, set the status line to DONE; every run then goes back to normal episodes (RUNBOOK as before).
 
-Status: ACTIVE — Part 3 IN PROGRESS (episode 019, being built in a live session started 2026-11-25 15:45 ET — scheduled runs must NOT build it; make a standalone instead). Daily schedule while the series runs: one Fog part (posted 4 PM ET) + one standalone (posted ~7:30 PM ET) — see the owner schedule at the top of RUNBOOK.md.
+Status: ACTIVE — next: Part 4 (locked until the owner reports the Part 3 vote). Daily schedule while the series runs: one Fog part (posted 4 PM ET) + one standalone (posted ~7:30 PM ET) — see the owner schedule at the top of RUNBOOK.md.
 
 | part | episode | choice offered at the end (A / B) | vote result |
 |---|---|---|---|
 | 1 | 015 | A: STAY IN ABE'S TRUCK · B: RUN TO NELL | A: STAY IN ABE'S TRUCK (owner, 2026-11-24) |
 | 2 | 017 | A: CARRY MUSIC TO ABE · B: TAKE DOT'S BOAT | A: CARRY MUSIC TO ABE (owner, 2026-11-25) |
-| 3 | — | (decided by the Part 3 run) | ? |
+| 3 | 019 | A: DRIVE TO THE TOWER · B: SAVE NELL FIRST | ? |
 | 4 | — | (decided by the Part 4 run) | ? |
 | 5 | — | finale — no vote ("comment what you would have done") | — |
 
@@ -99,3 +99,12 @@ the door. Do you STAY IN ABE'S TRUCK, or RUN TO NELL? Follow for part two.
 - Options: A: CARRY MUSIC TO ABE (walk the record player out into the fog to wake Abe — he knows how to stop it; costs the song's last minutes / time for Nell) ·
   B: TAKE DOT'S BOAT (cross the bay to the hospital roof with Dot; Abe stays fogged in the truck).
 - Sets: engine/sets_fog.js harborFront (Front Street, boats, pier, DOT'S RECORDS exterior; flash = 30 years ago), recordShop (interior, power out), gramophone, musicNotes, boat. Part 3 may revisit ONE series location.
+
+## Part 3 as made (episode 019, 2026-11-25) — continuity for Part 4
+- Vote A (carry the music to Abe). 5:53 → 5:55. You carried the wind-up record player through the fog (its music = a small clear bubble), the needle skipped once, Abe came back.
+- Abe: "This fog doesn't come from the sea. It comes from Kessler Hill. From my tower." / "Only I can shut it down." Flashback shown: young Abe (hard hat, navy jacket, black mustache) in the
+  Kessler Hill transmitter room at dusk, the VU needle shaking in the red, two engineers laughing — "I told them it was broken. They laughed." (WHY it makes fog = still for Part 4.)
+- Cost: DOT is fogged again (grey, in her shop doorway) because you took her music. Truck engine running, record player on the dash (needs cranking, ~2 minutes per wind). Your phone at 3%.
+- NELL + PIP: top-floor stairwell of Mainland General, fog climbing the steps, "Top floor. One door left. Where are you?"
+- Options: A: DRIVE TO THE TOWER (Abe shuts the transmitter down — ends it for everyone, but Nell has one door) · B: SAVE NELL FIRST (cross the bridge to the hospital with the music; the tower keeps humming).
+- Sets: fogBoardwalk, towerControl, hospitalStairs (engine/sets_fog.js). Part 4 may revisit ONE series location (e.g. towerControl in the present, fogged).

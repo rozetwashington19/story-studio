@@ -1,0 +1,40 @@
+{tense} The fog took Dot back. [pause]
+{tense} Most of you said: save Abe. [pause]
+{tense} Five fifty-three. You lift the record player.
+Dot holds the door. "Go. Quickly." [pause]
+{tense} The song makes a bubble, just big enough for you.
+Biscuit presses against your legs. [pause]
+{tense} Ten steps to the truck. The fog leans in.
+Your foot catches a board. [pause]
+{excited} The needle skips. The music stops! [pause]
+{tense} Fog curls around your boots.
+You grab the arm and drop it back. [pause]
+{slow} The song comes back... and so does the air. [pause]
+{tense} You pull open the truck door.
+Abe sits there, grey, staring at the wheel. [pause]
+{soft} You set the music beside him. You wait. [pause]
+{soft} His fingers move first. Then he blinks. [pause]
+{soft} "Kid? You came back for me?" [pause]
+{slow} Nobody has come back for Abe in thirty years. [pause]
+{tense} He grabs your arm. "Listen. No time." [pause]
+{tense} "This fog doesn't come from the sea."
+"It comes from Kessler Hill. From my tower." [pause]
+{slow} And for one second, you see it. [pause]
+{slow} Young Abe, in a room full of humming machines.
+A needle shaking in the red. [pause]
+{slow} "I told them it was broken. They laughed." [pause]
+{tense} Back in the truck, the record starts to slow.
+You crank it. Two more minutes, maybe. [pause]
+{tense} Your phone buzzes. Three percent battery.
+It's Nell. A photo. [pause]
+{tense} A stairwell, and fog climbing the steps.
+Pip, holding Nell's sleeve. [pause]
+{tense} "Top floor. One door left. Where are you?" [pause]
+{slow} You look back at the shop. [pause]
+{slow} Dot is standing in the doorway, grey again. [pause]
+{whisper} You took her music. [pause]
+{tense} Abe starts the engine. "Only I can shut it down."
+"But the tower's up the hill. Nell is across the bridge." [pause]
+{tense} The song has two minutes. Nell has one door. [pause]
+{slow} Do you drive up to Abe's tower? [pause]
+Or go save Nell first? Follow for part four.

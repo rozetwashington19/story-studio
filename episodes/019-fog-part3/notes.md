@@ -1,1 +1,10 @@
-# 019 — The Fog, Part 3 — IN PROGRESS (live session 2026-11-25). Scheduled runs: do not build this part.
+# 019 — The Fog, Part 3 (series: THE FOG, choose-your-path 3/5)
+Mode: series:fog P3 — second person (SERIES.md), cold open on the hook. Angle: rescue + reveal (the source of the fog).
+Vote that led here: Part 2 → A: CARRY MUSIC TO ABE. Choice offered: A: DRIVE TO THE TOWER · B: SAVE NELL FIRST (vote.json, end card from line 39).
+Hook = line 34 (Dot grey again in her doorway), title card "YOU SAVED ABE. / THE FOG TOOK DOT."
+Logline: You carry the wind-up record player through the fog to Abe's truck and bring him back — he tells you the fog comes from his old tower on Kessler Hill — but the music you took left Dot grey in her doorway, and Nell is down to one door.
+Continuity for Part 4: 5:53 → 5:55. Abe is back (colour returned), engine running, the record player on the dash (~2 minutes of song after one more crank; it needs cranking).
+Abe: "This fog doesn't come from the sea. It comes from Kessler Hill. From my tower." "Only I can shut it down." Flashback: young Abe in the transmitter room, VU needle shaking in the red; "I told them it was broken. They laughed." (two engineers laughing). Full why still for Part 4.
+DOT is fogged again in her shop doorway (cost of choice A). NELL + PIP: Mainland General top-floor stairwell, fog climbing the steps, one ROOF door left; your phone at 3%.
+Sets (new, engine/sets_fog.js): fogBoardwalk (Dot's doorway → Abe's truck in thick fog, truck cab door), towerControl (Kessler Hill transmitter room, 30 years ago at dusk), hospitalStairs (top stairwell). Revisited: truckCab (Part 1/2).
+Voice: new expressive settings (guidance 3 + mood refs). Whisper hears "Dot" as "that" in line 1 (name only).

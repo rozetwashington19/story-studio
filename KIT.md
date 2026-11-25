@@ -285,6 +285,9 @@ bins, jukebox `env.juke(k)`, gramophone table (top 2.4) at (-7.6, 6.6) with `env
 `fogPhone.screen('chat', k, { time, msgs: [[me, [lines]], …] })` text thread · `truckCab` `env.update(t, { drive })` scrolls the road and streams the fog past.
 Lessons from 017: an exterior fog bank needs a clear pocket around the camera too (`fmask` in episodes/017-fog-part2/shots_a.js = ring around the truck ∩ pocket around the camera, updated AFTER camPath — stills render single frames);
 a held prop with a tall part (the gramophone horn) must sit below chin height or it covers the face; for the vote end card a low camera (y ≈ 1.8) looking slightly down puts heads above the choice boxes.
+Part 3 additions (episode 019): `fogBoardwalk(S, { doorLit })` (Dot's doorway (0, 0, -6) → truck at (2, 0, 9) with `env.cabDoor.open(k)`; `env.update(t, { cx, cz, r, music, glowK, cam, mask })` clear bubble round the music, pass `cam` (after camPath) or use the
+ticker trick in episodes/019-fog-part3/shots_a.js `board()`), `towerControl(S)` (transmitter room: `env.needle(k)` VU meter, scopes/reels/lamps `env.update(t, { hum })`), `hospitalStairs(S)` (12 steps toward -z, landing top 7.2, ROOF door, `env.update(t, { level })` fog rising).
+Helper in episodes/019-fog-part3/shots_b.js: `lensSheet(S, cam, { frame })` — a sheet glued in front of the lens for white-flash transitions or a phone-photo bezel.
 
 
 ## Episode 016 kit — living alarm clocks + clockmaker's town (`engine/sets16.js`)

@@ -707,3 +707,138 @@ export function recordShop(S) {
   env.bell = bellG;
   return env;
 }
+
+// =====================================================================================================================================
+// Part 3 additions (episode 019): fogBoardwalk (Dot's doorway → Abe's truck through thick fog), towerControl (Kessler Hill transmitter room,
+// thirty years ago), hospitalStairs (Mainland General top stairwell, fog climbing the steps).
+//   fogBoardwalk(S, { doorLit })  plank boardwalk at night inside a wall of fog: DOT'S shopfront facing +z with its doorway at (0, 0, -6) (opening x ±1.4,
+//       h 6.2, warm interior glow plane, env.door.open(k)); Abe's truck (env.truck, faces +x) parked at (2, 0, 9) with a cab door on its -z side
+//       (env.cabDoor.open(k), hinge at x 6.3); free walk lane x -3..5, z -5..5. env.update(t, { cx, cz, r, music }) — clear bubble of radius r around
+//       (cx, cz) (the record player's music), music 0..1 brightens the warm bubble light. env.loose = the loose board at (0.6, 0, 1.0) (rotation.x to kick it).
+//   towerControl(S)  transmitter room: back wall z -9 with a big window onto the tower's lattice legs + red light; long console (top 3.0, z -7.8..-5.6)
+//       with the big VU meter (env.needle(k) 0..1, red zone > 0.75), oscilloscope screens, spinning tape reels, TRANSMIT switch; racks left/right with blinking
+//       lamps, cables, DANGER HIGH VOLTAGE sign, fluorescent tubes, wall clock. Free floor x -6..6, z -5..9. env.update(t, { hum }) shakes/blinks.
+//   hospitalStairs(S)  stairwell climbing toward -z: step i (0..11) top 0.6(i+1), z 7-i..8-i, x ±4; landing top 7.2 at z -9..-4; ROOF door on the back
+//       wall z -9 (push bar, green EXIT light); walls x ±5 two-tone concrete, yellow rails, floor number 7, extinguisher, flickering tube light.
+//       env.fog rises up the steps: env.update(t, { level }) level = stair index the fog has reached (0..12).
+export function fogBoardwalk(S, { doorLit = true } = {}) {
+  S.background = new THREE.Color(0x141a24); S.fog = new THREE.Fog(0x8a96a8, 14, 46);
+  box(S, [80, 0.3, 60], [0, -0.15, 0], tmat(boardTex('#6a5a4a'), 14, 10, { roughness: 0.85 }), { r: 0, cast: false, solid: false, name: 'boardwalk' });
+  const env = {};
+  // Dot's shopfront (front z -6)
+  const sid = tmat(sidingTex('#3a7a78'), 3, 1.6);
+  for (const [x0, x1] of [[-10, -1.4], [1.4, 10]]) box(S, [x1 - x0, 9, 1], [(x0 + x1) / 2, 4.5, -6.5], sid, { r: 0, cast: false, name: 'shopfront' });
+  box(S, [2.8, 2.8, 1], [0, 7.6, -6.5], sid, { r: 0, cast: false, solid: false });
+  const glowM = new THREE.MeshBasicMaterial({ color: 0xffb070 }); const inner = put(S, new THREE.Mesh(new THREE.PlaneGeometry(2.8, 6.2), glowM), [0, 3.1, -6.9]);
+  const trim = M(0xf2efe6); put(S, mesh(new THREE.BoxGeometry(3.4, 0.3, 0.3), trim), [0, 6.35, -5.95]); for (const sx of [-1, 1]) put(S, mesh(new THREE.BoxGeometry(0.3, 6.4, 0.3), trim), [sx * 1.55, 3.2, -5.95]);
+  const dp = new THREE.Group(); dp.position.set(-1.4, 0, -6.0); S.add(dp); const dm = put(dp, mesh(new THREE.BoxGeometry(2.8, 6.1, 0.18), M(0x7a2a3a, { roughness: 0.45 })), [1.4, 3.05, 0]); dm.name = 'dot door';
+  put(dp, mesh(new THREE.PlaneGeometry(1.8, 2.6), std({ color: 0x1a2230, roughness: 0.1 })), [1.4, 4.2, 0.1]); env.door = { open: k => { dp.rotation.y = -k * 1.7; } };
+  put(S, mesh(new THREE.PlaneGeometry(6.6, 4.4), std({ map: coversTex(9, [6, 4]), emissive: 0xffffff, emissiveMap: coversTex(9, [6, 4]), emissiveIntensity: 0.05 })), [-5.6, 4.4, -5.98]);
+  put(S, mesh(new THREE.BoxGeometry(7.0, 4.8, 0.2), trim), [-5.6, 4.4, -6.02]);
+  put(S, mesh(new THREE.BoxGeometry(9, 2.0, 0.3), std({ map: signTex("DOT'S RECORDS", '', { bg: '#2a1a3a', fg: '#ffd27a', w: 1024, h: 256 }) })), [-4.2, 8.0, -5.9]);
+  put(S, mesh(new THREE.TorusGeometry(0.6, 0.18, 8, 18), M(0xf2f2f2)), [4.2, 4.6, -5.85]); put(S, mesh(new THREE.TorusGeometry(0.6, 0.181, 8, 4), M(0xd8302a)), [4.2, 4.6, -5.84]);
+  const plL = new THREE.PointLight(0xffa860, 6, 12, 1.6); plL.position.set(0, 3.6, -4.6); S.add(plL);
+  // props: crates of records, rope + bollards, a fishing net, a dead lamp, a bench, a bucket, puddles
+  for (const [x, z] of [[-4.6, -4.4], [4.0, -4.6]]) { solidify(put(S, mesh(new THREE.BoxGeometry(1.8, 1.2, 1.4), std({ map: boardTex('#8a6a3a') })), [x, 0.6, z]), 'crate');
+    for (let i = 0; i < 6; i++) put(S, mesh(new THREE.BoxGeometry(1.05, 1.05, 0.04), M([0xd8302a, 0xf2c84a, 0x3a8ad8, 0xe86ab0][i % 4])), [x, 1.5, z - 0.5 + i * 0.18], [-0.2, 0, 0]); }
+  for (const x of [-8, 8, 16]) solidify(put(S, mesh(new THREE.CylinderGeometry(0.4, 0.45, 1.4, 10), M(0x2a2e36, { metalness: 0.4 })), [x, 0.7, 3]), 'bollard');
+  const rope = put(S, mesh(new THREE.TorusGeometry(8, 0.07, 6, 30, Math.PI), M(0xc8a870)), [-12, 1.3, 3], [0, 0, Math.PI]); rope.scale.set(0.5, 0.12, 1);
+  const net = ctex(256, 256, (c, w, h) => { c.clearRect(0, 0, w, h); c.strokeStyle = 'rgba(200,180,140,0.8)'; c.lineWidth = 2; for (let i = -h; i < w + h; i += 18) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i + h, h); c.stroke(); c.beginPath(); c.moveTo(i + h, 0); c.lineTo(i, h); c.stroke(); } });
+  put(S, new THREE.Mesh(new THREE.PlaneGeometry(4, 3), new THREE.MeshStandardMaterial({ map: net, transparent: true, side: THREE.DoubleSide })), [7.4, 3.2, -5.9]);
+  lampPost(S, [-7.5, -3.6], { night: false }); solidify(put(S, mesh(new THREE.BoxGeometry(3.6, 0.3, 1.1), std({ map: boardTex('#7a5a3a') })), [-8.2, 1.5, -1.0]), 'bench');
+  put(S, mesh(new THREE.CylinderGeometry(0.4, 0.32, 0.8, 12), M(0x3a6a9a)), [5.6, 0.4, -3.2]);
+  for (const [x, z, r] of [[-2.4, 3.4, 1.4], [3.2, -1.2, 1.0], [-6, 6, 1.8]]) put(S, new THREE.Mesh(new THREE.CircleGeometry(r, 20), std({ color: 0x0e141c, roughness: 0.05, metalness: 0.6 })), [x, 0.02, z], [-Math.PI / 2, 0, 0]).scale.set(1.4, 1, 1);
+  // the loose board
+  const loose = put(S, mesh(new THREE.BoxGeometry(3.4, 0.12, 0.9), tmat(boardTex('#6a5a4a'), 0.5, 0.2)), [0.6, 0.06, 1.0]); env.loose = loose;
+  // Abe's truck + a cab door on its -z side
+  const tr = iceTruck(S); tr.position.set(2, 0, 9); env.truck = tr;
+  const cd = new THREE.Group(); cd.position.set(6.3, 1.1, -2.66); tr.add(cd); put(cd, mesh(new THREE.BoxGeometry(2.4, 5.6, 0.14), M(0xf39ab8, { roughness: 0.45 })), [-1.2, 2.8, 0]);
+  put(cd, mesh(new THREE.PlaneGeometry(1.8, 1.8), std({ color: 0x1a2a3a, roughness: 0.1 })), [-1.2, 4.3, -0.08], [0, Math.PI, 0]); env.cabDoor = { open: k => { cd.rotation.y = -k * 1.4; } };
+  put(tr, new THREE.Mesh(new THREE.PlaneGeometry(2.2, 5.2), new THREE.MeshBasicMaterial({ color: 0x2a1a20 })), [5.1, 3.9, -2.62], [0, Math.PI, 0]);
+  // fog + lights: cold moonlight from behind, warm bubble light that follows the music
+  const fog = fogBank(S, { n: 340, area: [-30, 30, -6, 30], y: [0, 10], size: [4, 9], col: 0xc0cad8, opacity: 0.5, seed: 81 });
+  S.add(new THREE.HemisphereLight(0x7a8ab8, 0x1a1418, 0.6));
+  const moon = new THREE.DirectionalLight(0xa8bce8, 1.1); moon.position.set(-14, 20, -24); moon.castShadow = true; moon.shadow.mapSize.set(2048, 2048);
+  Object.assign(moon.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, far: 80 }); S.add(moon);
+  const bub = new THREE.PointLight(0xffc890, 0, 14, 1.5); S.add(bub); const pink = new THREE.PointLight(0xff9ac8, 4, 16, 1.6); pink.position.set(2, 6, 5.5); S.add(pink);
+  env.fog = fog; env.inner = inner;
+  env.update = (t, { cx = 0, cz = -4, r = 4, music = 1, glowK = doorLit ? 1 : 0.25, cam = null, mask = null } = {}) => {
+    const rm = mask || fogRing(cx, cz, r, 3.5); fog.update(t, cam ? (x, z) => Math.min(rm(x, z), sm(1.2, 3.2, Math.hypot(x - cam.position.x, z - cam.position.z))) : rm, { drift: [0.25, 0] }); bub.position.set(cx, 7.5, cz + 1.5); bub.intensity = 6 * music * (0.9 + 0.1 * Math.sin(t * 6));
+    glowM.color.setHex(0xffb070).multiplyScalar(0.25 + 0.75 * glowK); plL.intensity = 6 * glowK; tr.update(t, { jingle: 0, head: 0 }); };
+  return env;
+}
+export function towerControl(S) {
+  S.background = new THREE.Color(0x1a1420); S.fog = new THREE.Fog(0x3a2a30, 30, 80);
+  box(S, [22, 0.3, 24], [0, -0.15, 1.5], tmat(T.tiles(0x8a8a80, 0x6a6a62), 6, 6, { roughness: 0.6 }), { r: 0, cast: false, solid: false, name: 'floor' });
+  const wall = tmat(T.concrete(0xb8b0a0), 4, 2);
+  for (const sx of [-1, 1]) box(S, [0.4, 10, 24], [sx * 10.2, 5, 1.5], wall, { r: 0, cast: false, name: 'side wall' });
+  box(S, [21, 0.4, 24], [0, 10.2, 1.5], M(0x4a4440), { r: 0, cast: false, solid: false }); box(S, [21, 10, 0.4], [0, 5, 13.7], wall, { r: 0, cast: false, solid: false });
+  // back wall with the big window onto the tower
+  for (const [x0, x1] of [[-10.4, -7], [7, 10.4]]) box(S, [x1 - x0, 10, 0.4], [(x0 + x1) / 2, 5, -9.2], wall, { r: 0, cast: false, name: 'back wall' });
+  box(S, [14, 4.0, 0.4], [0, 2.0, -9.2], wall, { r: 0, cast: false }); box(S, [14, 1.4, 0.4], [0, 9.3, -9.2], wall, { r: 0, cast: false, solid: false });
+  for (const x of [-3.5, 0, 3.5]) put(S, mesh(new THREE.BoxGeometry(0.2, 4.6, 0.3), M(0x3a3a40)), [x, 6.3, -9.1]);
+  const skyT = ctex(16, 256, (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#2a1e3a'); g.addColorStop(0.7, '#8a4a5a'); g.addColorStop(1, '#e8905a'); c.fillStyle = g; c.fillRect(0, 0, w, h); });
+  put(S, new THREE.Mesh(new THREE.PlaneGeometry(80, 40), new THREE.MeshBasicMaterial({ map: skyT, fog: false })), [0, 10, -40]);
+  const tw = radioTower(S, [6, -10, -26], { h: 70, night: true }); clouds(S, { tint: 0xffb090 });
+  // the console: desk, meters, scopes, reels, switches
+  box(S, [16, 3.0, 2.2], [0, 1.5, -6.7], M(0x5a6a5a, { roughness: 0.5, metalness: 0.3 }), { r: 0.08, name: 'console' });
+  box(S, [16, 2.6, 0.6], [0, 4.3, -7.6], M(0x4a5a4a, { roughness: 0.5, metalness: 0.3 }), { r: 0.05, name: 'console top' });
+  const dial = ctex(256, 256, (c, w, h) => { c.fillStyle = '#f2ead2'; c.fillRect(0, 0, w, h); c.lineWidth = 14; c.strokeStyle = '#1a1a1a'; c.beginPath(); c.arc(128, 200, 150, -Math.PI * 0.8, -Math.PI * 0.35); c.stroke();
+    c.strokeStyle = '#d8202a'; c.beginPath(); c.arc(128, 200, 150, -Math.PI * 0.35, -Math.PI * 0.2); c.stroke(); c.fillStyle = '#1a1a1a'; c.font = '800 34px Inter, sans-serif'; c.textAlign = 'center'; c.fillText('VU', 128, 150); c.fillStyle = '#d8202a'; c.fillText('+3', 210, 70); });
+  const meter = new THREE.Group(); meter.position.set(0, 4.4, -7.28); S.add(meter);
+  put(meter, mesh(new THREE.BoxGeometry(2.4, 1.8, 0.2), M(0x2a2a2e)), [0, 0, 0]); put(meter, new THREE.Mesh(new THREE.PlaneGeometry(2.1, 1.5), new THREE.MeshBasicMaterial({ map: dial })), [0, 0, 0.11]);
+  const ndl = new THREE.Group(); ndl.position.set(0, -0.62, 0.13); meter.add(ndl); put(ndl, mesh(new THREE.BoxGeometry(0.04, 1.25, 0.02), M(0x1a1a1a)), [0, 0.62, 0]);
+  const meterL = new THREE.PointLight(0xfff0c8, 2, 4, 1.6); meterL.position.set(0, 4.4, -6.2); S.add(meterL);
+  const scopes = []; for (const x of [-4.6, 4.6]) { const sc = ctex(256, 192, () => {}); const m = put(S, new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.35), new THREE.MeshBasicMaterial({ map: sc, toneMapped: false })), [x, 4.5, -7.28]);
+    put(S, mesh(new THREE.BoxGeometry(2.2, 1.7, 0.2), M(0x2a2a2e)), [x, 4.5, -7.4]); scopes.push(sc); }
+  const reels = []; for (const x of [-7.2, -6.0]) { const r = put(S, mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.1, 18), M(0xc8ccd2, { metalness: 0.7 })), [x, 4.8, -7.25], [Math.PI / 2, 0, 0]); reels.push(r); }
+  const lamps = []; for (let i = 0; i < 14; i++) { const l = put(S, mesh(new THREE.SphereGeometry(0.09, 8, 6), glow([0xff3a2a, 0x3ad86a, 0xffc83a][i % 3], 1.5), false), [-6.6 + i * 0.95, 3.1, -5.55]); lamps.push(l); }
+  const sw = put(S, mesh(new THREE.BoxGeometry(0.5, 0.8, 0.3), M(0xd8302a)), [2.2, 3.3, -5.7], [0.4, 0, 0]);
+  put(S, mesh(new THREE.BoxGeometry(1.8, 0.4, 0.05), std({ map: signTex('TRANSMIT', '', { bg: '#1a1a1a', fg: '#ffd27a', w: 256, h: 64 }) })), [2.2, 3.85, -5.5], [-0.6, 0, 0]);
+  // racks with blinking lamps
+  const rackL = []; for (const sx of [-1, 1]) { box(S, [1.6, 7.5, 3.2], [sx * 9.0, 3.75, -3], M(0x3a3e44, { metalness: 0.4, roughness: 0.4 }), { r: 0.05, name: 'rack' });
+    for (let i = 0; i < 18; i++) { const l = put(S, mesh(new THREE.SphereGeometry(0.08, 6, 4), glow([0xff3a2a, 0x3ad86a, 0xffc83a][i % 3], 1.2), false), [sx * 8.18, 1.5 + (i % 6) * 0.9, -4.2 + Math.floor(i / 6) * 1.1]); rackL.push(l); } }
+  // cables on the floor, sign, clock, clipboard, mug, chair
+  for (let i = 0; i < 5; i++) { const cb = put(S, mesh(new THREE.TorusGeometry(2 + i * 0.4, 0.07, 6, 24, Math.PI * 0.8), M(0x1a1a1a)), [-6 + i * 1.2, 0.07, -3.5], [Math.PI / 2, 0, i]); }
+  put(S, mesh(new THREE.PlaneGeometry(2.4, 1.6), std({ map: signTex('DANGER', 'HIGH VOLTAGE', { bg: '#f2c420', fg: '#1a1a1a', w: 512, h: 340 }) })), [-9.95, 6.0, 4], [0, Math.PI / 2, 0]);
+  const clk = put(S, mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.1, 24), M(0xf2efe6)), [9.95, 7.2, 4], [0, 0, Math.PI / 2]);
+  put(S, mesh(rb(1.8, 1.6, 1.8, 0.2), M(0x6a3a2a)), [-2.4, 0.8, -2.6]); put(S, mesh(rb(1.8, 2.2, 0.3, 0.1), M(0x6a3a2a)), [-2.4, 2.2, -1.8]);
+  put(S, mesh(new THREE.CylinderGeometry(0.18, 0.15, 0.36, 10), M(0xf2efe6)), [-4.0, 3.2, -6.0]);
+  // fluorescent tubes (practicals) + warm dusk key through the window + cold console glow
+  for (const x of [-4, 4]) { put(S, mesh(new THREE.BoxGeometry(3.6, 0.18, 0.4), glow(0xe8f2ff, 1.4), false), [x, 9.9, 1]); const p = new THREE.PointLight(0xe0ecff, 8, 18, 1.5); p.position.set(x, 9.2, 1); S.add(p); }
+  S.add(new THREE.HemisphereLight(0x8a7a9a, 0x2a2024, 0.6));
+  const dusk = new THREE.DirectionalLight(0xffa070, 2.2); dusk.position.set(-6, 10, -30); dusk.target.position.set(0, 2, 0); dusk.castShadow = true; dusk.shadow.mapSize.set(2048, 2048);
+  Object.assign(dusk.shadow.camera, { left: -15, right: 15, top: 15, bottom: -15, far: 80 }); S.add(dusk, dusk.target);
+  const conL = new THREE.PointLight(0x9ad8ff, 5, 10, 1.6); conL.position.set(0, 5, -4.5); S.add(conL);
+  let nk = 0.5; const env = { needle: k => { nk = k; }, tower: tw };
+  env.update = (t, { hum = 1 } = {}) => { ndl.rotation.z = (0.55 - nk * 1.1) + Math.sin(t * 37) * 0.05 * hum + Math.sin(t * 13) * 0.03 * hum; meterL.intensity = 2 + (nk > 0.75 ? Math.abs(Math.sin(t * 9)) * 3 : 0);
+    reels.forEach((r, i) => r.rotation.y = t * (2 + i)); lamps.concat(rackL).forEach((l, i) => l.material.emissiveIntensity = Math.sin(t * (2 + (i % 5)) + i) > 0 ? 1.8 : 0.2); tw.red.visible = Math.sin(t * 2.2) > -0.3;
+    scopes.forEach((sc, j) => { const c = sc.userData.c.getContext('2d'); c.fillStyle = '#04140a'; c.fillRect(0, 0, 256, 192); c.strokeStyle = '#5aff8a'; c.lineWidth = 3; c.beginPath();
+      for (let x = 0; x < 256; x += 4) { const y = 96 + Math.sin(x * 0.08 + t * 8 + j) * 40 * hum + Math.sin(x * 0.31 + t * 23) * 12 * hum; x ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke(); sc.needsUpdate = true; });
+    clk.rotation.x = 0; };
+  return env;
+}
+export function hospitalStairs(S) {
+  S.background = new THREE.Color(0x10141a); S.fog = new THREE.Fog(0x2a3440, 30, 70);
+  const cm = tmat(T.concrete(0xa8b0b0), 1, 0.3), edge = M(0xf2c420);
+  for (let i = 0; i < 12; i++) { const top = 0.6 * (i + 1); box(S, [8, top, 1], [0, top / 2, 7.5 - i], cm, { r: 0, cast: false, name: 'step' + i }); put(S, mesh(new THREE.BoxGeometry(8, 0.04, 0.12), edge), [0, top + 0.02, 7.06 - i]); }
+  box(S, [10, 7.2, 5], [0, 3.6, -6.5], cm, { r: 0, cast: false, name: 'landing' }); box(S, [10, 0.2, 5], [0, 7.25, -6.5], tmat(T.tiles(0x9aa0a0, 0x8a9090), 2, 1), { r: 0, cast: false, solid: false });
+  const wl = ctex(256, 256, (c, w, h) => { c.fillStyle = '#d8dcd2'; c.fillRect(0, 0, w, h); c.fillStyle = '#4a7a8a'; c.fillRect(0, h * 0.62, w, h * 0.38); c.fillStyle = '#2a4a5a'; c.fillRect(0, h * 0.6, w, 6); noiseFill(c, w, h, 0.06, 2000); }, [1, 1]);
+  for (const sx of [-1, 1]) box(S, [0.4, 20, 24], [sx * 5.2, 6, 0], tmat(wl, 4, 1.2), { r: 0, cast: false, name: 'stair wall' });
+  box(S, [10.8, 12, 0.4], [0, 13, -9.2], tmat(wl, 2, 1), { r: 0, cast: false, name: 'back wall' }); box(S, [10.8, 0.4, 24], [0, 16, 0], M(0x5a5e60), { r: 0, cast: false, solid: false });
+  // ROOF door + EXIT, number 7, extinguisher, rails, flickering tube
+  const door = put(S, mesh(new THREE.BoxGeometry(3.4, 6, 0.25), M(0x5a6a7a, { metalness: 0.5, roughness: 0.4 })), [0, 10.2, -8.95]); put(S, mesh(new THREE.BoxGeometry(2.6, 0.2, 0.3), M(0xd8dce2, { metalness: 0.8 })), [0, 10.0, -8.7]);
+  put(S, mesh(new THREE.BoxGeometry(2.4, 0.6, 0.05), std({ map: signTex('ROOF ACCESS', '', { bg: '#d8302a', fg: '#fff', w: 512, h: 128 }) })), [0, 12.0, -8.8]);
+  put(S, mesh(new THREE.BoxGeometry(1.4, 0.5, 0.2), basic(0x3ad86a, { toneMapped: false })), [0, 13.8, -8.95]); const exL = new THREE.PointLight(0x3ad86a, 3, 8, 1.6); exL.position.set(0, 13.4, -8.2); S.add(exL);
+  put(S, mesh(new THREE.PlaneGeometry(1.6, 2.2), std({ map: signTex('7', '', { bg: null, fg: '#1a2a3a', w: 256, h: 340 }), transparent: true })), [-4.98, 11.4, -6.0], [0, Math.PI / 2, 0]);
+  put(S, mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.4, 10), M(0xd8302a)), [4.7, 8.2, -7.2]);
+  for (const sx of [-1, 1]) { const rail = put(S, mesh(new THREE.CylinderGeometry(0.09, 0.09, 15, 8), edge), [sx * 4.7, 5.0, 2.0]); rail.rotation.x = Math.atan2(12, 7.2) + Math.PI / 2 - Math.PI; rail.rotation.x = -(Math.PI / 2 - Math.atan2(7.2, 12)); }
+  const tube = put(S, mesh(new THREE.BoxGeometry(3.4, 0.16, 0.4), glow(0xe8f2ff, 1.4), false), [0, 15.7, -3]); const tl = new THREE.PointLight(0xe0ecff, 14, 24, 1.4); tl.position.set(0, 15, -3); S.add(tl);
+  const tube2 = new THREE.PointLight(0xc8d8ff, 6, 18, 1.5); tube2.position.set(0, 9, 6); S.add(tube2);
+  S.add(new THREE.HemisphereLight(0x8a9aaa, 0x1a1a20, 0.6));
+  const fog = fogBank(S, { n: 70, area: [-4, 4, -4, 14], y: [0, 1.6], size: [2.2, 3.8], col: 0xc8d2de, opacity: 0.26, seed: 91 });
+  const env = { fog, door };
+  env.update = (t, { level = 6 } = {}) => { const zf = 7.5 - level; fog.update(t, (x, z) => sm(zf - 1, zf + 1.5, z)); fog.children.forEach(s => { const top = Math.max(0, Math.min(7.2, 0.6 * (8 - s.position.z))); s.position.y += top; });
+    const fl = Math.sin(t * 31) > 0.85 || Math.sin(t * 7.3) > 0.97 ? 0.25 : 1; tl.intensity = 14 * fl; tube.material.emissiveIntensity = 1.4 * fl; };
+  return env;
+}

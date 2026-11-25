@@ -29,6 +29,7 @@ copy of one with minor changes (same layout/silhouette, e.g. another identical h
 | 015 | harborStreet harborFlat truckCab hospitalRoof (series THE FOG — a later part of that series may revisit one of them, nothing else) |
 | 016 | clockLoft clockShop tickStreet roofscape testLot |
 | 017 | harborFront recordShop (series THE FOG Part 2; revisits truckCab from Part 1) |
+| 019 | fogBoardwalk towerControl hospitalStairs (series THE FOG Part 3; revisits truckCab) |
 | 018 | sugarStreet (gingerbread village, all times of day + the lifted roof deck) gingerParlor giantKitchen |
 
 Unused finished worlds that may still be used once (then list them): `spooky` `space` `underwater` `candy` `castle` `desert` `lab` (engine/themes.js).
