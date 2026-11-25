@@ -88,6 +88,7 @@ heartbeat door roofcreak woodsteps roomtone crowd rumble splash glass bigwhoosh;
 VOICE_GUIDANCE (3.0) + mood-shaped reference prompts per delivery tag (MOOD_REF; owner clips engine/voice/narrator_ref_<mood>.wav override) + MASTER chain.
 
 ## Look / grade
+Compositing (2026-11-25, in the Grade pass at q=1): unsharp mask, highlight halation, anamorphic streaks on practicals, edge chromatic fringe — `S.userData.comp` scales it (`?comp=0` URL param = off).
 Set `S.userData.look = 'night'` or `'flash'` (flashback). Post: bloom, split-tone grade, vignette, grain (engine/main.html).
 
 ## Faces

@@ -50,6 +50,11 @@ scheduled prompts.
   a 2–3 colour personal palette that differs from everyone else in the episode, and age detail (wrinkles/freckles/beard).
 - **Animation:** every character in frame breathes (`idle`), shifts weight, and reacts (head turns to sounds/speakers via `lookAt`); every big move gets
   `anticipate()` + `hit()` overshoot; add follow-through (a settle or a small second motion after the hit). Walks use `walk()` with body bob, never sliding.
+- **Compositing (automatic at q=1, owner 2026-11-25 follow-up):** the final grade adds a light unsharp mask (crisper edges/textures), warm halation
+  glow around highlights, anamorphic streaks on bright practicals (lamps, candles, neon, screens) and a faint lens fringe at the frame edges. So give
+  night/interior sets real practical lights in frame — they now flare nicely. `S.userData.comp` scales it per shot (0 = off, 1.5 = dreamy flashback).
+- **SFX level:** +3 dB louder than before (HOUSE_DB -14, ceiling -11 dB under the voice) — the owner wants them clearly audible but never over the narrator;
+  keep beds at their listed trims and don't push action cues above +2.
 - **Mandatory q=1 check (step 5):** after the Q=0 preview pass, render the 6 most important shots at q=1 (`python3 engine/render.py … stills 1 a b c d e`) and
   look at faces, lighting and texture there; fix before the full render.
 
