@@ -31,5 +31,6 @@ copy of one with minor changes (same layout/silhouette, e.g. another identical h
 | 017 | harborFront recordShop (series THE FOG Part 2; revisits truckCab from Part 1) |
 | 019 | fogBoardwalk towerControl hospitalStairs (series THE FOG Part 3; revisits truckCab) |
 | 018 | sugarStreet (gingerbread village, all times of day + the lifted roof deck) gingerParlor giantKitchen |
+| 020 | pennyMesa (desert adobe wishing-well plaza, day/sunset/night) wellShaft (inside the well) tessRoom (attic bedroom with a round window) |
 
 Unused finished worlds that may still be used once (then list them): `spooky` `space` `underwater` `candy` `castle` `desert` `lab` (engine/themes.js).

@@ -22,6 +22,7 @@ export * from './sets15.js';
 export * from './sets_fog.js';
 export * from './sets16.js';
 export * from './sets18.js';
+export * from './sets20.js';
 export * from './clouds.js';
 export * from './outfits.js';
 export * from './themes.js';
