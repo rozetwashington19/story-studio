@@ -28,6 +28,31 @@ stakes and narrators can be teens or adults, with real tension, real scares, gro
 no gore, blood, graphic violence, weapons violence or swearing. This overrides every "kid-friendly" / "kid narrator" line below and in the
 scheduled prompts.
 
+**Owner feedback (2026-11-25) — YouTube's analysis said the voiceover "feels synthetic and lacks emotional weight" and asked for richer SFX
+(creaking roofs, thuds). Owner: "improve the narrator's audio quality in terms of emotion, natural speaking", "improve the overall video quality
+(animations, lighting, environment designs, textures, facial animations, character designs)". Runs use the Claude Fable 5 model from today. Built in:**
+- **Voice (engine/voice.py, automatic):** guidance 3.0 + mood-matched reference prompts per delivery tag (A/B-tested, owner picked it; moods never speed
+  the voice up — the owner disliked fast excited lines) + a light narration master (warmth/presence EQ, de-ess, glue compression, tiny room).
+  Your part is the WRITING (step 2): tag EVERY passage with the mood it needs ({tense} {excited} {slow} {soft} {whisper}; untagged = neutral, use it only
+  for plain info), put a [pause] wherever the mood changes, write the way people talk (contractions, short sentences, a question now and then),
+  and use punctuation for delivery: "…" for a hesitant trail, "!" for real surprise (max ~4 per episode), commas for breath. No lists of three flat facts in a row.
+  Listen-check the QUALITY line as before. Real mood clips recorded by the owner (engine/voice/narrator_ref_<mood>.wav + .txt) replace the shaped ones automatically.
+- **SFX (step 3b):** 35–50 cues now. Every shot gets an ambience bed (wind/rain/crowd outdoors, `roomtone` indoors at -9..-12) plus the actions.
+  New sounds: heartbeat (tension), door, roofcreak (slow timber groan), woodsteps, roomtone, crowd, rumble (something huge), splash, glass, bigwhoosh.
+  Effects now get a short room reverb automatically so they sit in the space.
+- **Facial animation (automatic, engine/main.html):** everyone blinks; anyone whose pose includes `talk(t)` flaps their mouth. So EVERY dialogue line must add
+  `talk(t)` to the speaker's pose (and only the speaker's). Still switch faces with `setFace` on every emotional turn — at least one face change in 1/2 of the shots.
+- **Lighting:** a soft camera-riding face fill is on by default at q=1 (`S.userData.faceFill = false | 0.5 | 1.5`). Still build each set with a motivated key +
+  practicals + rim; no shot may have a face darker than the background (check the q=1 stills, step 5).
+- **Environments/textures/characters — the quality bar for every new set and cast:** 10+ detail props per set in three depth layers (foreground framing piece,
+  midground action, background silhouette/sky), every large surface textured (no flat colour bigger than a door), one ambient motion (`update(t)`) per set,
+  atmosphere (dust motes, fog, rain, steam, fireflies, drifting leaves) in most shots. Characters: a signature silhouette (hat/hair), 3–4 outfit pieces + a hand prop,
+  a 2–3 colour personal palette that differs from everyone else in the episode, and age detail (wrinkles/freckles/beard).
+- **Animation:** every character in frame breathes (`idle`), shifts weight, and reacts (head turns to sounds/speakers via `lookAt`); every big move gets
+  `anticipate()` + `hit()` overshoot; add follow-through (a settle or a small second motion after the hit). Walks use `walk()` with body bob, never sliding.
+- **Mandatory q=1 check (step 5):** after the Q=0 preview pass, render the 6 most important shots at q=1 (`python3 engine/render.py … stills 1 a b c d e`) and
+  look at faces, lighting and texture there; fix before the full render.
+
 **Owner schedule (2026-11-23) — while THE FOG series is ACTIVE: at most ONE Fog part + ONE standalone episode per day** (replaces the 2026-11-22 HOLD rule).
 Owner posts the Fog part at 4 PM Eastern (11 AM on weekends) and the standalone at ~7:30 PM Eastern. Every run (midday or evening), after `git pull`:
 1. If the previous part's vote result is filled in SERIES.md and the next part isn't in INDEX.md yet → make that Fog part.
@@ -159,9 +184,9 @@ sounds that never drown the voice. `engine/sfx.py` synthesizes them (no samples,
 while the narrator speaks they duck 5 dB, are thinned in the 1–4 kHz speech band, and are capped 13 dB under the voice.
 Time every cue to its action — never shift a cue into a pause to make room for the voice.
 `[[line, at, name, gain_db?], …]` — `line` = script line, `at` = seconds after that shot starts or `"40%"` of the shot, `gain_db` = trim (-10…+3).
-Hook: put `[1, 0.0, "impact", 0]` and `[1, "92%", "rewind", -2]` on line 1. Sounds: pop boing whoosh swoosh_up snap twang chime sparkle glow step steps thud knock chirp flap drip buzz tap typing ding rustle wind gasp zip tada rain (bed, -6..-10) thunder (on lightning) coins scribble creak rewind (hook cut) impact (frame 0 of the hook only).
+Hook: put `[1, 0.0, "impact", 0]` and `[1, "92%", "rewind", -2]` on line 1. Sounds: pop boing whoosh swoosh_up bigwhoosh snap twang chime sparkle glow step steps woodsteps thud knock door chirp flap drip buzz tap typing ding rustle wind gasp zip tada rain (bed, -6..-10) roomtone (indoor bed, -9..-12) crowd (bed) thunder (on lightning) rumble heartbeat (tension bed) roofcreak creak coins scribble splash glass rewind (hook cut) impact (frame 0 of the hook only).
 - Put cues on visible actions, timed to the animation (a snap when a string breaks, steps while walking, a whoosh on a fast move,
-  a chime/sparkle/glow on magic, a buzz on a phone, wind outdoors). About one cue per 1–3 shots (~20–35 per episode). Silence on
+  a chime/sparkle/glow on magic, a buzz on a phone, wind outdoors). An ambience bed on every shot plus the actions (~35–50 cues per episode, owner 2026-11-25). Silence on
   the saddest lines and on the final line is fine — leave room for the voice.
 - Ambient beds (`wind`) at -6 to -8; frequent sounds (`steps`, `rustle`) at -4 to -6; the big moments (the twist, the climax) at 0 (never above +2).
 - `render.py video` mixes it automatically (out/mix.wav). To fix levels after a render without re-rendering: edit sfx.json, then

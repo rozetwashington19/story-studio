@@ -56,7 +56,9 @@ void main(){ vec3 c=texture2D(tDiffuse,vUv).rgb;
   c+= (h(vUv*res+time*97.0)-0.5)*0.035;
   gl_FragColor=vec4(clamp(c,0.0,1.0),1.0);}`};
 const gp=new ShaderPass(Grade); comp.addPass(gp); if(q.get('grade')==='0') gp.enabled=false;   // ?grade=0: no colour grade/vignette/grain (cut-outs, stills)
-let cur=-1, S=null, upd=null, rim=null;
+let cur=-1, S=null, upd=null, rim=null, faceL=null;
+function placeFace(){ if(!faceL) return; const tg=cam.userData.target||cam.position.clone().add(cam.getWorldDirection(new THREE.Vector3()).multiplyScalar(8));
+  const d=tg.clone().sub(cam.position); const side=new THREE.Vector3(-d.z,0,d.x).normalize(); faceL.position.copy(cam.position).addScaledVector(d,0.4).addScaledVector(side,1.2).add(new THREE.Vector3(0,1.0,0)); }
 // rim light: sits behind the subject, opposite the camera and above, so characters get a bright edge (cinematic separation)
 function placeRim(){ if(!rim) return; const tg=cam.userData.target||cam.position.clone().add(cam.getWorldDirection(new THREE.Vector3()).multiplyScalar(8));
   const d=tg.clone().sub(cam.position).setY(0).normalize(); rim.position.copy(tg).addScaledVector(d,10).add(new THREE.Vector3(d.z*4,9,-d.x*4)); rim.target.position.copy(tg); }
@@ -65,6 +67,10 @@ function enhance(S){
   const look=S.userData.look;
   if(RIM&&S.userData.rim!==false){ const day=look!=='night'&&look!=='flash';
     rim=new THREE.DirectionalLight(look==='night'?0x9ab8ff:look==='flash'?0xffd8a0:0xffe2c0, (S.userData.rimIntensity??(look==='night'?2.6:4.0))); rim.userData.isRim=true; S.add(rim,rim.target); } else rim=null;
+  // face fill (owner 2026-11-25: better lighting): a soft light that rides with the camera, between it and the subject, slightly above
+  // and to the side — a motivated 'bounce' that keeps faces readable in dark sets without flattening the key. S.userData.faceFill=false
+  // turns it off, a number scales it (e.g. 0.5 for moody shots, 1.5 for very dark sets).
+  if(Q&&S.userData.faceFill!==false){ const night=look==='night'; faceL=new THREE.PointLight(night?0xc8d6ff:0xffecd8,(night?3.5:4.5)*(+S.userData.faceFill||1),13,1.6); S.add(faceL); } else faceL=null;
   if(IBL&&!S.environment){ S.environment=envTex; S.environmentIntensity= look==='night'?0.12:0.32; }
   S.traverse(o=>{ if(o.isDirectionalLight&&o.castShadow){ o.shadow.mapSize.set(2048,2048); o.shadow.radius=3; o.shadow.map?.dispose(); o.shadow.map=null; }
     if(o.isMesh&&o.material&&o.material.isMeshStandardMaterial&&o.material.envMapIntensity===1&&!o.userData.avatar) o.material.envMapIntensity=0.8; });
@@ -76,10 +82,16 @@ function focusDOF(){ if(!bokeh) return; const tg=cam.userData.target; const lens
   if(!tg||lens<30||S.userData.dof===false){ bokeh.uniforms.aperture.value=0; bokeh.enabled=false; return; }
   bokeh.enabled=true; bokeh.uniforms.focus.value=cam.position.distanceTo(tg); bokeh.uniforms.aperture.value=Math.min(1,(lens-28)/12)*0.0005*(S.userData.dofScale??1); }
 function disposeScene(s){ s.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
+// facial animation (owner 2026-11-25): every avatar blinks every ~2.5-5 s (0.14 s, deterministic per name) and flaps its mouth at
+// syllable rate while its pose includes talk() (pose key 'mouth' > 0.3). Off with ?blink=0 (thumbnails/lineups) or S.userData.faceAnim = false.
+const BLINK=+(q.get('blink')??1);
+function faceAnim(t,i){ if(S.userData.faceAnim===false) return; S.traverse(o=>{ const A=o.__avatar; if(!A||!A.anim) return;
+  const per=2.6+A.blinkSeed*2.4, ph=((t+A.blinkSeed*7.3+i*0.37)%per); const b=BLINK&&(ph<0.14||(A.blinkSeed>0.6&&Math.abs(ph-0.32)<0.07));
+  const m=A.talkK>0.3&&(Math.sin(t*13.5+A.blinkSeed*9)+0.6*Math.sin(t*21.7+A.blinkSeed*4))>0.35; A.anim(b,m); }); }
 window.setSpans=(sp)=>{window.SPANS=sp;};
 window.renderShot=(i,lt,dur)=>{
   if(i!==cur){ if(S) disposeScene(S); S=new THREE.Scene(); cam.userData.target=null; upd=SHOTS[i](S,cam); enhance(S); cur=i; }
-  cam.userData.target=null; upd(lt,dur); (S.userData.tickers||[]).forEach(f=>f(lt)); if(Q&&S.userData.handheld!==false) handheld(lt,i); placeRim(); focusDOF(); rp.scene=S; if(ao){ao.scene=S;} if(bokeh){bokeh.scene=S;} gp.uniforms.time.value=lt+i*7.3; gp.uniforms.night.value=S.userData.look==='night'?1:0; gp.uniforms.flash.value=S.userData.look==='flash'?1:0; comp.render(); return cv.toDataURL('image/jpeg',0.93);
+  cam.userData.target=null; upd(lt,dur); (S.userData.tickers||[]).forEach(f=>f(lt)); faceAnim(lt,i); if(Q&&S.userData.handheld!==false) handheld(lt,i); placeRim(); placeFace(); focusDOF(); rp.scene=S; if(ao){ao.scene=S;} if(bokeh){bokeh.scene=S;} gp.uniforms.time.value=lt+i*7.3; gp.uniforms.night.value=S.userData.look==='night'?1:0; gp.uniforms.flash.value=S.userData.look==='flash'?1:0; comp.render(); return cv.toDataURL('image/jpeg',0.93);
 };
 window.clipsAt=(i,lt,dur)=>{ if(i!==cur){ if(S) disposeScene(S); S=new THREE.Scene(); upd=SHOTS[i](S,cam); cur=i; } upd(lt,dur); return findClips(S); };
 window.NSHOTS=SHOTS.length; window.ready=true;

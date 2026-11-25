@@ -34,7 +34,7 @@ try:
         b = p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
         pg = b.new_page(viewport={"width": W, "height": H}); errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
-        pg.goto(f"http://localhost:8767/engine/main.html?ep=_castlineup&w={W}&h={H}&q=1&grade=0"); pg.wait_for_function("window.ready===true", timeout=120000)
+        pg.goto(f"http://localhost:8767/engine/main.html?ep=_castlineup&w={W}&h={H}&q=1&grade=0&blink=0"); pg.wait_for_function("window.ready===true", timeout=120000)
         ims = [Image.open(__import__("io").BytesIO(base64.b64decode(pg.evaluate(f"renderShot({k}, 0.5, 1.0)").split(",")[1]))) for k in (0, 1)]
         names = pg.evaluate("window.CAST_NAMES"); b.close()
         if errs: print("\n".join("PAGEERROR: " + e for e in errs))

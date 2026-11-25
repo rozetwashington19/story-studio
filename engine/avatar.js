@@ -125,8 +125,35 @@ function headGeometry({ R, H, rr } = HEAD) {
 const faceSkinCache = {};
 const FACE_U = 0.27, FACE_V = 0.86, FACE_VC = 0.515;    // face width/height in UV units, vertical center
 // details: { wrinkles (older characters), freckles, rosy } painted under the expression, so every face keeps them
-function faceSkinTex(skinHex, face, det = {}) {
-  const key = skinHex + '|' + face + '|' + (det.wrinkles ? 'w' : '') + (det.freckles ? 'f' : '') + (det.rosy ? 'r' : '');
+// ---- facial animation (owner 2026-11-25): blinks + mouth flaps are painted variants of each face ----
+// faceParts(face) finds the eyes (two halves of the eye band) and the mouth in the 512px face PNG; mods: 'b' = eyes closed (blink), 'o' = mouth open (talking)
+const facePartsCache = {};
+function faceParts(face) {
+  if (facePartsCache[face]) return facePartsCache[face];
+  const img = faceTex[face] && faceTex[face].image; if (!img) return null;
+  const c = document.createElement('canvas'); c.width = c.height = 512; const x = c.getContext('2d'); x.drawImage(img, 0, 0, 512, 512);
+  const d = x.getImageData(0, 0, 512, 512).data;
+  const bbox = (x0, x1, y0, y1) => { let a = [1e9, -1, 1e9, -1];
+    for (let y = y0; y < y1; y++) for (let xx = x0; xx < x1; xx++) { const i = (y * 512 + xx) * 4; if (d[i + 3] < 140) continue; if (d[i + 2] > d[i] + 50 && d[i + 2] > 120) continue;   // skip blue tears
+      if (xx < a[0]) a[0] = xx; if (xx > a[1]) a[1] = xx; if (y < a[2]) a[2] = y; if (y > a[3]) a[3] = y; }
+    return a[1] < 0 ? null : a; };
+  return (facePartsCache[face] = { eyes: [bbox(90, 256, 172, 262), bbox(256, 422, 172, 262)].filter(Boolean), mouth: bbox(140, 372, 282, 420) });
+}
+function paintMods(x, skinHex, face, mods) {
+  const P = faceParts(face); if (!P) return; const sk = hex(skinHex), ink = '#1e1412';
+  if (mods.includes('b')) for (const [x0, x1, y0, y1] of P.eyes) {
+    x.fillStyle = sk; x.beginPath(); x.roundRect(x0 - 7, y0 - 5, x1 - x0 + 14, y1 - y0 + 10, 12); x.fill();
+    const cy = (y0 + y1) / 2 + 4, w = x1 - x0; x.strokeStyle = ink; x.lineCap = 'round'; x.lineWidth = Math.max(9, Math.min(16, w * 0.16));
+    x.beginPath(); x.moveTo(x0 + w * 0.05, cy - 2); x.quadraticCurveTo((x0 + x1) / 2, cy + Math.min(18, w * 0.22), x1 - w * 0.05, cy - 2); x.stroke(); }
+  if (mods.includes('o') && P.mouth) { const [x0, x1, y0, y1] = P.mouth, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2 + 2, w = x1 - x0;
+    x.fillStyle = sk; x.beginPath(); x.roundRect(x0 - 7, y0 - 6, w + 14, y1 - y0 + 12, 14); x.fill();
+    const rx = Math.max(30, Math.min(62, w * 0.36)), ry = rx * 0.72;
+    x.fillStyle = '#2a0c10'; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 7); x.fill();
+    x.save(); x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 7); x.clip(); x.fillStyle = '#d8566e'; x.beginPath(); x.ellipse(cx, cy + ry * 0.75, rx * 0.7, ry * 0.55, 0, 0, 7); x.fill();
+    x.fillStyle = '#f4f0ea'; x.fillRect(cx - rx * 0.6, cy - ry - 2, rx * 1.2, ry * 0.32); x.restore(); }
+}
+function faceSkinTex(skinHex, face, det = {}, mods = '') {
+  const key = skinHex + '|' + face + '|' + (det.wrinkles ? 'w' : '') + (det.freckles ? 'f' : '') + (det.rosy ? 'r' : '') + '|' + mods;
   if (faceSkinCache[key]) return faceSkinCache[key];
   const c = document.createElement('canvas'); c.width = 2048; c.height = 1024; const x = c.getContext('2d');
   x.fillStyle = hex(skinHex); x.fillRect(0, 0, c.width, c.height);
@@ -150,6 +177,7 @@ function faceSkinTex(skinHex, face, det = {}) {
     }
     x.restore();
     x.drawImage(img, fx, fy, w, h);
+    if (mods) { x.save(); x.translate(fx, fy); x.scale(w / 512, h / 512); paintMods(x, skinHex, face, mods); x.restore(); }
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; t.wrapS = THREE.RepeatWrapping;
   return (faceSkinCache[key] = t);
@@ -271,7 +299,11 @@ export function makeAvatar(o = {}) {
   A.faceMat = shadow ? null : new THREE.MeshStandardMaterial({ map: faceSkinTex(skinHex, o.face || 'smile', det), roughness: 0.55 });
   const headM = mesh(headGeometry(), shadow ? o.shadowMat : A.faceMat, cast); headM.position.y = 0.64; neck.add(headM); A.headMesh = headM;
   A.face = o.face || 'smile';
-  A.setFace = n => { if (A.faceMat && faceTex[n] && n !== A.face) { A.face = n; A.faceMat.map = faceSkinTex(skinHex, n, det); A.faceMat.needsUpdate = true; } };
+  A.mods = ''; const applyFace = () => { A.faceMat.map = faceSkinTex(skinHex, A.face, det, A.mods); A.faceMat.needsUpdate = true; };
+  A.setFace = n => { if (A.faceMat && faceTex[n] && n !== A.face) { A.face = n; applyFace(); } };
+  // A.anim(blink, mouthOpen): set by engine/main.html every frame (auto blinks; mouth flaps while the pose includes talk())
+  A.anim = (b, o) => { if (!A.faceMat) return; const m = (b && !NO_BLINK.includes(A.face) ? 'b' : '') + (o ? 'o' : ''); if (m !== A.mods) { A.mods = m; applyFace(); } };
+  Object.defineProperty(A.root, '__avatar', { value: A }); A.talkK = 0; A.blinkSeed = hashStr(o.name || 'a') % 1000 / 1000;
   // hair / hats (children of head mesh)
   // sculpted hair (engine/hair.js): one merged mesh per avatar; hairSeed (default: from name) varies part side / spikes
   if (o.hair) {
@@ -315,8 +347,9 @@ export function makeAvatar(o = {}) {
 }
 
 // pose in degrees; all optional
+const NO_BLINK = ['sleeping', 'sleepy', 'laugh', 'cry', 'wink', 'yawn', 'love', 'silly'];
 export function setPose(A, p = {}) {
-  const g = k => p[k] || 0;
+  const g = k => p[k] || 0; A.talkK = g('mouth');
   A.armR.rotation.set(-g('rFwd') * D, 0, -g('rUp') * D);
   A.armL.rotation.set(-g('lFwd') * D, 0, g('lUp') * D);
   A.legR.rotation.set(-g('rLeg') * D, 0, -g('rLegOut') * D);

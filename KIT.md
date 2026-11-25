@@ -83,10 +83,18 @@ kinds `stalker` (tall, hunched, long clawed arms, too-wide jagged grin, blank gl
 cityNight, castle night, lab); stalker is ~7.5 tall — frame from low angles for menace.
 Previews: `python3 tools/world_lineup.py out.jpg [world …]`.
 
+## Sound (engine/sfx.py) — 2026-11-25 additions
+heartbeat door roofcreak woodsteps roomtone crowd rumble splash glass bigwhoosh; the effects bus gets a short room reverb. Voice: engine/voice.py uses
+VOICE_GUIDANCE (3.0) + mood-shaped reference prompts per delivery tag (MOOD_REF; owner clips engine/voice/narrator_ref_<mood>.wav override) + MASTER chain.
+
 ## Look / grade
 Set `S.userData.look = 'night'` or `'flash'` (flashback). Post: bloom, split-tone grade, vignette, grain (engine/main.html).
 
 ## Faces
+**Facial animation (2026-11-25, automatic):** engine/main.html blinks every avatar (~every 2.5–5 s, per-name rhythm; closed-eye faces skip it) and flaps the
+mouth while the pose contains `talk(t)` (it now returns `mouth: k`; > 0.3 = talking). `A.anim(blink, mouthOpen)` paints the variants (eyes closed / open mouth found
+automatically in each face PNG — works with new faces too). Turn off per scene with `S.userData.faceAnim = false`; thumbnails/lineups render with `blink=0`.
+**Face fill (2026-11-25):** at q=1 a soft light rides between camera and subject (`S.userData.faceFill = false | scale`).
 Faces are painted into the head's skin texture (cylindrical mapping, seam at the back of the head) — never add face decals/planes.
 `A.setFace(name)` swaps the expression instantly.
 `engine/faces/*.png` are loaded automatically. Current (33): smile grin shock sad smirk neutral worried cry teary fakesmile determined softsmile

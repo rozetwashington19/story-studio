@@ -20,16 +20,37 @@ KK = os.path.expanduser(os.environ.get("KOKORO_DIR", "~/models/kokoro-en-v0_19")
 POLISH = ("highpass=f=80,lowpass=f=12000,deesser=i=0.25,"
           "acompressor=threshold=-20dB:ratio=2.5:attack=5:release=80:makeup=2,aresample=48000")
 
-def clone_engine():
+# Owner feedback 2026-11-25 (YouTube analysis: "voiceover feels synthetic, lacks emotional weight"). A/B-tested and chosen by the owner:
+#  * GUIDANCE 3.0 (the distilled ZipVoice model is meant to run with guidance ~3): clearer phrasing, ~60% more pitch movement, same speed.
+#  * mood-matched reference prompts: ZipVoice copies the pace/energy of its prompt, so each delivery tag uses a version of the owner's
+#    reference shaped for that mood (lower + slower for sad, brighter for excited). The owner disliked excited lines speeding up, so NO
+#    mood ever speeds up — excited only gets brighter/louder. If the owner records real mood clips, drop them in as
+#    engine/voice/narrator_ref_<mood>.wav + .txt (exact transcript) and they replace the shaped ones automatically.
+GUIDANCE = float(os.environ.get("VOICE_GUIDANCE", "3.0"))
+MOOD_REF = {   # mood -> ffmpeg shaping of narrator_ref.wav (pitch ratio, tempo, gain dB, lowpass Hz)
+    "excited": (1.06, 1.0, 2, 0), "tense": (0.975, 0.97, -1, 9000), "slow": (0.944, 0.9, -2, 7500), "soft": (0.97, 0.94, -4, 7000), "whisper": (0.97, 0.93, -6, 6500)}
+def mood_ref(mood):
     import librosa
+    own = os.path.join(HERE, f"voice/narrator_ref_{mood}.wav")
+    if os.path.exists(own) and os.path.exists(own[:-4] + ".txt"): return librosa.load(own, sr=24000)[0].tolist(), open(own[:-4] + ".txt").read().strip()
+    base = os.path.join(HERE, "voice/narrator_ref.wav"); pt = open(os.path.join(HERE, "voice/narrator_ref.txt")).read().strip()
+    if mood not in MOOD_REF: return librosa.load(base, sr=24000)[0].tolist(), pt
+    p, tm, g, lp = MOOD_REF[mood]; dst = f"{OUT}/ref_{mood}.wav"
+    if not os.path.exists(dst):
+        af = f"rubberband=pitch={p}:tempo={tm},volume={g}dB" + (f",lowpass=f={lp}" if lp else "")
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", base, "-af", af, "-ar", "24000", "-ac", "1", dst], check=True)
+    return librosa.load(dst, sr=24000)[0].tolist(), pt
+
+def clone_engine():
     cfg = sherpa_onnx.OfflineTtsConfig(model=sherpa_onnx.OfflineTtsModelConfig(zipvoice=sherpa_onnx.OfflineTtsZipvoiceModelConfig(
         tokens=ZV + "tokens.txt", encoder=ZV + "text_encoder.onnx", decoder=ZV + "fm_decoder.onnx", vocoder=ZV + "vocos_24khz.onnx",
-        data_dir=ZV + "espeak-ng-data", lexicon=ZV + "pinyin.raw"), num_threads=2))
-    tts = sherpa_onnx.OfflineTts(cfg)
-    ref, _ = librosa.load(os.path.join(HERE, "voice/narrator_ref.wav"), sr=24000); ref = ref.tolist()
-    pt = open(os.path.join(HERE, "voice/narrator_ref.txt")).read().strip()
+        data_dir=ZV + "espeak-ng-data", lexicon=ZV + "pinyin.raw", guidance_scale=GUIDANCE), num_threads=2))
+    tts = sherpa_onnx.OfflineTts(cfg); refs = {}
+    def g(text, speed=1.0, steps=8, mood="normal"):
+        if mood not in refs: refs[mood] = mood_ref(mood)
+        ref, pt = refs[mood]; return tts.generate(text, pt, ref, 24000, speed=speed, num_steps=steps)
     chain = (f"atempo={TEMPO}," if abs(TEMPO - 1) > 1e-3 else "") + POLISH   # atempo (WSOLA): no tonal smear/ring at line ends
-    return (lambda text, speed=1.0, steps=8: tts.generate(text, pt, ref, 24000, speed=speed, num_steps=steps)), chain
+    return g, chain
 
 def kokoro_engine():
     cfg = sherpa_onnx.OfflineTtsConfig(model=sherpa_onnx.OfflineTtsModelConfig(kokoro=sherpa_onnx.OfflineTtsKokoroModelConfig(
@@ -102,7 +123,10 @@ VMODE = os.environ.get("VOICE_MODE", "passage") if engine == "clone" else "line"
 STEPS = int(os.environ.get("VOICE_STEPS", "8"))
 # delivery tags in script.txt (put on any line; applies to its whole passage): (tempo factor, gain dB). Match the voice to the scene:
 # {excited} chases/surprises, {tense} creeping danger, {slow} sad or awed beats, {soft} tender moments, {whisper} whispered lines.
-DELIVERY = {"normal": (1.0, 0), "excited": (1.1, 1.5), "tense": (0.97, -1), "slow": (0.92, -1), "soft": (0.95, -3), "whisper": (0.94, -5)}   # 16 is not better with the distilled model
+DELIVERY = {"normal": (1.0, 0), "excited": (1.0, 1.5), "tense": (0.99, -1), "slow": (0.97, -1), "soft": (0.97, -2), "whisper": (0.97, -4)}   # owner 2026-11-25: never speed lines up   # 16 is not better with the distilled model
+# narration master (owner 2026-11-25: less synthetic): body + presence EQ, de-ess, gentle 2:1 glue, a very small room so it isn't bone-dry
+MASTER = os.environ.get("VOICE_MASTER", "equalizer=f=170:t=q:w=1.0:g=1.5,equalizer=f=3000:t=q:w=1.4:g=1.5,equalizer=f=7500:t=q:w=1.0:g=-1,"
+                        "deesser=i=0.3,acompressor=threshold=-21dB:ratio=2:attack=10:release=140:makeup=1.5,aecho=0.9:0.6:19|31:0.05|0.03")
 LIGHT = (f"atempo={TEMPO}," if abs(TEMPO - 1) > 1e-3 else "") + "highpass=f=70,lowpass=f=12500,aresample=48000"   # passage mode: gentle tempo, no compressor
 # NOTE: never pass speed != 1.0 to ZipVoice - it truncates and garbles sentence endings (tested 2026-11-17)
 
@@ -205,7 +229,7 @@ if VMODE == "passage":
     if cur: groups.append(cur)
     def delivery(g):
         tg = {t for i in g for t in tags[i]}
-        return next((DELIVERY[t] for t in ("excited", "tense", "slow", "soft", "whisper") if t in tg), DELIVERY["normal"])
+        m = next((t for t in ("excited", "tense", "slow", "soft", "whisper") if t in tg), "normal"); return DELIVERY[m] + (m,)
     def squeeze(z, sr=48000, keep=0.32, maxgap=0.5):
         """shorten silences inside a take that are longer than maxgap s (they sound like random stops) to `keep` s"""
         db, h = rms_db(z, sr); sil = db < db.max() - 40; out, k, last = [], 0, 0
@@ -231,7 +255,7 @@ if VMODE == "passage":
     pieces = [None] * len(lines); report = []
     for gi, g in enumerate(groups):
         texts = [lines[i].replace('"', '') for i in g]; text = " ".join(texts); dv = delivery(g)
-        key = hashlib.md5(f"{text}|{dv}|{TEMPO}|{STEPS}".encode()).hexdigest()[:10]; cf = f"{PD}/g{gi:03d}_{key}.wav"
+        key = hashlib.md5(f"{text}|{dv}|{TEMPO}|{STEPS}|{GUIDANCE}|{engine}".encode()).hexdigest()[:10]; cf = f"{PD}/g{gi:03d}_{key}.wav"
         if not os.path.exists(cf):   # same passage text at a different index (lines added/removed earlier): reuse that take
             import glob as _g, shutil as _sh; old = _g.glob(f"{PD}/g*_{key}.wav")
             if old: _sh.copy(old[0], cf)
@@ -240,7 +264,7 @@ if VMODE == "passage":
         else:
             best = None
             for attempt in range(TRIES):
-                a = gen(text, speed=1.0, steps=STEPS); y = clean_trim(np.array(a.samples, dtype=np.float32), a.sample_rate, rel=-48)
+                a = gen(text, speed=1.0, steps=STEPS, mood=dv[2]) if engine == "clone" else gen(text); y = clean_trim(np.array(a.samples, dtype=np.float32), a.sample_rate, rel=-48)
                 chain = (f"atempo={TEMPO * dv[0]:.3f}," if abs(TEMPO * dv[0] - 1) > 1e-3 else "") + f"volume={dv[1]}dB,highpass=f=70,lowpass=f=12500,aresample=48000"
                 z = squeeze(to48(y, a.sample_rate, chain)); z = np.concatenate([z, np.zeros(int(0.12 * 48000), np.float32)])   # keep the tail, never clip endings
                 sc, hyp = asr_score(z, 48000, text); rep = repeats(hyp, text)
@@ -264,7 +288,7 @@ if VMODE == "passage":
         out += [z, np.zeros(int(48000 * gap))]; t += len(z) / 48000 + gap
     sf.write(f"{OUT}/narr_pre.wav", np.concatenate(out), 48000); json.dump(timing, open(f"{OUT}/timing.json", "w"), indent=1)
     total = t + 2.0
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{OUT}/narr_pre.wav", "-af", f"apad,atrim=0:{total:.3f},loudnorm=I=-15:TP=-1.5:LRA=11",
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", f"{OUT}/narr_pre.wav", "-af", f"{MASTER},apad,atrim=0:{total:.3f},loudnorm=I=-15:TP=-1.5:LRA=11",
                     "-ar", "48000", f"{OUT}/narration.wav"], check=True)
     bad = [r for r in report if r[2] < 0.9 or r[4]]
     print(f"voice={engine} mode=passage lines={len(lines)} passages={len(groups)} words={sum(len(l.split()) for l in lines)} duration={total:.1f}s")

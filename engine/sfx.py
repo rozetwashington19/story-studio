@@ -116,10 +116,31 @@ def impact():    # scroll-stopping hit for frame 0 of the hook (owner 2026-11-21
     return boom + 0.55 * crack + 0.5 * body
 def creak():     d = 0.7; tt = t_(d); f = 140 + 60 * np.sin(2 * np.pi * 1.4 * tt); x = np.sign(np.sin(2 * np.pi * np.cumsum(f) / SR)) * (np.sin(2 * np.pi * 31 * tt) > 0); return bp(x, 300, 2200) * np.sin(np.linspace(0, np.pi, len(tt)))
 
+# ---- richer palette (owner 2026-11-25: "richer sound effects like creaking roofs or thuds would boost immersion") ----
+def heartbeat(n=3, gap=0.62):   # lub-dub thumps for tension (use as a bed at -6..-3 under scary beats)
+    beat = lambda f: np.sin(2 * np.pi * np.cumsum(np.linspace(f, f * 0.6, int(0.12 * SR))) / SR) * env(int(0.12 * SR), 0.003, 0.05)
+    one = cat(beat(62), beat(52) * 0.7, gap=0.08); return cat(*[one] * n, gap=gap)
+def door():      return cat(creak()[:int(0.55 * SR)] * 0.8, thud()[:int(0.18 * SR)], gap=0.02)   # creaky door swinging + latch thump
+def roofcreak(): d = 1.6; tt = t_(d); f = 70 + 25 * np.sin(2 * np.pi * 0.6 * tt); x = np.sign(np.sin(2 * np.pi * np.cumsum(f) / SR)) * (np.sin(2 * np.pi * 17 * tt) > -0.2); return bp(x, 150, 1400) * np.sin(np.linspace(0, np.pi, len(tt))) ** 1.5   # slow, low timber groan
+def woodsteps(n=4, gap=0.34):   # footsteps on boards: thump + board knock
+    st = lambda: lp(noise(0.09), 900) * env(int(0.09 * SR), 0.002, 0.04) + 0.7 * np.sin(2 * np.pi * 95 * t_(0.09)) * env(int(0.09 * SR), 0.002, 0.04)
+    return cat(*[st() * (0.8 + 0.2 * (i % 2)) for i in range(n)], gap=gap)
+def roomtone(d=3.0):   # quiet indoor air/hum bed (use at -8..-12, one cue per indoor shot) so interiors aren't dead silent
+    n = lp(noise(d), 400) * 0.6 + 0.25 * np.sin(2 * np.pi * 60 * t_(d)) + 0.1 * np.sin(2 * np.pi * 120 * t_(d)); return n * np.sin(np.linspace(0, np.pi, int(d * SR))) ** 0.3
+def crowd(d=2.5):      # distant crowd murmur (bandpassed babble)
+    x = sum(bp(noise(d), 300 + 120 * k, 900 + 200 * k) * (0.5 + 0.5 * np.sin(2 * np.pi * (2 + k * 0.7) * t_(d) + k)) for k in range(5)); return x * np.sin(np.linspace(0, np.pi, int(d * SR)))
+def rumble(d=2.0):     # deep rumble for something huge moving / earth shaking
+    return lp(noise(d), 120) * (0.6 + 0.4 * np.sin(2 * np.pi * 3 * t_(d))) * np.sin(np.linspace(0, np.pi, int(d * SR)))
+def splash():  d = 0.6; return bp(noise(d), 400, 5000) * env(int(d * SR), 0.004, 0.22) + 0.4 * sweep(500, 140, d, 0.5) * env(int(d * SR), 0.002, 0.1)
+def glass():   return cat(*[np.sin(2 * np.pi * f * t_(0.25)) * env(int(0.25 * SR), 0.001, 0.08) for f in (2900, 3600, 4400)], gap=0.04)   # glassy clink/tinkle
+def bigwhoosh(): return whoosh(0.9) + 0.6 * lp(noise(0.9), 250) * np.sin(np.linspace(0, np.pi, int(0.9 * SR)))
+
 SOUNDS = {'pop': pop, 'boing': boing, 'whoosh': whoosh, 'swoosh_up': swoosh_up, 'snap': snap, 'twang': twang, 'chime': chime, 'sparkle': sparkle,
           'glow': glow, 'step': step, 'steps': steps, 'thud': thud, 'knock': knock, 'chirp': chirp, 'flap': flap, 'drip': drip, 'buzz': buzz,
           'tap': tap, 'typing': typing, 'ding': ding, 'rustle': rustle, 'wind': wind, 'gasp': gasp, 'zip': zip_, 'tada': tada,
-          'rain': rain, 'thunder': thunder, 'coins': coins, 'scribble': scribble, 'creak': creak, 'rewind': rewind, 'impact': impact}
+          'rain': rain, 'thunder': thunder, 'coins': coins, 'scribble': scribble, 'creak': creak, 'rewind': rewind, 'impact': impact,
+          'heartbeat': heartbeat, 'door': door, 'roofcreak': roofcreak, 'woodsteps': woodsteps, 'roomtone': roomtone, 'crowd': crowd, 'rumble': rumble,
+          'splash': splash, 'glass': glass, 'bigwhoosh': bigwhoosh}
 
 # Owner feedback (2026-11-17): effects must stay subtle background sounds that never cover the narrator.
 HOUSE_DB = -17.0      # cue loudness relative to the narration's speech RMS (between lines: clearly audible)
@@ -156,6 +177,10 @@ def build(ep):
         x = np.clip(x, -lim, lim); i = int((s + off) * SR)   # exactly on the action
         if i >= total: continue
         bus[i:i + len(x)] += x[:total - i]
+    # space: short synthetic room reverb (owner 2026-11-25 immersion) — 20% wet, 0.4 s decay
+    ir_n = int(0.4 * SR); ir = RNG.standard_normal(ir_n) * np.exp(-np.linspace(0, 7, ir_n)); ir = lp(ir, 5000); ir /= np.sqrt(np.sum(ir ** 2))
+    from scipy.signal import fftconvolve
+    if bus.any(): wet = fftconvolve(bus, ir)[:total]; bus = bus + 0.2 * wet * active_rms(bus) / (active_rms(wet) + 1e-9)
     # under speech: duck, carve the speech band (1-4 kHz) out of the effects, and cap them under the voice's level
     sm = int(0.06 * SR); talking = np.convolve(sp.astype(float), np.ones(sm) / sm, 'same')
     bus = bus - 0.35 * bp(bus, 1000, 4000) * talking

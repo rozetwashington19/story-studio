@@ -185,7 +185,7 @@ export const backOut = t => { if (t <= 0) return 0; if (t >= 1) return 1; const 
 // keyframes with overshoot: hit([[0, POSES.rest], [0.4, POSES.wave]], t)
 export const hit = (keys, t) => track(keys, t, backOut);
 // talking: layered head motion for whoever is speaking during their dialogue line (add to their pose)
-export function talk(t, k = 1) { return { nod: (Math.sin(t * 9) * 2.5 + Math.sin(t * 14.3) * 1.5) * k, tilt: Math.sin(t * 4.1) * 2.5 * k, turn: Math.sin(t * 2.3) * 3 * k, bob: Math.abs(Math.sin(t * 9)) * 0.02 * k }; }
+export function talk(t, k = 1) { return { nod: (Math.sin(t * 9) * 2.5 + Math.sin(t * 14.3) * 1.5) * k, tilt: Math.sin(t * 4.1) * 2.5 * k, turn: Math.sin(t * 2.3) * 3 * k, bob: Math.abs(Math.sin(t * 9)) * 0.02 * k, mouth: k }; }   // mouth: lip-flap strength (engine/main.html animates the mouth while > 0.3)
 // eyelines: head turn/nod so avatar A looks at world point p (returns {turn, nod}; add to the pose)
 export function lookAt(A, p) {
   A.root.updateMatrixWorld(true); const l = A.root.worldToLocal(new THREE.Vector3(...(Array.isArray(p) ? p : [p.x, p.y, p.z])));
