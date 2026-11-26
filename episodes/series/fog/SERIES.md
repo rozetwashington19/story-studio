@@ -9,7 +9,7 @@ with two options (A red / B green) + "FOLLOW FOR PART 2".
 
 ## Who makes the parts, and when
 - **Owner 2026-11-23:** the FIRST run (midday or evening) after the owner reports a vote result makes the next part — one part per day. The owner posts each part at
-  4 PM Eastern (11 AM on weekends) and sends the vote result by ~11:30 AM the next day, so the 12:10 PM midday run builds the next part in time.
+  4 PM Eastern (11 AM on weekends) and sends the vote result by ~11:30 AM the next day, so the 11:40 AM midday run builds the next part in time.
   (Old rule: only the evening run made parts.)
 - The evening run makes **Part N** when Part N−1's vote result is filled in below (Part 1 needs nothing). If the result is still `?`, the
   evening run makes a normal standalone episode instead and says in its final message that the series is waiting for the Part N−1 vote.

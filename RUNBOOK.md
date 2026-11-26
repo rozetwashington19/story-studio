@@ -81,7 +81,7 @@ shots per line. Format and voice stay the same (length changed separately — se
   actually reads: no frozen character, no pop between frames, faces visible on the key words. In the final message, name the shots that most improved and the weakest one.
 
 **Owner schedule (2026-11-23) — while THE FOG series is ACTIVE: at most ONE Fog part + ONE standalone episode per day** (replaces the 2026-11-22 HOLD rule).
-Owner posts the Fog part at 4 PM Eastern (11 AM on weekends) and the standalone at ~7:30 PM Eastern. Every run (midday or evening), after `git pull`:
+Owner posts the Fog part at 4 PM Eastern (11 AM on weekends) and the standalone at ~7:30 PM Eastern. Runs start 11:40 AM ET (midday, right after the ~11:30 vote) and 3:20 PM ET (evening) so the longer 2:00–2:10 episodes (~4 h) are ready in time (owner 2026-11-26). Every run (midday or evening), after `git pull`:
 1. If the previous part's vote result is filled in SERIES.md and the next part isn't in INDEX.md yet → make that Fog part.
 2. Otherwise, if no standalone episode has been added to INDEX.md today (Eastern date) → make a normal standalone episode.
 3. Otherwise → make no video; send one push notification ("Waiting for your Part N vote — today's standalone is done") and stop.
@@ -90,7 +90,7 @@ Never two standalones in one day while the series runs. When SERIES.md is DONE, 
 **Owner request (2026-11-22) — choose-your-path series (5 parts), then back to normal:** an ACTIVE series lives in `episodes/series/<name>/SERIES.md`
 (currently `episodes/series/fog/`). Read it at step 1 on every run:
 - **Owner 2026-11-23 — whichever run comes first:** once the owner has reported the previous part's vote, the NEXT run (midday or evening, whichever fires first) makes the next part,
-  so it is ready for the owner's 4 PM Eastern post (owner sends the result by ~11:30 AM; the 12:10 PM midday run builds it). The other run that day does not make another series part.
+  so it is ready for the owner's 4 PM Eastern post (owner sends the result by ~11:30 AM; the 11:40 AM midday run builds it). The other run that day does not make another series part.
   Before building, `git pull` and check SERIES.md/INDEX.md so two runs never make the same part.
 - **(older rule, superseded above) Evening run only:** if a series is ACTIVE and its next part is unlocked (Part 1, or the previous part's vote result is filled in), make that part,
   following SERIES.md (it overrides the premise, narrator, cast and opener steps; everything else in this runbook still applies) and write `vote.json`
