@@ -17,6 +17,8 @@ with two options (A red / B green) + "FOLLOW FOR PART 2".
   table below (letter + the option text + date), commit and push that change straight away, before anything else.
 - After Part 5 is delivered, set the status line to DONE; every run then goes back to normal episodes (RUNBOOK as before).
 
+**Owner override (2026-11-26, today only):** no Fog part today. The 11:40 AM midday run makes a regular standalone episode (even if the Part 3 vote result is filled in), and the 3:20 PM evening run makes a second standalone as usual — two standalones are allowed on 2026-11-26 only. If a vote result arrives today, record it, but Part 4 is built on 2026-11-27 by the first run under the normal rules.
+
 Status: ACTIVE — next: Part 4 (locked until the owner reports the Part 3 vote). Daily schedule while the series runs: one Fog part (posted 4 PM ET) + one standalone (posted ~7:30 PM ET) — see the owner schedule at the top of RUNBOOK.md.
 
 | part | episode | choice offered at the end (A / B) | vote result |
