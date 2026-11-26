@@ -135,12 +135,29 @@ def splash():  d = 0.6; return bp(noise(d), 400, 5000) * env(int(d * SR), 0.004,
 def glass():   return cat(*[np.sin(2 * np.pi * f * t_(0.25)) * env(int(0.25 * SR), 0.001, 0.08) for f in (2900, 3600, 4400)], gap=0.04)   # glassy clink/tinkle
 def bigwhoosh(): return whoosh(0.9) + 0.6 * lp(noise(0.9), 250) * np.sin(np.linspace(0, np.pi, int(0.9 * SR)))
 
+# ---- railway + clock palette (episode 021) ----
+def whistle(d=1.3):    # steam train whistle: three slightly detuned reedy tones + breath, quick swell, falling tail
+    tt = t_(d); bend = 1 - 0.035 * np.clip((tt - d * 0.6) / (d * 0.4), 0, 1)
+    x = sum(a * np.sign(np.sin(2 * np.pi * np.cumsum(f * bend) / SR)) for f, a in ((392, 1.0), (494, 0.8), (587, 0.6)))
+    x = bp(x, 300, 2600) + 0.5 * bp(noise(d), 1500, 6000); e = np.minimum(1, tt / 0.08) * np.minimum(1, (d - tt) / 0.35); return x * e
+def chuff(n=5, gap=0.3):   # steam loco pulling away: breathy chuffs that speed up
+    one = lambda k: bp(noise(0.22), 200, 2400) * env(int(0.22 * SR), 0.01, 0.09) + 0.5 * np.sin(2 * np.pi * 60 * t_(0.22)) * env(int(0.22 * SR), 0.004, 0.06)
+    out = np.zeros(0)
+    for k in range(n): out = np.concatenate([out, one(k) * (0.75 + 0.25 * (k % 2)), np.zeros(int(max(0.05, gap * (0.9 ** k)) * SR))])
+    return out
+def hiss(d=1.0):       return bp(noise(d), 2500, 9000) * np.minimum(1, t_(d) / 0.05) * np.exp(-2.2 * t_(d) / d)   # steam release / brakes
+def ticktock(n=4, gap=0.5):   # big station clock: alternating woody tick and lower tock
+    tk = lambda f: (bp(noise(0.03), f, f * 3) * env(int(0.03 * SR), 0.0005, 0.012) + 0.5 * np.sin(2 * np.pi * f * 0.5 * t_(0.03)) * env(int(0.03 * SR), 0.001, 0.01))
+    return cat(*[tk(1500 if i % 2 == 0 else 1100) for i in range(n)], gap=gap - 0.03)
+def clunk():           return cat(tap() * 0.8, thud()[:int(0.16 * SR)], gap=0.0)   # a heavy clock hand / latch dropping into place
+
 SOUNDS = {'pop': pop, 'boing': boing, 'whoosh': whoosh, 'swoosh_up': swoosh_up, 'snap': snap, 'twang': twang, 'chime': chime, 'sparkle': sparkle,
           'glow': glow, 'step': step, 'steps': steps, 'thud': thud, 'knock': knock, 'chirp': chirp, 'flap': flap, 'drip': drip, 'buzz': buzz,
           'tap': tap, 'typing': typing, 'ding': ding, 'rustle': rustle, 'wind': wind, 'gasp': gasp, 'zip': zip_, 'tada': tada,
           'rain': rain, 'thunder': thunder, 'coins': coins, 'scribble': scribble, 'creak': creak, 'rewind': rewind, 'impact': impact,
           'heartbeat': heartbeat, 'door': door, 'roofcreak': roofcreak, 'woodsteps': woodsteps, 'roomtone': roomtone, 'crowd': crowd, 'rumble': rumble,
-          'splash': splash, 'glass': glass, 'bigwhoosh': bigwhoosh}
+          'splash': splash, 'glass': glass, 'bigwhoosh': bigwhoosh,
+          'whistle': whistle, 'chuff': chuff, 'hiss': hiss, 'ticktock': ticktock, 'clunk': clunk}
 
 # Owner feedback (2026-11-17): effects must stay subtle background sounds that never cover the narrator.
 HOUSE_DB = -14.0      # owner 2026-11-25: +3 dB (louder, still under the voice) — cue loudness relative to the narration's speech RMS (between lines: clearly audible)
