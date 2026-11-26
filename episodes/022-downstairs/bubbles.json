@@ -1,0 +1,8 @@
+{
+ "16": ["Paid in full.", 0.5, 0.08],
+ "19": ["Somebody pays your rent in gold coins.", 0.5, 0.07],
+ "20": ["Old ones. Where's the rest?", 0.5, 0.08],
+ "38": ["Why?", 0.5, 0.09],
+ "44": ["It's my building! It's all mine!", 0.5, 0.07],
+ "51": ["Evicted.", 0.5, 0.08]
+}

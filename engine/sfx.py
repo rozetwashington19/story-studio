@@ -151,13 +151,17 @@ def ticktock(n=4, gap=0.5):   # big station clock: alternating woody tick and lo
     return cat(*[tk(1500 if i % 2 == 0 else 1100) for i in range(n)], gap=gap - 0.03)
 def clunk():           return cat(tap() * 0.8, thud()[:int(0.16 * SR)], gap=0.0)   # a heavy clock hand / latch dropping into place
 
+def breath(d=1.7):      # something huge breathing out in the dark: low airy swell with a chesty rumble under it (episode 022)
+    n = int(d * SR); e = np.sin(np.linspace(0, np.pi, n)) ** 1.6; return (lp(noise(d), 420) + 0.5 * bp(noise(d), 900, 2200) * 0.4 + 0.5 * np.sin(2 * np.pi * 46 * t_(d)) * (0.6 + 0.4 * np.sin(2 * np.pi * 7 * t_(d)))) * e
+def clang():            # a shovel hitting something much harder than a shovel: struck-metal partials + a noisy attack
+    d = 1.0; tt = t_(d); x = sum(a * np.sin(2 * np.pi * f * tt) * np.exp(-tt * k) for f, k, a in ((523, 5, 1.0), (1310, 7, 0.7), (2120, 9, 0.5), (3350, 13, 0.35))); return x + 0.8 * bp(noise(d), 2000, 7000) * np.exp(-tt * 40)
 SOUNDS = {'pop': pop, 'boing': boing, 'whoosh': whoosh, 'swoosh_up': swoosh_up, 'snap': snap, 'twang': twang, 'chime': chime, 'sparkle': sparkle,
           'glow': glow, 'step': step, 'steps': steps, 'thud': thud, 'knock': knock, 'chirp': chirp, 'flap': flap, 'drip': drip, 'buzz': buzz,
           'tap': tap, 'typing': typing, 'ding': ding, 'rustle': rustle, 'wind': wind, 'gasp': gasp, 'zip': zip_, 'tada': tada,
           'rain': rain, 'thunder': thunder, 'coins': coins, 'scribble': scribble, 'creak': creak, 'rewind': rewind, 'impact': impact,
           'heartbeat': heartbeat, 'door': door, 'roofcreak': roofcreak, 'woodsteps': woodsteps, 'roomtone': roomtone, 'crowd': crowd, 'rumble': rumble,
           'splash': splash, 'glass': glass, 'bigwhoosh': bigwhoosh,
-          'whistle': whistle, 'chuff': chuff, 'hiss': hiss, 'ticktock': ticktock, 'clunk': clunk}
+          'whistle': whistle, 'chuff': chuff, 'hiss': hiss, 'ticktock': ticktock, 'clunk': clunk, 'breath': breath, 'clang': clang}
 
 # Owner feedback (2026-11-17): effects must stay subtle background sounds that never cover the narrator.
 HOUSE_DB = -14.0      # owner 2026-11-25: +3 dB (louder, still under the voice) — cue loudness relative to the narration's speech RMS (between lines: clearly audible)

@@ -33,5 +33,6 @@ copy of one with minor changes (same layout/silhouette, e.g. another identical h
 | 018 | sugarStreet (gingerbread village, all times of day + the lifted roof deck) gingerParlor giantKitchen |
 | 020 | pennyMesa (desert adobe wishing-well plaza, day/sunset/night) wellShaft (inside the well) tessRoom (attic bedroom with a round window) |
 | 021 | lostHall (station lost-property office, evening + morning) grandStation (platform under an iron-and-glass roof with the Night Train; sunset / day / dusk) trainCab (inside the loco cab) letterCar (mail car full of letters) |
+| 022 | marrowStreet (cobbled street at night + dawn: opera house, laundromat, No. 9 tenement, cellar hatches) danaFlat (studio flat with a round table, receipts board, fridge of bills) cellarHall (back hall + the basement door) deepStairs (boiler / bedrock / dark stair shaft) hoardCavern (gold hoard cavern under No. 9: banker's lamp, ledger lectern, plate shelf, painting) |
 
 Unused finished worlds that may still be used once (then list them): `spooky` `space` `underwater` `candy` `castle` `desert` `lab` (engine/themes.js).

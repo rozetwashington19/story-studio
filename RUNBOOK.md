@@ -77,7 +77,7 @@ shots per line. Format and voice stay the same (length changed separately — se
   plan the set so that isn't needed). Keep screen direction consistent across cuts (who's on the left stays on the left).
 - **Don't drop ambitious shots:** if a hero shot fails (020's view from the bottom of the well with the dog's face filling the sky stayed black), debug it with a
   `frame` render + a `console.log` of positions before replacing it. Common causes: a stale parent matrixWorld, the subject hidden by set geometry, a light inside the mesh.
-- **Animation QC (step 5, in addition to the stills):** for the 6 most important shots, also render a 4-frame strip (`frame <line> 0.1/0.4/0.7/0.95`) and check that the motion
+- **Animation QC (step 5, in addition to the stills):** for the 6 most important shots, also render a 4-frame strip (`python3 tools/anim_strip.py episodes/NNN-slug out.jpg <lines…>` does all of them in one page load; or `frame <line> 0.1/0.4/0.7/0.95`) and check that the motion
   actually reads: no frozen character, no pop between frames, faces visible on the key words. In the final message, name the shots that most improved and the weakest one.
 
 **Owner override (2026-11-26, today only):** no Fog part today. The 11:40 AM midday run makes a regular standalone episode (even if the Part 3 vote result is filled in), and the 3:20 PM evening run makes a second standalone as usual — two standalones are allowed on 2026-11-26 only. Part 4 waits for the owner's Part 3 vote result: once it is reported (on a later day), the first run after that builds Part 4 under the normal rules — until then, standalones only.
