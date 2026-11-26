@@ -30,7 +30,7 @@ scheduled prompts.
 
 **Owner feedback (2026-11-25) — YouTube's analysis said the voiceover "feels synthetic and lacks emotional weight" and asked for richer SFX
 (creaking roofs, thuds). Owner: "improve the narrator's audio quality in terms of emotion, natural speaking", "improve the overall video quality
-(animations, lighting, environment designs, textures, facial animations, character designs)". Runs stay on Opus 5.5 until the owner upgrades to Fable 5 — every upgrade below is in the engine/runbook, so it applies whichever model runs. Built in:**
+(animations, lighting, environment designs, textures, facial animations, character designs)". Since 2026-11-26 both scheduled runs use Fable 5.2 (see the animation block below); every upgrade here is in the engine/runbook, so it applies whichever model runs. Built in:**
 - **Voice (engine/voice.py, automatic):** guidance 3.0 + mood-matched reference prompts per delivery tag (A/B-tested, owner picked it; moods never speed
   the voice up — the owner disliked fast excited lines) + a light narration master (warmth/presence EQ, de-ess, glue compression, tiny room).
   Your part is the WRITING (step 2): tag EVERY passage with the mood it needs ({tense} {excited} {slow} {soft} {whisper}; untagged = neutral, use it only
@@ -57,6 +57,28 @@ scheduled prompts.
   keep beds at their listed trims and don't push action cues above +2.
 - **Mandatory q=1 check (step 5):** after the Q=0 preview pass, render the 6 most important shots at q=1 (`python3 engine/render.py … stills 1 a b c d e`) and
   look at faces, lighting and texture there; fix before the full render.
+
+**Owner request (2026-11-26) — runs now use Fable 5.2: "I'd like to see improvements in the animation."** Put the extra capability into the animation itself, not into more
+shots or longer stories. Format, length, voice and the time budget stay the same; render time is unchanged, so the gains come from better shot code. Every episode:
+- **Block before you code (step 4):** for each shot write a one-line blocking note in the shot comment: who stands where, who looks at whom, the main action beat and
+  its second, the camera move and why. Work out sightlines on paper first: what sits between the camera and each face (posts, trees, rollers, flags, other people,
+  the narrator's own head). Most of episode 020's preview rounds went on cameras inside trees/buildings, views blocked by the well's posts, and a giant's face out of frame.
+  Goal: no more than 2 preview rounds.
+- **Acting, not posing:** every character in frame does something specific to the line (a reaction, a fidget, a look away and back), not only `idle`.
+  Layer motion: a main beat (with `anticipate` + `hit` overshoot) + a delayed follow-through (head and arms settle 0.1–0.2 s after the body) + breathing. Stagger reactions:
+  listeners react 0.2–0.4 s after the cause, never all on the same frame. Each emotional shot gets 2 face changes (e.g. worried → shock → determined), timed to the words.
+- **Eyelines everywhere:** speakers look at who they talk to; listeners look at the speaker, then at the thing being talked about (`lookAt`, scaled ×0.45 in two-shots).
+  Creatures and animals get eyelines too (`look()` or head yaw toward the narrator or the action).
+- **Walks and weight:** speed matches the stride (no foot sliding: tune `walk()` speed to the distance covered), add a body lean into starts and stops, and ease into
+  and out of every move (no linear slides). Big creatures move slowly with a heavy settle and camera rumble; small ones are quick and bouncy.
+- **Camera choreography:** each move is motivated (push in on realisation, pull back on a reveal, track with a runner, low angle for size). Cuts inside a long line
+  (`seg`) change both angle and lens. Hold the subject on the rule of thirds and keep the caption band (y 0.62–0.78) free of faces.
+- **Scale and continuity:** a creature or prop keeps one size across a scene unless the story changes it (020 had to cheat the dog's head size between window shots;
+  plan the set so that isn't needed). Keep screen direction consistent across cuts (who's on the left stays on the left).
+- **Don't drop ambitious shots:** if a hero shot fails (020's view from the bottom of the well with the dog's face filling the sky stayed black), debug it with a
+  `frame` render + a `console.log` of positions before replacing it. Common causes: a stale parent matrixWorld, the subject hidden by set geometry, a light inside the mesh.
+- **Animation QC (step 5, in addition to the stills):** for the 6 most important shots, also render a 4-frame strip (`frame <line> 0.1/0.4/0.7/0.95`) and check that the motion
+  actually reads: no frozen character, no pop between frames, faces visible on the key words. In the final message, name the shots that most improved and the weakest one.
 
 **Owner schedule (2026-11-23) — while THE FOG series is ACTIVE: at most ONE Fog part + ONE standalone episode per day** (replaces the 2026-11-22 HOLD rule).
 Owner posts the Fog part at 4 PM Eastern (11 AM on weekends) and the standalone at ~7:30 PM Eastern. Every run (midday or evening), after `git pull`:
