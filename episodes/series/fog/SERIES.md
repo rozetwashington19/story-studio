@@ -32,7 +32,7 @@ Status: ACTIVE — next: Part 4 (locked until the owner reports the Part 3 vote)
   the on-screen YOU avatar (cast.js) is the same in every part. Dialogue from other characters in "quotes" + bubbles as usual.
 - **All ages, not only kids** (owner 2026-11-22): real tension, real stakes, genuinely scary moments, adult characters with adult worries.
   Still no gore, blood, weapons violence or swearing — the danger is the fog and losing yourself in it, not injuries.
-- Same Roblox look and all the usual quality rules (RUNBOOK 2–6b). Length 1:20–1:30. Every part opens with the 1–2 s hook (hook.json).
+- Same Roblox look and all the usual quality rules (RUNBOOK 2–6b). Length 2:00–2:10 (owner 2026-11-26). Every part opens with the 1–2 s hook (hook.json).
 - **Part 2–5 line 2 recaps the vote in one line**: "You chose the truck." / "Most of you said run." — then the story continues from that choice
   as if it was always the plan. Keep the recap to one line; no "previously on".
 - **On-screen clock**: say the time in narration at key beats ("5:42 AM.", "Nine minutes left.") — countdown pressure is the engine of the format.

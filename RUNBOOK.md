@@ -1,6 +1,6 @@
 # Daily episode runbook
 
-Goal: one new, original **1:20–1:30** vertical (1080×1920) 3D Roblox-style story short per day, in the
+Goal: one new, original **2:00–2:10** vertical (1080×1920) 3D Roblox-style story short per day, in the
 "In this world…" format (or a cold open — see step 1). New premise, new characters every day. **Narration + small sound effects, no music.**
 
 **Owner feedback (2026-11-18) — applies to every episode:**
@@ -59,7 +59,7 @@ scheduled prompts.
   look at faces, lighting and texture there; fix before the full render.
 
 **Owner request (2026-11-26) — runs now use Fable 5.2: "I'd like to see improvements in the animation."** Put the extra capability into the animation itself, not into more
-shots or longer stories. Format, length, voice and the time budget stay the same; render time is unchanged, so the gains come from better shot code. Every episode:
+shots per line. Format and voice stay the same (length changed separately — see Length, owner 2026-11-26); the gains come from better shot code. Every episode:
 - **Block before you code (step 4):** for each shot write a one-line blocking note in the shot comment: who stands where, who looks at whom, the main action beat and
   its second, the camera move and why. Work out sightlines on paper first: what sits between the camera and each face (posts, trees, rollers, flags, other people,
   the narrator's own head). Most of episode 020's preview rounds went on cameras inside trees/buildings, views blocked by the well's posts, and a giant's face out of frame.
@@ -99,11 +99,12 @@ Never two standalones in one day while the series runs. When SERIES.md is DONE, 
 - **Any run:** if the owner tells you a vote result, record it in SERIES.md, commit and push it before anything else.
 - After the final part, SERIES.md is set to DONE and all runs go back to normal episodes.
 
-**Length: 1:20–1:30 (80–90 s), chosen per story.** Owner decision 2026-11-17: shorter than the old ~2:20, but long enough for a real arc.
-Lighter/funny premises land near 1:20; emotional ones with a search + reveal can use the full 1:30. Never under 1:15 or over 1:35.
+**Length: 2:00–2:10 (120–130 s), chosen per story.** Owner decision 2026-11-26 (replaces the 1:20–1:30 rule of 2026-11-17). Lighter/funny premises land near
+2:00; emotional ones with a search + reveal can use the full 2:10. Never under 1:58 or over 2:12. Spend the extra ~40 s on story (a third gag, a real midpoint
+setback, a longer reveal) and on letting key moments breathe — not on padding or slower narration.
 This overrides any older length in a scheduled prompt or earlier episode. Episodes 001–003 are the old 2:20 format — copy their code patterns, not their length.
 
-Total time budget ≈ 2.75 h: setup 8 min · story 12 min · narration 9 min · shots 45 min · previews/fixes 20 min · render ~90 min · delivery 5 min.
+Total time budget ≈ 3.75 h: setup 8 min · story 15 min · narration 12 min · shots 65 min · previews/fixes 25 min · render ~80–120 min · delivery 5 min.
 The time saved by the shorter format goes into **quality**: fewer shots, each one richer (see §4c), and a higher-quality render.
 
 **Narrator voice:** the series is narrated in the owner's own voice, cloned locally by `engine/voice.py` from
@@ -151,7 +152,7 @@ Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked e
 - Do not copy the example premises. For all ages (owner rule 2026-11-22), YouTube-safe. Original story — never retell an existing film, book, show or someone else's video.
 
 ## 2. Write `episodes/NNN-slug/script.txt` (NNN = next number)
-Formula (80–90 s version — the full arc, kept tight):
+Formula (120–130 s version — the full arc with room to breathe):
 0. **Line 1 = the hook** (1–2 s, ≤ 6 words): a flash-forward of the climax, spoken over the climax shot (`hook()` in kit.js reuses that shot),
    e.g. "Forty years. That's what I traded." / "It was right behind me." End it with a `rewind` sfx, then the story starts from the beginning.
    **The first 3–4 seconds decide whether YouTube keeps pushing the short (owner 2026-11-21):** the hook line is a curiosity gap (a shocking
@@ -161,14 +162,14 @@ Formula (80–90 s version — the full arc, kept tight):
 1. Opener per the rolled OPENER — `in-this-world`: line 2 "In this world," — line 3: the rule. `cold-open`: state the rule as a fact in one punchy
    line, no "In this world" (e.g. "Every morning, the creatures come."), then go on.
 2. One line explains how it works ("You see, …" or any natural phrasing).
-3. 2–3 quick gags showing the rule on side characters (teacher, parent, sibling, neighbor…), 2 lines each: setup + punchline.
+3. 3 quick gags showing the rule on side characters (teacher, parent, sibling, neighbor…), 2 lines each: setup + punchline.
 4. "I'm <Name>. I'm <age>." + a hook that breaks the rule for the narrator.
-5. Fun at first (2 beats), then it goes wrong (2 beats).
-6. A search or escalation (3–4 lines); a discovery.
-7. Emotional reveal + a choice or sacrifice (4–6 lines, give it room — this is what the extra time is for).
+5. Fun at first (3 beats), then it goes wrong (3 beats, escalating).
+6. A search or escalation (5–7 lines) with a midpoint setback (a plan that fails) before the discovery.
+7. Emotional reveal + a choice or sacrifice (6–8 lines, give it room — this is what the extra time is for).
    Wild mode: the big twist / clever trick that beats the chaos instead (a small heartfelt beat is optional).
 8. Resolution + a callback to one gag + a short final line that lands emotionally.
-- 43–51 lines (incl. the hook), 260–300 words → about 1:20–1:30 at the narrator's pace (≈3.4 words/s incl. pauses; ~265 words ≈ 1:20, ~295 ≈ 1:30). One line = one shot. Keep lines short (≤ 10 words).
+- 58–66 lines (incl. the hook), 370–400 words → about 2:00–2:10 at the narrator's measured pace (≈3.1 words/s incl. pauses at the default PAUSE_GAP; ~372 words ≈ 2:00, ~400 ≈ 2:10 — episode 020: 296 words = 94.8 s). One line = one shot. Keep lines short (≤ 10 words).
 - Every line must earn its place: one idea per line, no recap lines, at most 3 speaking characters besides the narrator.
 - First-person narrator (any age — a kid, a teen, a grandparent, a bus driver…; series parts use SERIES.md's voice). Dialogue goes in "double quotes" and also gets a speech bubble.
 - End a line with ` [pause]` for a dramatic beat (use ~6–8 times: big reveals, sad moments, final line). Lines up to a [pause] are read as one
@@ -184,7 +185,7 @@ Narration (`VOICE_MODE=passage`, default): each passage is generated as ONE cont
 Whisper and regenerated up to 6× if it has repeated/missing words; silences > 0.5 s inside a take are shortened and endings are never clipped. Line
 boundaries are only timestamps for the cuts. Read the `passage … CHECK:` lines and the final `QUALITY:` line: number spellings are fine, but if a
 passage is still flagged (REPEAT or wrong words), reword those lines and rerun just them: `ONLY=12,13 python3 engine/voice.py episodes/NNN-slug`
-(other passages are reused from out/passages/). Adjust the script if the duration is outside 1:15–1:35. **Listen-check:** do not deliver with a
+(other passages are reused from out/passages/). Adjust the script (add/cut lines, not pause length) if the duration is outside 1:58–2:12. **Listen-check:** do not deliver with a
 flagged passage.
 
 ## 2b. Design the cast for this story (mandatory — owner request 2026-11-18)
@@ -323,7 +324,7 @@ For close-ups, also check 2–3 frames at full resolution: `python3 engine/rende
 ```
 nohup python3 engine/render.py episodes/NNN-slug video > episodes/NNN-slug/out/render.log 2>&1 &
 ```
-The render is resumable (finished 300-frame chunks are kept in out/parts/ and skipped on a re-run — if the container restarts, just run the same command again). ≈2.0–2.3 s per frame with the quality passes (rainy night sets with many lights: ≈4.5 s) (≈85–105 min for 1:20–1:30). Keep the quality passes on (`q=1`, the default). Poll the log. Output: `out/final.mp4` (~50 MB).
+The render is resumable (finished 300-frame chunks are kept in out/parts/ and skipped on a re-run — if the container restarts, just run the same command again). ≈2.0–2.3 s per frame with the quality passes (rainy night sets with many lights: ≈4.5 s) (≈80–120 min for 2:00–2:10). Keep the quality passes on (`q=1`, the default). Poll the log. Output: `out/final.mp4` (~50 MB).
 Sanity check: `ffprobe` duration ≈ narration duration; extract a 30-frame contact sheet and look at it.
 
 ## 6b. Custom thumbnail (mandatory — owner request 2026-11-21)
