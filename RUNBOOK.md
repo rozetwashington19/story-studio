@@ -80,7 +80,7 @@ shots per line. Format and voice stay the same (length changed separately — se
 - **Animation QC (step 5, in addition to the stills):** for the 6 most important shots, also render a 4-frame strip (`frame <line> 0.1/0.4/0.7/0.95`) and check that the motion
   actually reads: no frozen character, no pop between frames, faces visible on the key words. In the final message, name the shots that most improved and the weakest one.
 
-**Owner override (2026-11-26, today only):** no Fog part today. The 11:40 AM midday run makes a regular standalone episode (even if the Part 3 vote result is filled in), and the 3:20 PM evening run makes a second standalone as usual — two standalones are allowed on 2026-11-26 only. If a vote result arrives today, record it, but Part 4 is built on 2026-11-27 by the first run under the normal rules.
+**Owner override (2026-11-26, today only):** no Fog part today. The 11:40 AM midday run makes a regular standalone episode (even if the Part 3 vote result is filled in), and the 3:20 PM evening run makes a second standalone as usual — two standalones are allowed on 2026-11-26 only. Part 4 waits for the owner's Part 3 vote result: once it is reported (on a later day), the first run after that builds Part 4 under the normal rules — until then, standalones only.
 
 **Owner schedule (2026-11-23) — while THE FOG series is ACTIVE: at most ONE Fog part + ONE standalone episode per day** (replaces the 2026-11-22 HOLD rule).
 Owner posts the Fog part at 4 PM Eastern (11 AM on weekends) and the standalone at ~7:30 PM Eastern. Runs start 11:40 AM ET (midday, right after the ~11:30 vote) and 3:20 PM ET (evening) so the longer 2:00–2:10 episodes (~4 h) are ready in time (owner 2026-11-26). Every run (midday or evening), after `git pull`:
