@@ -11,8 +11,9 @@ export const HAIR_MODELS = {};
 export async function loadHairModels(index) {
   const ol = new OBJLoader(), tl = new THREE.TextureLoader();
   await Promise.all(Object.entries(index || {}).map(async ([name, e]) => {
-    const obj = await ol.loadAsync(`hairs/${e.obj}`); let geo = null; obj.traverse(m => { if (m.isMesh && !geo) geo = m.geometry; });
+    const obj = await ol.loadAsync(`hairs/${e.obj}`); let geo = null, olGeo = null; obj.traverse(m => { if (!m.isMesh) return; if (m.name === 'outline') olGeo = m.geometry; else if (!geo) geo = m.geometry; });
     if (!geo) return;
+    if (olGeo) { olGeo.rotateY((e.rot || 0) * Math.PI / 180); olGeo.scale(e.scale || 1, e.scale || 1, e.scale || 1); olGeo.translate(...(e.off || [0, 0, 0])); }
     geo.rotateY((e.rot || 0) * Math.PI / 180); geo.scale(e.scale || 1, e.scale || 1, e.scale || 1); geo.translate(...(e.off || [0, 0, 0]));
     // smooth normals by shared position (OBJLoader gives unindexed triangles -> flat shading otherwise)
     const p = geo.attributes.position, n = new Float32Array(p.count * 3), acc = new Map(), key = i => `${p.getX(i).toFixed(4)},${p.getY(i).toFixed(4)},${p.getZ(i).toFixed(4)}`;
@@ -22,10 +23,11 @@ export async function loadHairModels(index) {
     for (let i = 0; i < p.count; i++) { const v = acc.get(key(i)).clone().normalize(); n[i * 3] = v.x; n[i * 3 + 1] = v.y; n[i * 3 + 2] = v.z; }
     geo.setAttribute('normal', new THREE.BufferAttribute(n, 3)); geo.computeBoundingBox(); geo.computeBoundingSphere();
     let map = null; if (e.tex) { map = await tl.loadAsync(`hairs/${e.tex}`); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 8; map.wrapS = map.wrapT = THREE.RepeatWrapping; }
-    HAIR_MODELS[name] = { geo, map, tint: e.tint !== false };
+    HAIR_MODELS[name] = { geo, olGeo, map, tint: e.tint !== false };
   }));
 }
 const hairModelMats = {};
+const HAIR_OUTLINE = new THREE.MeshBasicMaterial({ color: 0x141418, side: THREE.FrontSide });   // Roblox outline shells are wound inside-out, so their front faces are the far (inner) side
 function hairModelMaterial(name, col) {
   const H = HAIR_MODELS[name], k = name + '|' + (H.tint ? col : '');
   return hairModelMats[k] || (hairModelMats[k] = new THREE.MeshStandardMaterial({ map: H.map, color: H.tint ? col : 0xffffff, roughness: 0.62, metalness: 0, side: THREE.DoubleSide }));
@@ -335,6 +337,7 @@ export function makeAvatar(o = {}) {
   // sculpted hair (engine/hair.js): one merged mesh per avatar; hairSeed (default: from name) varies part side / spikes
   if (o.hair && HAIR_MODELS[o.hair]) {
     const hm = mesh(HAIR_MODELS[o.hair].geo, shadow ? o.shadowMat : hairModelMaterial(o.hair, o.hairCol ?? 0x3a2410), cast); headM.add(hm); A.hairMesh = hm;
+    if (HAIR_MODELS[o.hair].olGeo && !shadow) hm.add(new THREE.Mesh(HAIR_MODELS[o.hair].olGeo, HAIR_OUTLINE));   // toon outline (inverted hull)
   } else if (o.hair) {
     const hg = hairGeometry(o.hair, { seed: o.hairSeed ?? hashStr(o.name || o.hair) });
     if (hg) { const hm = mesh(hg, hairM, cast); headM.add(hm); A.hairMesh = hm; }

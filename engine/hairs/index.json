@@ -3,14 +3,30 @@
   "obj": "shag.obj",
   "tex": "shag.png",
   "tint": true,
-  "rot": 0,
+  "rot": 0.0,
   "scale": 1.08,
   "off": [
-   0,
+   0.0,
    0.12,
    0.02
   ],
   "source": "a4bbb0f5-Hair_01_18221932846.obj",
+  "outline": false,
   "note": "messy layered shag, side-swept fringe covers the character's RIGHT eye (screen left); teen / young adult"
+ },
+ "spikes": {
+  "obj": "spikes.obj",
+  "tex": "spikes.png",
+  "tint": true,
+  "rot": 180,
+  "scale": 0.94,
+  "off": [
+   0,
+   0.46,
+   -0.03
+  ],
+  "source": "fe6decdf-Hair_02_95764853737304.obj",
+  "outline": true,
+  "note": "big spiky anime hair with a toon outline, fringe just above the eyes; sits high (short at the back); teens / young adults, action heroes"
  }
 }

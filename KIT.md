@@ -44,7 +44,10 @@ The owner uploads Roblox hair accessories (OBJ + MTL + diffuse PNG). Import: `py
 Fitting: Roblox hair faces −Z in some exports and +Z in others — check `rot` (0 or 180) first, then `scale` (~1.05–1.1) and `off` (y ≈ +0.1 so fringes sit at the brow, not over both eyes).
 Edit index.json and re-render (`STYLES="shag shag+_+blonde" python3 tools/hair_lineup.py out.jpg`) — no re-import needed. Low-res textures are upscaled seamlessly to 1024 at import.
 Hats: beanie/helmet/hardhat/bandana/hood hide them like sculpted hair; a `cap` sits on top and the big models poke through it — don't combine.
-Models: `shag` (messy layered shag, side-swept fringe over the character's right eye — for close-ups favour a 3/4 from their left so both eyes read; teens / young adults).
+Import details: parts are split automatically; inside-out duplicate shells (Roblox toon outlines) are kept as `o outline` and drawn as a thin near-black rim (front faces, MeshBasic);
+`PARTS=largest` drops extra pieces baked into an accessory (e.g. glasses). Some accessories are built for taller heads: lift them (`off` y up to ~0.5) and shrink a little (`scale` ~0.9) so the fringe clears the eyes (our eyes sit at head-local y ≈ 0.19).
+Models: `shag` (messy layered shag, side-swept fringe over the character's right eye — for close-ups favour a 3/4 from their left so both eyes read; teens / young adults) ·
+`spikes` (big spiky anime hair with a toon outline, fringe just above the eyes, short at the back; teens / young adults, action heroes; the glasses that came with it were removed).
 
 ## Shadows / silhouettes
 `wallShadow(S, opts, [x, z], {profile, size, mat})` flat black figure on a wall facing +Z (put z just in front of the wall);
