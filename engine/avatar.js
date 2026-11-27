@@ -348,9 +348,11 @@ export function makeAvatar(o = {}) {
 
 // pose in degrees; all optional
 const NO_BLINK = ['sleeping', 'sleepy', 'laugh', 'cry', 'wink', 'yawn', 'love', 'silly', 'yell', 'ko', 'dizzy', 'haha', 'terror', 'rage', 'blackeye',
-  'cyclops', 'cheese', 'beam', 'weepy', 'sparkle', 'goofy', 'maniac'];
+  'cyclops', 'cheese', 'beam', 'weepy', 'sparkle', 'goofy', 'maniac',
+  'whoa', 'bigmouth', 'beatup', 'bugeyes', 'wince', 'tinysmile'];
 // faces whose mouth is already wide open (or is the whole joke): the talking flap would paint a small generic mouth over it, so they keep their own mouth while talking
-const NO_TALK = ['yell', 'rage', 'terror', 'gasp', 'haha', 'gleeful', 'stunned', 'evil', 'derp', 'cheese', 'cocky', 'beam', 'maniac', 'furious', 'scold', 'drool', 'goofy', 'cyclops'];
+const NO_TALK = ['yell', 'rage', 'terror', 'gasp', 'haha', 'gleeful', 'stunned', 'evil', 'derp', 'cheese', 'cocky', 'beam', 'maniac', 'furious', 'scold', 'drool', 'goofy', 'cyclops',
+  'whoa', 'bigmouth', 'beatup', 'dopey', 'catface', 'sly', 'tinysmile'];
 export function setPose(A, p = {}) {
   const g = k => p[k] || 0; A.talkK = g('mouth');
   A.armR.rotation.set(-g('rFwd') * D, 0, -g('rUp') * D);

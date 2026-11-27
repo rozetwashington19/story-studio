@@ -268,7 +268,7 @@ Split into `shots_a.js` / `shots_b.js` if long. Lessons learned (follow these):
 - New characters (see 2b for themed costumes): vary skin (tan, light, brown, yellow, pale, or any hex), shirt colors/styles, pants, hair style and hair color (see the
   age table in KIT.md — no two characters in an episode share a style), and hats. Make ages read at a glance: grandparents get
   gray/white hair + `wrinkles` (+ beard/mustache for grandpas), dads/teachers adult styles, kids `freckles`/`rosy`.
-- Use the full range of expressions (KIT.md — including the 40 owner-supplied faces added 2026-11-27: yell, rage, terror, gasp, smug, evil, dizzy, ko, puppyeyes, maniac, furious, cheese, drool, eyebrow…; the owner wants them used from now on); switch faces mid-shot for reactions instead of holding one face. Give the narrator a distinct look from previous episodes.
+- Use the full range of expressions (KIT.md — including the 56 owner-supplied faces added 2026-11-27. **Owner rule: use one only when it fits the scenario — never cycle through them or spam them at random**; most shots still use the ordinary faces, and an extreme face lands because it is rare); switch faces mid-shot for reactions instead of holding one face. Give the narrator a distinct look from previous episodes.
 
 ## 4d. New environments (mandatory — owner rule 2026-11-20)
 - Read `episodes/SETS.md` first. Plan the episode around **3–5 new locations** (fewer, richer sets beat many thin ones) and build each as a
