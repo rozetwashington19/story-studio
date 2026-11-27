@@ -58,5 +58,35 @@
   "source": "cd143c8d-Hair_04_133516776921027.obj",
   "outline": false,
   "note": "thick layered hair with a heavy side-swept fringe over the character's right eye, ends at the jaw; teens / young adults"
+ },
+ "slickback": {
+  "obj": "slickback.obj",
+  "tex": "slickback.png",
+  "tint": true,
+  "rot": 180.0,
+  "scale": 1.04,
+  "off": [
+   0,
+   0.14,
+   0.0
+  ],
+  "source": "d8dcb88f-Hair_05_115223478700820.obj",
+  "outline": false,
+  "note": "swept-back messy hair, face fully clear, longer layered strands at the back of the neck; teens / young adults, cool or rebellious types \u2014 takes any hairCol"
+ },
+ "slickbackdye": {
+  "obj": "slickbackdye.obj",
+  "tex": "slickbackdye.png",
+  "tint": false,
+  "rot": 180.0,
+  "scale": 1.04,
+  "off": [
+   0,
+   0.14,
+   0.0
+  ],
+  "source": "d8dcb88f-Hair_05_115223478700820.obj",
+  "outline": false,
+  "note": "the same cut in its original colours: black with a purple-dyed underlayer at the ends (fixed colour, hairCol is ignored)"
  }
 }
