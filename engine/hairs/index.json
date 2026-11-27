@@ -88,5 +88,20 @@
   "source": "d8dcb88f-Hair_05_115223478700820.obj",
   "outline": false,
   "note": "the same cut in its original colours: black with a purple-dyed underlayer at the ends (fixed colour, hairCol is ignored)"
+ },
+ "tousled": {
+  "obj": "tousled.obj",
+  "tex": "tousled.png",
+  "tint": true,
+  "rot": 0.0,
+  "scale": 0.95,
+  "off": [
+   0.0,
+   0.4,
+   0.0
+  ],
+  "source": "bd339b59-Hair_06_75407968701410.obj",
+  "outline": false,
+  "note": "short messy spiky hair, pointed fringe above the eyes, sticks out at the sides; kids / teens / young adults, everyday or action"
  }
 }

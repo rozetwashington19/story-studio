@@ -5,6 +5,7 @@ DIR=accessories imports into engine/accessories (used as outfit items). PARTS=la
   Very low-poly meshes (< 3000 triangles) get one Loop-style midpoint subdivision + smoothing so silhouettes stay round in close-ups.
 - Texture: maps under 1024 px are upscaled to 1024 seamlessly (tiled 3×3 → LANCZOS → centre crop) and, with TINT=1 (default), turned into a
   neutral luminance detail map around 0.8 so `hairCol` tints it per character. TINT=0 keeps the original colours (fixed-colour hair).
+  A flat one-colour texture (or UVs collapsed onto one texel) gets cylindrical UVs + a generated strand texture (STRANDS=0 turns that off).
 - Fit: ROT (degrees about y; Roblox faces −Z, ours +Z, so 180 by default), SCALE and OFF are stored in engine/hairs/index.json and applied at load
   (edit the JSON and re-render with tools/hair_lineup.py to adjust — no re-import needed)."""
 import sys, os, json, re
@@ -79,6 +80,18 @@ with open(os.path.join(HD, name + ".obj"), "w") as f:
     f.write("o hair\n"); f.writelines(f"f {a+1}/{a+1} {b+1}/{b+1} {c_+1}/{c_+1}\n" for a, b, c_ in T)
     if len(T_ol): f.write("o outline\n"); f.writelines(f"f {a+1}/{a+1} {b+1}/{b+1} {c_+1}/{c_+1}\n" for a, b, c_ in T_ol)
 tint = os.environ.get("TINT", "1") != "0"; texname = None
+# flat texture (one colour) or UVs collapsed onto a single texel: there is no strand detail to keep, so give the model cylindrical UVs
+# (u around the head, v down it) and a generated strand texture, so it shades like real hair instead of a plastic shell
+if tex:
+    _a = np.array(Image.open(tex).convert("RGB")).astype(np.float32); _uvs = np.ptp(UV, 0).max() * max(_a.shape[:2])
+    if (_a.std() < 2.0 or _uvs < 2.0) and os.environ.get("STRANDS", "1") != "0":
+        UV = np.stack([(np.arctan2(P[:, 0], P[:, 2]) / (2 * np.pi) + 0.5) * 6.0, (P[:, 1] - P[:, 1].min()) / np.ptp(P[:, 1])], 1)
+        R_ = np.random.default_rng(7); n = 1024; cols = np.zeros(n)
+        for w in (1, 2, 4, 9): cols += np.repeat(R_.normal(0, 1, n // w + 2), w)[:n] / w ** 0.3   # strands of several widths
+        cols = (cols - cols.mean()) / cols.std(); yy = np.linspace(0, 1, n)[:, None]
+        L = 0.82 + 0.02 * cols[None, :] + 0.008 * R_.normal(0, 1, (n, n))   # very soft fine strands (stronger reads as wood grain; no vertical gradient -> no seam)
+        img = np.clip(L, 0.45, 1.0)[..., None].repeat(3, 2) * 255
+        tex = os.path.join(HD, name + "_strands_src.png"); Image.fromarray(img.astype(np.uint8)).save(tex); print("flat/collapsed texture -> cylindrical UVs + generated strand texture")
 if tex:
     im = Image.open(tex).convert("RGBA"); a = np.array(im).astype(np.float32)
     uvpx = [(min(im.size[0] - 1, int(u % 1 * im.size[0])), min(im.size[1] - 1, int((1 - v % 1) * im.size[1]))) for u, v in UV]   # texels the model actually uses (atlases hold other parts too)
@@ -92,6 +105,9 @@ if tex:
         d = np.clip(0.8 + (L - m0) / s * 0.1, 0.45, 1.0) * 255
         a[..., :3] = d[..., None]
     texname = name + ".png"; Image.fromarray(a.clip(0, 255).astype(np.uint8)).save(os.path.join(HD, texname))
+    if tex.endswith("_strands_src.png"):
+        os.remove(tex); src = open(os.path.join(HD, name + ".obj")).read().split("\n"); it = iter(UV)
+        open(os.path.join(HD, name + ".obj"), "w").write("\n".join((lambda u: f"vt {u[0]:.5f} {u[1]:.5f}")(next(it)) if l.startswith("vt ") else l for l in src))
 idx_p = os.path.join(HD, "index.json"); idx = json.load(open(idx_p)) if os.path.exists(idx_p) else {}
 old = idx.get(name, {})
 idx[name] = {"obj": name + ".obj", "tex": texname, "tint": tint, "rot": float(os.environ.get("ROT", old.get("rot", 180))),
