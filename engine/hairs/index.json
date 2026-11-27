@@ -135,5 +135,21 @@
   "fixedTex": "capcut_fixed.png",
   "note": "messy layered hair under a black distressed baseball cap (brim forward, chains on the back strap); the hair takes hairCol, the cap keeps its own colours; street / skater / cool teens",
   "tilt": 14
+ },
+ "feathered": {
+  "obj": "feathered.obj",
+  "tex": "feathered.png",
+  "tint": true,
+  "rot": 180.0,
+  "scale": 1.08,
+  "off": [
+   0,
+   0.24,
+   0
+  ],
+  "source": "323d3801-Hair_09_84042784392394.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "short feathered layered hair, side-swept fringe above the eyes, tapered at the nape; kids / teens / young adults, a neat everyday look"
  }
 }
