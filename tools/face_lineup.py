@@ -1,6 +1,6 @@
 """Render faces/characters on real heads:  python3 tools/face_lineup.py out.jpg [face ...]
 Each entry: 'face' or 'face@style+beard+color+details' where details is any of w(rinkles) f(reckles) r(osy), e.g. 'proud@balding+full+gray+w'.
-Two entries per tile row-pair (first half / second half of each shot). Uses a throwaway episodes/_facetest. CLOSE=1 also saves full-res close-ups of the first shot as <out>_1.png / <out>_2.png."""
+Two entries per tile row-pair (first half / second half of each shot). Uses a throwaway episodes/_facetest. ANIM=b shows every face mid-blink, ANIM=o with the talking mouth (checks the automatic facial animation on new faces). CLOSE=1 also saves full-res close-ups of the first shot as <out>_1.png / <out>_2.png."""
 import json, os, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); EP = os.path.join(ROOT, "episodes/_facetest")
 OUT = sys.argv[1]; E = sys.argv[2:]
@@ -16,9 +16,10 @@ function spec(e, k) { const [face, rest] = e.split('@'); const [hair, beard, col
     hairCol: col && col !== '_' ? HAIR_COLORS[col] : 0x2a1708, wrinkles: /w/.test(det || ''), freckles: /f/.test(det || ''), rosy: /r/.test(det || ''), name: 'a' + k }; }
 export const SHOTS = P.map((p, k) => (S, cam) => {
   kidRoomDay(S); const A = [0, 1].map(i => { const a = add(S, makeAvatar(spec(p[i], 2 * k + i)), [0, 0, -3], 15); a.root.visible = i === 0; return a; });
-  return (t, dur) => { const b = t > dur / 2; A[0].root.visible = !b; A[1].root.visible = b; camPath(cam, 0, [0, 4.75, 2.6], [0, 4.75, 2.6], [0, 4.5, -3], [0, 4.5, -3], 34); };
+  const AN = %s; if (AN) S.userData.faceAnim = false;
+  return (t, dur) => { const b = t > dur / 2; A[0].root.visible = !b; A[1].root.visible = b; if (AN) A.forEach(a => a.anim && a.anim(AN[0], AN[1])); camPath(cam, 0, [0, 4.75, 2.6], [0, 4.75, 2.6], [0, 4.5, -3], [0, 4.5, -3], 34); };
 });
-""" % json.dumps(pairs))
+""" % (json.dumps(pairs), json.dumps({"b": [1, 0], "o": [0, 1]}.get(os.environ.get("ANIM", ""))) ))
 try:
     r = subprocess.run(["python3", "engine/render.py", EP, "stills"], cwd=ROOT, capture_output=True, text=True)
     errs = [l for l in r.stdout.splitlines() if "PAGEERROR" in l]

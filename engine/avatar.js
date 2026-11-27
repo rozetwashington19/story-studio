@@ -302,7 +302,7 @@ export function makeAvatar(o = {}) {
   A.mods = ''; const applyFace = () => { A.faceMat.map = faceSkinTex(skinHex, A.face, det, A.mods); A.faceMat.needsUpdate = true; };
   A.setFace = n => { if (A.faceMat && faceTex[n] && n !== A.face) { A.face = n; applyFace(); } };
   // A.anim(blink, mouthOpen): set by engine/main.html every frame (auto blinks; mouth flaps while the pose includes talk())
-  A.anim = (b, o) => { if (!A.faceMat) return; const m = (b && !NO_BLINK.includes(A.face) ? 'b' : '') + (o ? 'o' : ''); if (m !== A.mods) { A.mods = m; applyFace(); } };
+  A.anim = (b, o) => { if (!A.faceMat) return; const m = (b && !NO_BLINK.includes(A.face) ? 'b' : '') + (o && !NO_TALK.includes(A.face) ? 'o' : ''); if (m !== A.mods) { A.mods = m; applyFace(); } };
   Object.defineProperty(A.root, '__avatar', { value: A }); A.talkK = 0; A.blinkSeed = hashStr(o.name || 'a') % 1000 / 1000;
   // hair / hats (children of head mesh)
   // sculpted hair (engine/hair.js): one merged mesh per avatar; hairSeed (default: from name) varies part side / spikes
@@ -347,7 +347,9 @@ export function makeAvatar(o = {}) {
 }
 
 // pose in degrees; all optional
-const NO_BLINK = ['sleeping', 'sleepy', 'laugh', 'cry', 'wink', 'yawn', 'love', 'silly'];
+const NO_BLINK = ['sleeping', 'sleepy', 'laugh', 'cry', 'wink', 'yawn', 'love', 'silly', 'yell', 'ko', 'dizzy', 'haha', 'terror', 'rage', 'blackeye'];
+// faces whose mouth is already wide open (or is the whole joke): the talking flap would paint a small generic mouth over it, so they keep their own mouth while talking
+const NO_TALK = ['yell', 'rage', 'terror', 'gasp', 'haha', 'gleeful', 'stunned', 'evil', 'derp'];
 export function setPose(A, p = {}) {
   const g = k => p[k] || 0; A.talkK = g('mouth');
   A.armR.rotation.set(-g('rFwd') * D, 0, -g('rUp') * D);

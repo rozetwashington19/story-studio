@@ -100,6 +100,10 @@ Faces are painted into the head's skin texture (cylindrical mapping, seam at the
 `A.setFace(name)` swaps the expression instantly.
 `engine/faces/*.png` are loaded automatically. Current (33): smile grin shock sad smirk neutral worried cry teary fakesmile determined softsmile
 wink awe blush angry laugh scared sleepy sleeping love starstruck confused thinking nervous mischief proud bored disgusted silly pout relieved delighted.
+**Owner-supplied faces (2026-11-27, "add these faces moving forward") — use them like any other face (`A.setFace('rage')`), and prefer them for big comic reactions:**
+`yell` (huge open mouth, teeth) · `frown` · `sob` (tears flying) · `stunned` · `blackeye` · `gleeful` · `evil` (villain grin) · `derp` · `stern` · `rage` · `eager` · `unimpressed` · `suspicious` · `smug` · `ko` (X eyes) · `dizzy` (spiral eyes) · `gasp` · `haha` (giant laugh) · `chill` · `terror`.
+The big-mouth ones (`yell rage terror gasp haha gleeful stunned evil derp`) keep their own mouth while talking, and `yell ko dizzy haha terror rage blackeye` don't blink (`NO_TALK` / `NO_BLINK` in engine/avatar.js — add new imports there if the automatic blink or mouth flap spoils them; check with `ANIM=b` / `ANIM=o python3 tools/face_lineup.py …`).
+Import more with `python3 tools/import_faces.py name=path.png …` (any size; low-res images are rebuilt with crisp edges, soft shading kept), then check them with `tools/face_lineup.py`. Thin black-line faces (`ko`, `frown`, `derp`, `evil`) are hard to read on the darkest skin tones — pick a fuller face there.
 New faces: draw with PIL like `tools/faces4.py`. Swap expressions mid-shot with `A.setFace()` for reactions (e.g. smile -> shock -> laugh).
 
 ## Rain + Episode 005 kit (`engine/themes.js` rain section, `engine/sets6.js`)
