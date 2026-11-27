@@ -234,5 +234,37 @@
   "outline": false,
   "fixedTex": null,
   "note": "the same cut in its original rose-blonde with darker roots (fixed colour, hairCol is ignored)"
+ },
+ "gothic": {
+  "obj": "gothic.obj",
+  "tex": "gothic.png",
+  "tint": true,
+  "rot": 180.0,
+  "scale": 1.08,
+  "off": [
+   0,
+   -0.3,
+   0.02
+  ],
+  "source": "6dbd069a-Hair_13_114121690791155.obj",
+  "outline": false,
+  "fixedTex": "gothic_fixed.png",
+  "note": "long straight hair with blunt bangs above the eyes and a black spiked lace headdress with cross clips and a big bow at the back; the hair takes hairCol, the headdress stays black; goth / alt / fantasy characters"
+ },
+ "gothicwhite": {
+  "obj": "gothicwhite.obj",
+  "tex": "gothicwhite.png",
+  "tint": false,
+  "rot": 180.0,
+  "scale": 1.08,
+  "off": [
+   0,
+   -0.3,
+   0.02
+  ],
+  "source": "6dbd069a-Hair_13_114121690791155.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "the same in its original white hair with the black headdress (fixed colour, hairCol is ignored)"
  }
 }
