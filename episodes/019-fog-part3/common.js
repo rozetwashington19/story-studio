@@ -46,3 +46,12 @@ export const youngAbe = (S, face, pos, ry = 0) => { const A = add(S, makeAvatar(
 export const crowd = (S, i, face, pos, ry = 0) => add(S, makeAvatar({ ...CROWD[i], pantsStyle: 'plain', name: 'crowd' + i, face }), pos, ry);
 export const walkerDog = (S) => pup(S, { name: 'walkerdog', col: 0xf2efe6, spot: 0x2a2a2e });
 export const CAST = { You: SCAST.You, Abe: SCAST.Abe, Dot: SCAST.Dot, Nell: SCAST.Nell, Pip: SCAST.Pip, 'Young Abe': YOUNGABE };
+// ---- animation-pass helpers (Fable 5.2 update, 2026-11-26) ----
+import { addPose as _add, lookAt as _look, walk as _walk } from '../../engine/kit.js';
+export const ps = (...a) => a.reduce((x, y) => _add(x, y), {});
+// scaled eyeline: head turn/nod toward a world point (k < 1 keeps faces readable)
+export const eyes = (A, p, k = 0.6) => { const l = _look(A, p); return { turn: l.turn * k, nod: l.nod * k }; };
+// the dog's head follows a world point (call after B.update)
+export const dogLook = (B, p, k = 1) => { B.root.updateMatrixWorld(true); const l = B.root.worldToLocal(new THREE.Vector3(p[0], p[1], p[2])); B.head.rotation.y = clamp01(k) * Math.max(-1.1, Math.min(1.1, Math.atan2(l.x, l.z))); B.head.rotation.x += -clamp01(k) * Math.max(-0.5, Math.min(0.7, Math.atan2(l.y - 1.9, Math.hypot(l.x, l.z)))); };
+// careful steps while carrying something: legs + bob only, speed v in studs/s matched to the stride (no foot sliding)
+export const carryWalk = (t, v = 1, amp = 14) => { const w = _walk(t, v / 2.47, amp); return { rLeg: w.rLeg, lLeg: w.lLeg, bob: w.bob * 0.7, tilt: Math.sin(t * 8 * v / 2.47) * 2, lean: 5 }; };
