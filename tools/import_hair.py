@@ -1,6 +1,6 @@
 """Import an owner-supplied hair model (owner 2026-11-27: OBJ + MTL + diffuse PNG, e.g. Roblox hair accessories) into engine/hairs/.
   python3 tools/import_hair.py <name> <model.obj> [texture.png]  [ROT=180 SCALE=1 OFF=0,0,0 TINT=1]
-PARTS=largest drops extra parts baked into the accessory (glasses, clips). Then use it like any other style: makeAvatar({ hair: '<name>', hairCol: … }).
+DIR=accessories imports into engine/accessories (used as outfit items). PARTS=largest keeps only the biggest part, PARTS=rest everything except it (e.g. the glasses baked into a hair); SKIP_PARTS=i,j drops individual parts (indices are printed). PARTS=largest drops extra parts baked into the accessory (glasses, clips). Then use it like any other style: makeAvatar({ hair: '<name>', hairCol: … }).
 - Geometry: vertices welded, smooth normals recomputed, re-centred like a Roblox head accessory (the head is 1.2 studs; ours is R 0.62, top y 0.61).
   Very low-poly meshes (< 3000 triangles) get one Loop-style midpoint subdivision + smoothing so silhouettes stay round in close-ups.
 - Texture: maps under 1024 px are upscaled to 1024 seamlessly (tiled 3×3 → LANCZOS → centre crop) and, with TINT=1 (default), turned into a
@@ -10,7 +10,7 @@ PARTS=largest drops extra parts baked into the accessory (glasses, clips). Then 
 import sys, os, json, re
 import numpy as np
 from PIL import Image
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); HD = os.path.join(ROOT, "engine/hairs"); os.makedirs(HD, exist_ok=True)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); HD = os.path.join(ROOT, "engine", os.environ.get("DIR", "hairs")); os.makedirs(HD, exist_ok=True)
 name, obj = sys.argv[1], sys.argv[2]; tex = sys.argv[3] if len(sys.argv) > 3 else None
 V, VT, F = [], [], []
 for l in open(obj, errors="ignore"):
@@ -60,7 +60,9 @@ comp = {}
 for ti, t in enumerate(T): comp.setdefault(find(t[0]), []).append(ti)
 is_ol = {r: np.ptp(UV[np.unique(T[ts])], 0).max() < 1e-3 for r, ts in comp.items()}
 real = sorted([r for r in comp if not is_ol[r]], key=lambda r: -len(comp[r]))
-keep = set(real[:1]) if os.environ.get("PARTS") == "largest" else set(real)
+for i_, r in enumerate(real): q_ = P[np.unique(T[comp[r]])]; print(f"  part {i_}: {len(comp[r])} tris, x {q_[:,0].min():.2f}..{q_[:,0].max():.2f} y {q_[:,1].min():.2f}..{q_[:,1].max():.2f} z {q_[:,2].min():.2f}..{q_[:,2].max():.2f}")
+PM = os.environ.get("PARTS", "all"); keep = set(real[:1]) if PM == "largest" else set(real[1:]) if PM == "rest" else set(real)
+keep -= {real[int(i_)] for i_ in os.environ.get("SKIP_PARTS", "").split(",") if i_.strip()}   # SKIP_PARTS=8,9: drop parts by the index printed above
 # an outline shell belongs to a kept part when it has the same triangle count and (almost) the same centre
 cen = {r: P[np.unique(T[ts])].mean(0) for r, ts in comp.items()}
 keep |= {r for r in comp if is_ol[r] and any(len(comp[r]) == len(comp[k]) and np.linalg.norm(cen[r] - cen[k]) < 0.05 for k in keep)}
@@ -68,7 +70,9 @@ OL = [ti for r in comp if r in keep and is_ol[r] for ti in comp[r]]; MAIN = [ti 
 dropped = len(T) - len(OL) - len(MAIN); T_ol = T[OL] if OL else np.zeros((0, 3), int); T = T[MAIN]
 print(f"parts: {len(real)} real, {sum(is_ol.values())} outline shells; kept {len(MAIN)} + {len(OL)} outline tris, dropped {dropped}")
 if len(T) < 3000 and os.environ.get("SUBDIV", "1") != "0" and not len(T_ol): P, UV, T = subdivide(P, UV, T)
-used_v = np.unique(np.concatenate([T.ravel(), T_ol.ravel()])); c = (P[used_v].min(0) + P[used_v].max(0)) / 2; c[1] = 0; P = P - c   # centre in x/z (Roblox exports are already centred on the accessory)
+used_v = np.unique(np.concatenate([T.ravel(), T_ol.ravel()])); c = (P[used_v].min(0) + P[used_v].max(0)) / 2; c[1] = 0
+if os.environ.get("NOCENTER"): c[:] = 0   # keep the source coordinates (e.g. glasses taken out of a hair keep their place relative to it)
+P = P - c   # centre in x/z (Roblox exports are already centred on the accessory)
 with open(os.path.join(HD, name + ".obj"), "w") as f:
     f.write(f"# {name}: imported from {os.path.basename(obj)} by tools/import_hair.py ({len(T)} triangles)\n")
     f.writelines(f"v {x:.5f} {y:.5f} {z:.5f}\n" for x, y, z in P); f.writelines(f"vt {u:.5f} {v:.5f}\n" for u, v in UV)
@@ -91,7 +95,7 @@ if tex:
 idx_p = os.path.join(HD, "index.json"); idx = json.load(open(idx_p)) if os.path.exists(idx_p) else {}
 old = idx.get(name, {})
 idx[name] = {"obj": name + ".obj", "tex": texname, "tint": tint, "rot": float(os.environ.get("ROT", old.get("rot", 180))),
-             "scale": float(os.environ.get("SCALE", old.get("scale", 1.0))), "off": [float(x) for x in os.environ.get("OFF", ",".join(map(str, old.get("off", [0, 0, 0])))).split(",")],
+             "scale": (lambda v: [float(x) for x in v.split(",")] if "," in v else float(v))(os.environ.get("SCALE", ",".join(map(str, old["scale"])) if isinstance(old.get("scale"), list) else str(old.get("scale", 1.0)))), "off": [float(x) for x in os.environ.get("OFF", ",".join(map(str, old.get("off", [0, 0, 0])))).split(",")],
              "source": os.path.basename(obj)}
 idx[name]["outline"] = bool(len(T_ol)); idx[name]["note"] = old.get("note", "")
 json.dump(idx, open(idx_p, "w"), indent=1); print(name, f"{len(T)} tris", "bounds", P.min(0).round(3), P.max(0).round(3), "tex", texname, "->", idx_p)

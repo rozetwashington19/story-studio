@@ -9,6 +9,7 @@
 // Shirt styles (fabricTex): plain hoodie shirt blazer tee + stripes plaid jacket overalls sweater uniform spacesuit knight hawaiian flamingo (faded flamingo print) polo (staff polo).
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { ACC_MODELS, OUTLINE_MAT } from './models.js';
 
 const D = Math.PI / 180;
 const M = (col, o = {}) => new THREE.MeshStandardMaterial({ color: col, roughness: 0.7, ...o });
@@ -96,9 +97,16 @@ const ITEMS = {
   kneepads: (A, { col = 0x2a2a2a }) => { for (const leg of [A.legR, A.legL]) add(leg, rb(0.7, 0.5, 0.2, 0.06), M(col), [0, -0.95, 0.52]); },
 };
 export const OUTFIT_ITEMS = Object.keys(ITEMS);
+// owner-supplied accessory models (engine/accessories, tools/import_hair.py with DIR=accessories): use the name like any item, e.g. outfit: ['spikesglasses'].
+// { col } tints it when the model was imported with TINT=1; otherwise it keeps its own texture colours.
+const accMats = {};
+function accItem(n) { return (A, { col } = {}) => { const M_ = ACC_MODELS[n], k = n + '|' + (M_.tint ? (col ?? 0xffffff) : '');
+  const mat = accMats[k] || (accMats[k] = new THREE.MeshStandardMaterial({ map: M_.map, color: M_.tint ? (col ?? 0xffffff) : 0xffffff, roughness: 0.4, metalness: 0.1, side: THREE.DoubleSide }));
+  const parent = M_.attach === 'body' ? A.body : A.headMesh; const m = new THREE.Mesh(M_.geo, mat); m.castShadow = true; m.receiveShadow = true; parent.add(m);
+  if (M_.olGeo) m.add(new THREE.Mesh(M_.olGeo, OUTLINE_MAT)); }; }
 const HIDES_HAIR = ['beanie', 'helmet', 'hardhat', 'bandana', 'hood', 'knighthelm'];   // these sit tight on the head: hair would poke through ({ hair: true } keeps it)
 export function outfit(A, items = []) {
-  for (const it of items) { const [n, o] = Array.isArray(it) ? it : [it, {}]; const f = ITEMS[n]; if (!f) { console.warn('unknown outfit item', n); continue; }
+  for (const it of items) { const [n, o] = Array.isArray(it) ? it : [it, {}]; const f = ITEMS[n] || (ACC_MODELS[n] && accItem(n)); if (!f) { console.warn('unknown outfit item', n); continue; }
     if (HIDES_HAIR.includes(n) && A.hairMesh && !(o && o.hair)) A.hairMesh.visible = false;
     const before = new Set(); [A.headMesh, A.body, A.armR, A.armL, A.legR, A.legL].forEach(p => p.traverse(c => before.add(c)));
     f(A, o || {});

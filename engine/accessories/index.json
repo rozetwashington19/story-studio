@@ -1,0 +1,21 @@
+{
+ "roundshades": {
+  "obj": "roundshades.obj",
+  "tex": "roundshades.png",
+  "tint": false,
+  "rot": 180.0,
+  "scale": [
+   1.12,
+   1.0,
+   0.85
+  ],
+  "off": [
+   0.0,
+   0.535,
+   0.0
+  ],
+  "source": "fe6decdf-Hair_02_95764853737304.obj",
+  "outline": true,
+  "note": "round dark sunglasses, silver wire frame + arms (came with the spikes hair); hides the eyes, so faces read from the mouth only"
+ }
+}

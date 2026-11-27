@@ -3,6 +3,7 @@
 <script type="module">
 import * as THREE from 'three';
 import {loadFaces, loadHairModels} from './avatar.js';
+import {loadAccessoryModels} from './models.js';
 import {findClips} from './clips.js';
 
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
@@ -16,6 +17,7 @@ import {SMAAPass} from 'three/addons/postprocessing/SMAAPass.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 await loadFaces(await (await fetch('faces/index.json')).json());
 await loadHairModels(await fetch('hairs/index.json').then(r => r.ok ? r.json() : {}).catch(() => ({})));
+await loadAccessoryModels(await fetch('accessories/index.json').then(r => r.ok ? r.json() : {}).catch(() => ({})));
 const q0=new URLSearchParams(location.search); const {SHOTS}=await import(`../episodes/${q0.get('ep')}/shots.js`);
 await document.fonts.load('600 40px Inter');
 const q=new URLSearchParams(location.search); const W=+(q.get('w')||1080), H=+(q.get('h')||1920);

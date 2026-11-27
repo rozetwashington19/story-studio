@@ -18,10 +18,10 @@
   "obj": "spikes.obj",
   "tex": "spikes.png",
   "tint": true,
-  "rot": 180,
+  "rot": 180.0,
   "scale": 0.94,
   "off": [
-   0,
+   0.0,
    0.46,
    -0.03
   ],
