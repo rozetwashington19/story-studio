@@ -168,5 +168,39 @@
   "fixedTex": null,
   "note": "long straight hair to the waist, centre part, side-swept fringe over the character's right eye, strands in front of the shoulders; teens / adults",
   "tilt": 5
+ },
+ "shaggymullet": {
+  "obj": "shaggymullet.obj",
+  "tex": "shaggymullet.png",
+  "tint": true,
+  "rot": 0.0,
+  "scale": 1.0,
+  "off": [
+   0,
+   0.26,
+   0.0
+  ],
+  "source": "7b292fae-Hair_11_128629367142987.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "big shaggy layered hair with a long curtain fringe the eyes peek through, wispy flyaways, longer at the back of the neck; emo / alt teens and young adults \u2014 takes any hairCol",
+  "tilt": 0
+ },
+ "shaggymulletpink": {
+  "obj": "shaggymulletpink.obj",
+  "tex": "shaggymulletpink.png",
+  "tint": false,
+  "rot": 0.0,
+  "scale": 1.0,
+  "off": [
+   0,
+   0.26,
+   0.0
+  ],
+  "source": "7b292fae-Hair_11_128629367142987.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "the same cut in its original pastel pink-lavender (fixed colour, hairCol is ignored)",
+  "tilt": 0
  }
 }
