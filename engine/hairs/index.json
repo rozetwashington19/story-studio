@@ -118,5 +118,22 @@
   "source": "808e1be2-Hair_07_71700007644840.obj",
   "outline": false,
   "note": "full, scruffy, choppy hair with a jagged fringe touching the eyebrows, covers the whole back of the head; kids / teens / young adults"
+ },
+ "capcut": {
+  "obj": "capcut.obj",
+  "tex": "capcut.png",
+  "tint": true,
+  "rot": -90.0,
+  "scale": 1.06,
+  "off": [
+   0,
+   0.5,
+   -0.06
+  ],
+  "source": "d17bfd8a-Hair_08_99453701562378.obj",
+  "outline": false,
+  "fixedTex": "capcut_fixed.png",
+  "note": "messy layered hair under a black distressed baseball cap (brim forward, chains on the back strap); the hair takes hairCol, the cap keeps its own colours; street / skater / cool teens",
+  "tilt": 14
  }
 }

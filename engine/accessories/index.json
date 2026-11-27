@@ -17,5 +17,22 @@
   "source": "fe6decdf-Hair_02_95764853737304.obj",
   "outline": true,
   "note": "round dark sunglasses, silver wire frame + arms (came with the spikes hair); hides the eyes, so faces read from the mouth only"
+ },
+ "studiophones": {
+  "obj": "studiophones.obj",
+  "tex": "studiophones.png",
+  "tint": false,
+  "rot": -90.0,
+  "scale": 1.06,
+  "off": [
+   0,
+   0.5,
+   -0.06
+  ],
+  "source": "d17bfd8a-Hair_08_99453701562378.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "white over-ear studio headphones (came with capcut; fits any head/hair at the same settings) \u2014 music lovers, DJs, gamers",
+  "tilt": 14
  }
 }

@@ -103,7 +103,7 @@ const accMats = {};
 function accItem(n) { return (A, { col } = {}) => { const M_ = ACC_MODELS[n], k = n + '|' + (M_.tint ? (col ?? 0xffffff) : '');
   const mat = accMats[k] || (accMats[k] = new THREE.MeshStandardMaterial({ map: M_.map, color: M_.tint ? (col ?? 0xffffff) : 0xffffff, roughness: 0.4, metalness: 0.1, side: THREE.DoubleSide }));
   const parent = M_.attach === 'body' ? A.body : A.headMesh; const m = new THREE.Mesh(M_.geo, mat); m.castShadow = true; m.receiveShadow = true; parent.add(m);
-  if (M_.olGeo) m.add(new THREE.Mesh(M_.olGeo, OUTLINE_MAT)); }; }
+  if (M_.olGeo) m.add(new THREE.Mesh(M_.olGeo, OUTLINE_MAT)); if (M_.fxGeo) m.add(new THREE.Mesh(M_.fxGeo, M_.fxMat)); }; }
 const HIDES_HAIR = ['beanie', 'helmet', 'hardhat', 'bandana', 'hood', 'knighthelm'];   // these sit tight on the head: hair would poke through ({ hair: true } keeps it)
 export function outfit(A, items = []) {
   for (const it of items) { const [n, o] = Array.isArray(it) ? it : [it, {}]; const f = ITEMS[n] || (ACC_MODELS[n] && accItem(n)); if (!f) { console.warn('unknown outfit item', n); continue; }

@@ -316,7 +316,8 @@ export function makeAvatar(o = {}) {
   // sculpted hair (engine/hair.js): one merged mesh per avatar; hairSeed (default: from name) varies part side / spikes
   if (o.hair && HAIR_MODELS[o.hair]) {
     const hm = mesh(HAIR_MODELS[o.hair].geo, shadow ? o.shadowMat : hairModelMaterial(o.hair, o.hairCol ?? 0x3a2410), cast); headM.add(hm); A.hairMesh = hm;
-    if (HAIR_MODELS[o.hair].olGeo && !shadow) hm.add(new THREE.Mesh(HAIR_MODELS[o.hair].olGeo, HAIR_OUTLINE));   // toon outline (inverted hull)
+    if (HAIR_MODELS[o.hair].olGeo && !shadow) hm.add(new THREE.Mesh(HAIR_MODELS[o.hair].olGeo, HAIR_OUTLINE));
+    if (HAIR_MODELS[o.hair].fxGeo) hm.add(mesh(HAIR_MODELS[o.hair].fxGeo, shadow ? o.shadowMat : HAIR_MODELS[o.hair].fxMat, cast));   // parts that keep their own colours (cap, clips)   // toon outline (inverted hull)
   } else if (o.hair) {
     const hg = hairGeometry(o.hair, { seed: o.hairSeed ?? hashStr(o.name || o.hair) });
     if (hg) { const hm = mesh(hg, hairM, cast); headM.add(hm); A.hairMesh = hm; }
