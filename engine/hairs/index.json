@@ -202,5 +202,37 @@
   "fixedTex": null,
   "note": "the same cut in its original pastel pink-lavender (fixed colour, hairCol is ignored)",
   "tilt": 0
+ },
+ "overshoulder": {
+  "obj": "overshoulder.obj",
+  "tex": "overshoulder.png",
+  "tint": true,
+  "rot": 180.0,
+  "scale": 1.14,
+  "off": [
+   0,
+   -0.9,
+   0.0
+  ],
+  "source": "be04ecdf-Hair_12_16383521970.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "very long hair with a centre part, face fully clear, brushed over one shoulder to the waist in front and down the back; teens / adults \u2014 takes any hairCol"
+ },
+ "overshoulderrose": {
+  "obj": "overshoulderrose.obj",
+  "tex": "overshoulderrose.png",
+  "tint": false,
+  "rot": 180.0,
+  "scale": 1.14,
+  "off": [
+   0,
+   -0.9,
+   0.0
+  ],
+  "source": "be04ecdf-Hair_12_16383521970.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "the same cut in its original rose-blonde with darker roots (fixed colour, hairCol is ignored)"
  }
 }
