@@ -28,5 +28,20 @@
   "source": "fe6decdf-Hair_02_95764853737304.obj",
   "outline": true,
   "note": "big spiky anime hair with a toon outline, fringe just above the eyes; sits high (short at the back); teens / young adults, action heroes"
+ },
+ "wolfcut": {
+  "obj": "wolfcut.obj",
+  "tex": "wolfcut.png",
+  "tint": true,
+  "rot": 180,
+  "scale": 0.97,
+  "off": [
+   0,
+   0.2,
+   0.02
+  ],
+  "source": "c1b592f5-Hair_03_84616915583650.obj",
+  "outline": false,
+  "note": "long layered wavy wolf cut, wispy fringe with the eyes showing through, falls onto the shoulders at the back; teens / young adults, any gender"
  }
 }

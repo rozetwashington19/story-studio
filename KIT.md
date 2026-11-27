@@ -47,7 +47,8 @@ Hats: beanie/helmet/hardhat/bandana/hood hide them like sculpted hair; a `cap` s
 Import details: parts are split automatically; inside-out duplicate shells (Roblox toon outlines) are kept as `o outline` and drawn as a thin near-black rim (front faces, MeshBasic);
 `PARTS=largest` drops extra pieces baked into an accessory (e.g. glasses). Some accessories are built for taller heads: lift them (`off` y up to ~0.5) and shrink a little (`scale` ~0.9) so the fringe clears the eyes (our eyes sit at head-local y ≈ 0.19).
 Models: `shag` (messy layered shag, side-swept fringe over the character's right eye — for close-ups favour a 3/4 from their left so both eyes read; teens / young adults) ·
-`spikes` (big spiky anime hair with a toon outline, fringe just above the eyes, short at the back; teens / young adults, action heroes).
+`spikes` (big spiky anime hair with a toon outline, fringe just above the eyes, short at the back; teens / young adults, action heroes) ·
+`wolfcut` (long layered wavy wolf cut, wispy fringe with the eyes showing through, falls onto the shoulders at the back; teens / young adults, any gender — skip backpacks/capes/hoods with it, the back hair runs into them).
 **Owner accessory models (`engine/accessories/`, loaded by engine/models.js):** use the name as an outfit item — `outfit: ['roundshades']` (`{ col }` tints only models imported with TINT=1).
 Import: `DIR=accessories python3 tools/import_hair.py <name> <file.obj> <tex.png>` (+ `PARTS=rest` / `SKIP_PARTS=…` / `NOCENTER=1` / `TINT=0` to cut a piece out of a hair file). `scale` may be `[x, y, z]`.
 Accessories: `roundshades` (round dark sunglasses, silver wire frame, came with `spikes`; fits every head and hairstyle — the eyes are hidden, so the face reads from the mouth: pick faces with a clear mouth, and take them off for the emotional beat).
