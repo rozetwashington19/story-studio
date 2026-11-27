@@ -89,7 +89,7 @@ if tex:
         R_ = np.random.default_rng(7); n = 1024; cols = np.zeros(n)
         for w in (1, 2, 4, 9): cols += np.repeat(R_.normal(0, 1, n // w + 2), w)[:n] / w ** 0.3   # strands of several widths
         cols = (cols - cols.mean()) / cols.std(); yy = np.linspace(0, 1, n)[:, None]
-        L = 0.82 + 0.02 * cols[None, :] + 0.008 * R_.normal(0, 1, (n, n))   # very soft fine strands (stronger reads as wood grain; no vertical gradient -> no seam)
+        L = 0.82 + 0.035 * cols[None, :]   # soft fine strands (no gradient, no noise -> no seam, no shimmer)
         img = np.clip(L, 0.45, 1.0)[..., None].repeat(3, 2) * 255
         tex = os.path.join(HD, name + "_strands_src.png"); Image.fromarray(img.astype(np.uint8)).save(tex); print("flat/collapsed texture -> cylindrical UVs + generated strand texture")
 if tex:
@@ -100,7 +100,7 @@ if tex:
         from PIL import ImageFilter
         big = big.filter(ImageFilter.UnsharpMask(radius=2, percent=60, threshold=2)); sc = n / im.size[0]; uvpx = [(int(x * sc), int(y * sc)) for x, y in uvpx]
         a = np.array(big).astype(np.float32)[n:2 * n, n:2 * n]
-    if tint:
+    if tint and not tex.endswith("_strands_src.png"):   # (the generated strand texture is already a luminance map: don't stretch its contrast)
         L = a[..., :3].mean(-1); used = np.array([L[y, x] for x, y in uvpx]); m0, s = np.median(used), used.std() + 1e-3   # normalise on the texels the hair uses
         d = np.clip(0.8 + (L - m0) / s * 0.1, 0.45, 1.0) * 255
         a[..., :3] = d[..., None]

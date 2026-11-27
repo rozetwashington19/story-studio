@@ -103,5 +103,20 @@
   "source": "bd339b59-Hair_06_75407968701410.obj",
   "outline": false,
   "note": "short messy spiky hair, pointed fringe above the eyes, sticks out at the sides; kids / teens / young adults, everyday or action"
+ },
+ "scruffy": {
+  "obj": "scruffy.obj",
+  "tex": "scruffy.png",
+  "tint": true,
+  "rot": 0.0,
+  "scale": 0.98,
+  "off": [
+   0.0,
+   0.36,
+   0.0
+  ],
+  "source": "808e1be2-Hair_07_71700007644840.obj",
+  "outline": false,
+  "note": "full, scruffy, choppy hair with a jagged fringe touching the eyebrows, covers the whole back of the head; kids / teens / young adults"
  }
 }
