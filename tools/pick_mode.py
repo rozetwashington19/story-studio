@@ -1,7 +1,7 @@
 """Roll this episode's story mode (run once at the start of each episode, then follow RUNBOOK step 1 for that mode).
   python3 tools/pick_mode.py            -> prints MODE and, for wild episodes, two suggested worlds
-Modes: heartfelt (~40%) - emotional rule, everyday settings, tearjerker ending (like 001 Shadow, 002 Thank You)
-       wild      (~60%) - fun high-concept rule with creatures/magic/sci-fi, themed world, funny twist ending
+Modes: heartfelt (~15%) - emotional rule, everyday settings, tearjerker ending (like 001 Shadow, 002 Thank You)
+       wild      (~85%) - fun high-concept rule with creatures/magic/sci-fi, themed world, funny twist ending
 Also rolls the OPENER: in-this-world (~50%) or cold-open (~50%).
 Worlds used by the last 3 episodes (INDEX.md 'mode' column, e.g. 'wild:space') are not suggested again.
 Also rolls the story ANGLE (owner request 2026-11-21, "try different ideas within the same niche"): the shape of the story, so
@@ -13,7 +13,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WORLDS = ['forest', 'forest (night)', 'spooky', 'space', 'underwater', 'candy', 'castle', 'castle (night)', 'cityNight', 'snow', 'desert', 'lab']
 rows = [l for l in open(os.path.join(ROOT, "episodes/INDEX.md")) if re.match(r"\d{3} \|", l)]
 recent = " ".join(rows[-3:]).lower()
-mode = "wild" if random.random() < 0.6 else "heartfelt"   # owner 2026-11-18: more wild stories
+mode = "wild" if random.random() < 0.85 else "heartfelt"   # owner 2026-11-27: mostly wacky scenarios with a fun hook (was 0.6)
 ANGLES = {
   'escalation': 'rule of three that snowballs: small -> bigger -> absurdly huge (each beat bigger and funnier than the last)',
   'mystery': 'something strange keeps happening; the narrator investigates; clues planted early; the reveal recontextualises them',

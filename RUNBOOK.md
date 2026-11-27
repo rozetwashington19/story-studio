@@ -3,6 +3,20 @@
 Goal: one new, original **2:00–2:10** vertical (1080×1920) 3D Roblox-style story short per day, in the
 "In this world…" format (or a cold open — see step 1). New premise, new characters every day. **Narration + small sound effects, no music.**
 
+**Owner feedback (2026-11-27) — "my videos' pacing is too slow compared to other videos in my niche… they don't always cover heartfelt stories. They make up
+random wacky scenarios with a fun hook." Owner chose: cut the pauses + get to the story faster + mostly wacky (voice speed and the 2:00–2:10 length stay as they are).
+This overrides the formula, pause counts, word counts and mode split wherever they appear below, and applies to THE FOG Parts 4–5 too:**
+- **Measured problem (episode 022):** 27 s of a 2:04 video was silence (28 `[pause]`s ≈ 0.9 s each) and the plot only started at ~25 s. The voice itself (≈4 words/s while speaking) is fine — don't touch `VOICE_TEMPO`.
+- **Pauses:** at most **4 `[pause]`s per episode** (the hook cut, the big reveal, the twist, the final line). `PAUSE_GAP` now defaults to 0.4 s (was 0.75). Every other line runs straight into the next;
+  passages still split by themselves every 5 lines / 26 words (0.3 s breath). After `voice.py`, check: total silence ≤ 12 s; if more, remove pauses.
+- **Get to the story by ~10 s:** line 1 hook → line 2 the rule (≤ 9 words, "In this world" or cold-open as rolled) → ONE quick gag (2 lines, the funniest one) → "I'm <Name>" + the problem, all by ~10–12 s.
+  No "You see, …" explanation line, no second/third warm-up gag before the plot — put the other gags INSIDE the story as escalation beats. Something new must happen on every line: no line may only describe a feeling or restate the last one.
+- **Density:** same length, more story. With the pauses gone, 2:00–2:10 needs about **440–470 words in 66–74 lines** (estimate — measure the first episode and correct this line). Use the extra lines for more turns
+  (a second complication, a bigger escalation, a final gag), never for padding. Average shot ≈ 1.7–1.9 s; any line over 2.2 s still gets an internal cut.
+- **Story mix:** `pick_mode.py` now rolls **wild ~85% / heartfelt ~15%**. Wild = a random wacky scenario with a fun, instantly clear hook ("my monster paid my rent", "every lie turns into a tiny dragon") and a funny twist ending;
+  a small warm beat at the end is welcome, a tearjerker is not. Delivery tags: mostly untagged/`{excited}`/`{tense}`; use `{slow}`/`{soft}` on 3 lines at most (they slow the read).
+- **Fog Parts 4–5:** same pause budget and no slow recap — line 2 recaps the vote in one line, then straight into action. Suspense comes from the countdown and what happens, not from silence.
+
 **Owner feedback (2026-11-18) — applies to every episode:**
 - Keep: the lighting on the models (motivated key + rim, practical lights on faces) and the clean animation. Keep improving the writing.
 - Fixed in the engine: narration must sound natural — no robotic delivery, random silences, clipped endings or repeated words (voice.py now records each
@@ -131,7 +145,7 @@ Read `KIT.md` (toolkit API) and skim `episodes/001-shadow/` (a complete worked e
   set it to `DONE (episode NNN)`. If no request is OPEN, continue with the random mode below.
 - **Read `episodes/PERFORMANCE.md`** (the owner's view counts). If it marks a WINNER, `pick_mode.py` may print `DOUBLE DOWN on winner NNN`:
   then copy that episode's mode, tone, pacing and story shape (read its script + notes for *why* it worked) with a brand-new premise, cast and sets.
-- **Roll the story mode:** `python3 tools/pick_mode.py` → `wild` (~60%) or `heartfelt` (~40%), the OPENER (`in-this-world` or `cold-open`) and the
+- **Roll the story mode:** `python3 tools/pick_mode.py` → `wild` (~85%) or `heartfelt` (~15%, owner 2026-11-27), the OPENER (`in-this-world` or `cold-open`) and the
   story ANGLE. Build the premise around the angle so consecutive episodes feel different (record `Angle:` in notes.md — the next runs avoid it).
   Variety check before writing: the premise must not share its core twist type, setting type or main gag with the last 3 episodes in INDEX.md,
   and it needs at least one genuinely surprising beat (a gag or reveal a viewer would not predict from the first 10 s).
@@ -171,10 +185,10 @@ Formula (120–130 s version — the full arc with room to breathe):
 7. Emotional reveal + a choice or sacrifice (6–8 lines, give it room — this is what the extra time is for).
    Wild mode: the big twist / clever trick that beats the chaos instead (a small heartfelt beat is optional).
 8. Resolution + a callback to one gag + a short final line that lands emotionally.
-- 58–66 lines (incl. the hook), 370–400 words → about 2:00–2:10 at the narrator's measured pace (≈3.1 words/s incl. pauses at the default PAUSE_GAP; ~372 words ≈ 2:00, ~400 ≈ 2:10 — episode 020: 296 words = 94.8 s). One line = one shot. Keep lines short (≤ 10 words).
+- **Superseded 2026-11-27 (see top): ~66–74 lines, ~440–470 words now that the pauses are gone.** Old figures, with 28 pauses: 58–66 lines (incl. the hook), 370–400 words → about 2:00–2:10 at the narrator's measured pace (≈3.1 words/s incl. pauses at the default PAUSE_GAP; ~372 words ≈ 2:00, ~400 ≈ 2:10 — episode 020: 296 words = 94.8 s). One line = one shot. Keep lines short (≤ 10 words).
 - Every line must earn its place: one idea per line, no recap lines, at most 3 speaking characters besides the narrator.
 - First-person narrator (any age — a kid, a teen, a grandparent, a bus driver…; series parts use SERIES.md's voice). Dialogue goes in "double quotes" and also gets a speech bubble.
-- End a line with ` [pause]` for a dramatic beat (use ~6–8 times: big reveals, sad moments, final line). Lines up to a [pause] are read as one
+- End a line with ` [pause]` for a dramatic beat (**at most 4 per episode**, owner 2026-11-27: hook cut, big reveal, twist, final line). Lines up to a [pause] are read as one
   continuous passage (≤ 5 lines / 26 words), so write them to flow as connected sentences.
 - **Delivery tags** (make the voice match what is on screen): add `{excited}` (chases, surprises), `{tense}` (creeping danger), `{slow}` (sad/awed),
   `{soft}` (tender), `{whisper}` anywhere on a line; it applies to that line's whole passage, so put a [pause] before/after a mood change.

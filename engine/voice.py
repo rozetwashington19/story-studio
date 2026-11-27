@@ -278,7 +278,7 @@ if VMODE == "passage":
         cuts = align(z, texts)
         for k, i in enumerate(g):
             seg = z[cuts[k]:cuts[k + 1]]; on, off = speech_bounds(seg); pieces[i] = (cuts[k] / 48000 + on, cuts[k] / 48000 + off)
-        gap = float(os.environ.get("PAUSE_GAP", "0.75")) if long_pause[g[-1]] else 0.3   # PAUSE_GAP: silence after a [pause] passage
+        gap = float(os.environ.get("PAUSE_GAP", "0.4")) if long_pause[g[-1]] else 0.3   # PAUSE_GAP: silence after a [pause] passage
         report.append((gi, g, sc, hyp, rep))
         print(f"passage {gi+1}/{len(groups)} lines {g[0]+1}-{g[-1]+1} asr={sc:.2f}" + (" REPEAT" if rep else "") + ("" if sc >= 0.95 and not rep else f"  CHECK: heard '{hyp}'"), flush=True)
         groups[gi] = (g, z, gap)

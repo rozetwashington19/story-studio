@@ -29,6 +29,8 @@ Status: ACTIVE — next: Part 4 (locked until the owner reports the Part 3 vote)
 | 4 | — | (decided by the Part 4 run) | ? |
 | 5 | — | finale — no vote ("comment what you would have done") | — |
 
+**Owner 2026-11-27 — faster pacing for Parts 4–5:** at most 4 `[pause]`s per part, straight into action after the one-line vote recap, something new on every line (see the 2026-11-27 block at the top of RUNBOOK.md).
+
 ## Format (every part)
 - **Second person**, narrated in the owner's cloned voice (engine/voice.py, defaults): "You wake up…", "You run.", "Do you…". The viewer is the hero:
   the on-screen YOU avatar (cast.js) is the same in every part. Dialogue from other characters in "quotes" + bubbles as usual.
