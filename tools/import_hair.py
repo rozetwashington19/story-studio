@@ -112,7 +112,7 @@ if tex:
     if TU: uvpx = [p_ for p_, i_ in zip(uvpx, range(len(UV))) if i_ in set(np.unique(T).tolist())]
     if tint and not tex.endswith("_strands_src.png"):   # (the generated strand texture is already a luminance map: don't stretch its contrast)
         L = a[..., :3].mean(-1); used = np.array([L[y, x] for x, y in uvpx]); m0, s = np.median(used), used.std() + 1e-3   # normalise on the texels the hair uses
-        d = np.clip(0.8 + (L - m0) / s * 0.1, 0.45, 1.0) * 255
+        d = np.clip(0.8 + (L - m0) / s * 0.1 * float(os.environ.get("CONTRAST", "1")), 0.45, 1.0) * 255   # CONTRAST<1 softens strong streaks (they turn into stripes on light hair colours)
         a[..., :3] = d[..., None]
     texname = name + ".png"; Image.fromarray(a.clip(0, 255).astype(np.uint8)).save(os.path.join(HD, texname))
     if tex.endswith("_strands_src.png"):

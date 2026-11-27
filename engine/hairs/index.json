@@ -151,5 +151,22 @@
   "outline": false,
   "fixedTex": null,
   "note": "short feathered layered hair, side-swept fringe above the eyes, tapered at the nape; kids / teens / young adults, a neat everyday look"
+ },
+ "longsweep": {
+  "obj": "longsweep.obj",
+  "tex": "longsweep.png",
+  "tint": true,
+  "rot": 180.0,
+  "scale": 1.14,
+  "off": [
+   0,
+   -0.84,
+   0.1
+  ],
+  "source": "49088b2f-Hair_10_111753699861512.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "long straight hair to the waist, centre part, side-swept fringe over the character's right eye, strands in front of the shoulders; teens / adults",
+  "tilt": 5
  }
 }
