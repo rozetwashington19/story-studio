@@ -1,14 +1,14 @@
 """Render every hair style (front 3/4 + back 3/4) into one sheet:  python3 tools/hair_lineup.py [out.jpg] [style ...]
 Listing styles also saves full-resolution front close-ups as <out>_<style>.png.
 Entries can be 'style+beard+color', e.g. 'balding+full+gray' (color names from HAIR_COLORS). SET=new renders only the age-group set.
-Uses a throwaway episode folder (episodes/_hairtest) that is deleted afterwards."""
+STYLES="a b+_+blonde …" renders just those (e.g. imported hair models from engine/hairs). Uses a throwaway episode folder (episodes/_hairtest) that is deleted afterwards."""
 import json, os, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); EP = os.path.join(ROOT, "episodes/_hairtest")
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "hair_lineup.jpg"); CLOSE = sys.argv[2:]
 ALL = ['short', 'swoop', 'spiky', 'buzz', 'mohawk', 'curly', 'afro', 'bun', 'ponytail', 'pigtails', 'long', 'bob', 'braids', 'puffs']
 AGES = ['tuft', 'slick', 'crew+stubble', 'receding+mustache', 'lowbun', 'balding+full+gray', 'combover+walrus+silver', 'perm+_+silver',
         'lowbun+_+white', 'crew+goatee+saltpepper', 'slick+_+gray', 'bob+_+white', 'buzz+full+saltpepper', 'balding+mustache+white']
-STYLES = AGES if os.environ.get("SET") == "new" else ALL + AGES
+STYLES = os.environ["STYLES"].split() if os.environ.get("STYLES") else AGES if os.environ.get("SET") == "new" else ALL + AGES   # STYLES="rbx01 rbx01+_+blonde" for imported models
 os.makedirs(EP + "/out", exist_ok=True)
 open(EP + "/script.txt", "w").write("\n".join(STYLES) + "\n")
 json.dump([{"line": s, "start": i * 2.0, "end": i * 2.0 + 1.8} for i, s in enumerate(STYLES)], open(EP + "/out/timing.json", "w"))

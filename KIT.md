@@ -38,6 +38,14 @@ New styles: add a `case` in `hairGeometry()` using `shell({line, upper, thick, f
 Textures: streaky glossy clumps by default; `COILY` styles (afro curly puffs braids perm) get a coily texture.
 Check: `python3 tools/hair_lineup.py out.jpg [style …]` (`SET=new` = age-group set) and `python3 tools/face_lineup.py out.jpg face@style+beard+color+wfr …`.
 
+## Owner hair models (owner 2026-11-27 — `engine/hairs/`, `tools/import_hair.py`)
+The owner uploads Roblox hair accessories (OBJ + MTL + diffuse PNG). Import: `python3 tools/import_hair.py <name> <file.obj> <diffuse.png>` → `engine/hairs/<name>.obj/.png` + an entry in
+`engine/hairs/index.json` ({ rot, scale, off, tint, note }). Use like any style: `makeAvatar({ hair: 'shag', hairCol: HAIR_COLORS.blonde })` — `hairCol` tints it (TINT=1, default).
+Fitting: Roblox hair faces −Z in some exports and +Z in others — check `rot` (0 or 180) first, then `scale` (~1.05–1.1) and `off` (y ≈ +0.1 so fringes sit at the brow, not over both eyes).
+Edit index.json and re-render (`STYLES="shag shag+_+blonde" python3 tools/hair_lineup.py out.jpg`) — no re-import needed. Low-res textures are upscaled seamlessly to 1024 at import.
+Hats: beanie/helmet/hardhat/bandana/hood hide them like sculpted hair; a `cap` sits on top and the big models poke through it — don't combine.
+Models: `shag` (messy layered shag, side-swept fringe over the character's right eye — for close-ups favour a 3/4 from their left so both eyes read; teens / young adults).
+
 ## Shadows / silhouettes
 `wallShadow(S, opts, [x, z], {profile, size, mat})` flat black figure on a wall facing +Z (put z just in front of the wall);
 `.flat` group (move it), `.pose()`, `.root.rotation.y` to flip profile. `flat.position.y = -1.45` for a sitting silhouette.

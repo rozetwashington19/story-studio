@@ -1,0 +1,16 @@
+{
+ "shag": {
+  "obj": "shag.obj",
+  "tex": "shag.png",
+  "tint": true,
+  "rot": 0,
+  "scale": 1.08,
+  "off": [
+   0,
+   0.12,
+   0.02
+  ],
+  "source": "a4bbb0f5-Hair_01_18221932846.obj",
+  "note": "messy layered shag, side-swept fringe covers the character's RIGHT eye (screen left); teen / young adult"
+ }
+}

@@ -3,6 +3,33 @@ import { outfit } from './outfits.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { hairGeometry, beardGeometry, hashStr, COILY } from './hair.js';
 export { HAIR_STYLES, HAIR_COLORS, BEARDS } from './hair.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+// ---- owner-supplied hair models (owner 2026-11-27): engine/hairs/<name>.obj + .png, listed in engine/hairs/index.json (tools/import_hair.py) ----
+// loaded once by engine/main.html; makeAvatar({ hair: '<name>' }) uses the model instead of a sculpted style. Same head-local space as hair.js
+// (head centre 0, top y 0.61, front +Z). index entry: { obj, tex, tint, rot (deg about y), scale, off: [x,y,z] }.
+export const HAIR_MODELS = {};
+export async function loadHairModels(index) {
+  const ol = new OBJLoader(), tl = new THREE.TextureLoader();
+  await Promise.all(Object.entries(index || {}).map(async ([name, e]) => {
+    const obj = await ol.loadAsync(`hairs/${e.obj}`); let geo = null; obj.traverse(m => { if (m.isMesh && !geo) geo = m.geometry; });
+    if (!geo) return;
+    geo.rotateY((e.rot || 0) * Math.PI / 180); geo.scale(e.scale || 1, e.scale || 1, e.scale || 1); geo.translate(...(e.off || [0, 0, 0]));
+    // smooth normals by shared position (OBJLoader gives unindexed triangles -> flat shading otherwise)
+    const p = geo.attributes.position, n = new Float32Array(p.count * 3), acc = new Map(), key = i => `${p.getX(i).toFixed(4)},${p.getY(i).toFixed(4)},${p.getZ(i).toFixed(4)}`;
+    const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+    for (let i = 0; i < p.count; i += 3) { a.fromBufferAttribute(p, i); b.fromBufferAttribute(p, i + 1); c.fromBufferAttribute(p, i + 2);
+      const fn = b.clone().sub(a).cross(c.clone().sub(a)); for (let k = 0; k < 3; k++) { const kk = key(i + k); const v = acc.get(kk) || new THREE.Vector3(); v.add(fn); acc.set(kk, v); } }
+    for (let i = 0; i < p.count; i++) { const v = acc.get(key(i)).clone().normalize(); n[i * 3] = v.x; n[i * 3 + 1] = v.y; n[i * 3 + 2] = v.z; }
+    geo.setAttribute('normal', new THREE.BufferAttribute(n, 3)); geo.computeBoundingBox(); geo.computeBoundingSphere();
+    let map = null; if (e.tex) { map = await tl.loadAsync(`hairs/${e.tex}`); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 8; map.wrapS = map.wrapT = THREE.RepeatWrapping; }
+    HAIR_MODELS[name] = { geo, map, tint: e.tint !== false };
+  }));
+}
+const hairModelMats = {};
+function hairModelMaterial(name, col) {
+  const H = HAIR_MODELS[name], k = name + '|' + (H.tint ? col : '');
+  return hairModelMats[k] || (hairModelMats[k] = new THREE.MeshStandardMaterial({ map: H.map, color: H.tint ? col : 0xffffff, roughness: 0.62, metalness: 0, side: THREE.DoubleSide }));
+}
 
 export const D = Math.PI / 180;
 const loader = new THREE.TextureLoader();
@@ -306,7 +333,9 @@ export function makeAvatar(o = {}) {
   Object.defineProperty(A.root, '__avatar', { value: A }); A.talkK = 0; A.blinkSeed = hashStr(o.name || 'a') % 1000 / 1000;
   // hair / hats (children of head mesh)
   // sculpted hair (engine/hair.js): one merged mesh per avatar; hairSeed (default: from name) varies part side / spikes
-  if (o.hair) {
+  if (o.hair && HAIR_MODELS[o.hair]) {
+    const hm = mesh(HAIR_MODELS[o.hair].geo, shadow ? o.shadowMat : hairModelMaterial(o.hair, o.hairCol ?? 0x3a2410), cast); headM.add(hm); A.hairMesh = hm;
+  } else if (o.hair) {
     const hg = hairGeometry(o.hair, { seed: o.hairSeed ?? hashStr(o.name || o.hair) });
     if (hg) { const hm = mesh(hg, hairM, cast); headM.add(hm); A.hairMesh = hm; }
   }
