@@ -338,5 +338,21 @@
   "outline": false,
   "fixedTex": null,
   "note": "messy curly mop with wispy curls flicking out, fringe above the eyes, short at the back; kids / teens / young adults"
+ },
+ "curlybuns": {
+  "obj": "curlybuns.obj",
+  "tex": "curlybuns.png",
+  "tint": true,
+  "rot": 0.0,
+  "scale": 1.04,
+  "off": [
+   0,
+   0.02,
+   0.02
+  ],
+  "source": "34f57150-Hair_17_130906452598374.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "curly hair pulled up into two high puffs with curly bangs and long ringlet tendrils by the face; kids / teens / young adults, playful or sweet characters"
  }
 }
