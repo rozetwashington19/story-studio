@@ -322,5 +322,21 @@
   "outline": false,
   "fixedTex": null,
   "note": "the same crop in its original near-black with the edges fading to brown (fixed colour, hairCol is ignored)"
+ },
+ "curlymop": {
+  "obj": "curlymop.obj",
+  "tex": "curlymop.png",
+  "tint": true,
+  "rot": 180.0,
+  "scale": 1.0,
+  "off": [
+   0,
+   0.46,
+   0
+  ],
+  "source": "c6e89643-Hair_16_15569107386.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "messy curly mop with wispy curls flicking out, fringe above the eyes, short at the back; kids / teens / young adults"
  }
 }

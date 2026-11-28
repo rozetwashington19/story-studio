@@ -34,5 +34,21 @@
   "fixedTex": null,
   "note": "white over-ear studio headphones (came with capcut; fits any head/hair at the same settings) \u2014 music lovers, DJs, gamers",
   "tilt": 14
+ },
+ "grayphones": {
+  "obj": "grayphones.obj",
+  "tex": "grayphones.png",
+  "tint": false,
+  "rot": 180.0,
+  "scale": 1.0,
+  "off": [
+   0,
+   0.46,
+   0
+  ],
+  "source": "c6e89643-Hair_16_15569107386.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "grey over-ear headphones with a thin band (came with curlymop)"
  }
 }
