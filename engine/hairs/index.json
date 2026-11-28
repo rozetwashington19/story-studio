@@ -354,5 +354,22 @@
   "outline": false,
   "fixedTex": null,
   "note": "curly hair pulled up into two high puffs with curly bangs and long ringlet tendrils by the face; kids / teens / young adults, playful or sweet characters"
+ },
+ "longwaves": {
+  "obj": "longwaves.obj",
+  "tex": "longwaves.png",
+  "tint": true,
+  "rot": 180.0,
+  "scale": 1.1,
+  "off": [
+   0,
+   -0.5,
+   0.09
+  ],
+  "source": "56645621-Hair_18_77060485233048.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "long wavy hair past the shoulders, soft side-swept bangs that leave both eyes clear, loose waves falling in front of the shoulders; teens / adults",
+  "tilt": 5
  }
 }
