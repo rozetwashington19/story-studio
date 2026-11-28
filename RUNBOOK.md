@@ -11,7 +11,7 @@ This overrides the formula, pause counts, word counts and mode split wherever th
   passages still split by themselves every 5 lines / 26 words (0.3 s breath). After `voice.py`, check: total silence ≤ 12 s; if more, remove pauses.
 - **Get to the story by ~10 s:** line 1 hook → line 2 the rule (≤ 9 words, "In this world" or cold-open as rolled) → ONE quick gag (2 lines, the funniest one) → "I'm <Name>" + the problem, all by ~10–12 s.
   No "You see, …" explanation line, no second/third warm-up gag before the plot — put the other gags INSIDE the story as escalation beats. Something new must happen on every line: no line may only describe a feeling or restate the last one.
-- **Density:** same length, more story. With the pauses gone, 2:00–2:10 needs about **440–470 words in 66–74 lines** (estimate — measure the first episode and correct this line). Use the extra lines for more turns
+- **Density:** same length, more story. With the pauses gone, 2:00–2:10 needs about **430–465 words in 60–70 lines** (measured on episode 024: 452 words / 61 lines / 4 pauses = 126.3 s, ≈ 3.6 words/s including the short gaps; 479 words came out at 133 s — too long). Use the extra lines for more turns
   (a second complication, a bigger escalation, a final gag), never for padding. Average shot ≈ 1.7–1.9 s; any line over 2.2 s still gets an internal cut.
 - **Story mix:** `pick_mode.py` now rolls **wild ~85% / heartfelt ~15%**. Wild = a random wacky scenario with a fun, instantly clear hook ("my monster paid my rent", "every lie turns into a tiny dragon") and a funny twist ending;
   a small warm beat at the end is welcome, a tearjerker is not. Delivery tags: mostly untagged/`{excited}`/`{tense}`; use `{slow}`/`{soft}` on 3 lines at most (they slow the read).

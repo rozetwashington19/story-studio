@@ -26,6 +26,7 @@ export * from './sets20.js';
 export * from './sets21.js';
 export * from './sets22.js';
 export * from './sets23.js';
+export * from './sets24.js';
 export * from './clouds.js';
 export * from './outfits.js';
 export * from './themes.js';
