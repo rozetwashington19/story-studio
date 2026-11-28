@@ -266,5 +266,21 @@
   "outline": false,
   "fixedTex": null,
   "note": "the same in its original white hair with the black headdress (fixed colour, hairCol is ignored)"
+ },
+ "ringlets": {
+  "obj": "ringlets.obj",
+  "tex": "ringlets.png",
+  "tint": true,
+  "rot": 180.0,
+  "scale": 1.08,
+  "off": [
+   0,
+   0.06,
+   0.03
+  ],
+  "source": "03ff3e98-Hair_14_115765903414200.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "smooth glossy hair with side-swept bangs and two low pigtails ending in curly ringlets; kids / teens, cute or sweet characters"
  }
 }
