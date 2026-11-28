@@ -282,5 +282,45 @@
   "outline": false,
   "fixedTex": null,
   "note": "smooth glossy hair with side-swept bangs and two low pigtails ending in curly ringlets; kids / teens, cute or sweet characters"
+ },
+ "crop": {
+  "obj": "crop.obj",
+  "tex": "crop.png",
+  "tint": true,
+  "rot": 180.0,
+  "scale": [
+   1.16,
+   1.3,
+   1.16
+  ],
+  "off": [
+   0,
+   0.0,
+   0.0
+  ],
+  "source": "be4d2480-Hair_15_6983914581.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "short neat crop close to the head with a straight fringe just above the eyes; kids / teens / adults, school, sports, everyday \u2014 takes any hairCol"
+ },
+ "cropfade": {
+  "obj": "cropfade.obj",
+  "tex": "cropfade.png",
+  "tint": false,
+  "rot": 180.0,
+  "scale": [
+   1.16,
+   1.3,
+   1.16
+  ],
+  "off": [
+   0,
+   0.0,
+   0.0
+  ],
+  "source": "be4d2480-Hair_15_6983914581.obj",
+  "outline": false,
+  "fixedTex": null,
+  "note": "the same crop in its original near-black with the edges fading to brown (fixed colour, hairCol is ignored)"
  }
 }
