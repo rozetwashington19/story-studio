@@ -67,7 +67,7 @@ scheduled prompts.
 - **Compositing (automatic at q=1, owner 2026-11-25 follow-up):** the final grade adds a light unsharp mask (crisper edges/textures), warm halation
   glow around highlights, anamorphic streaks on bright practicals (lamps, candles, neon, screens) and a faint lens fringe at the frame edges. So give
   night/interior sets real practical lights in frame — they now flare nicely. `S.userData.comp` scales it per shot (0 = off, 1.5 = dreamy flashback).
-- **SFX level:** +3 dB louder than before (HOUSE_DB -14, ceiling -11 dB under the voice) — the owner wants them clearly audible but never over the narrator;
+- **SFX level (owner 2026-11-27: "increase the sound effects volume a bit more"):** another +3 dB (HOUSE_DB -11, ceiling -9 dB under the voice; was -14 / -11) — the owner wants them clearly audible but never over the narrator;
   keep beds at their listed trims and don't push action cues above +2.
 - **Mandatory q=1 check (step 5):** after the Q=0 preview pass, render the 6 most important shots at q=1 (`python3 engine/render.py … stills 1 a b c d e`) and
   look at faces, lighting and texture there; fix before the full render.

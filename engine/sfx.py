@@ -164,11 +164,11 @@ SOUNDS = {'pop': pop, 'boing': boing, 'whoosh': whoosh, 'swoosh_up': swoosh_up, 
           'whistle': whistle, 'chuff': chuff, 'hiss': hiss, 'ticktock': ticktock, 'clunk': clunk, 'breath': breath, 'clang': clang}
 
 # Owner feedback (2026-11-17): effects must stay subtle background sounds that never cover the narrator.
-HOUSE_DB = -14.0      # owner 2026-11-25: +3 dB (louder, still under the voice) — cue loudness relative to the narration's speech RMS (between lines: clearly audible)
+HOUSE_DB = -11.0      # owner 2026-11-25: +3 dB; owner 2026-11-27: +3 dB more ("increase the sound effects volume a bit more") — still under the voice — cue loudness relative to the narration's speech RMS (between lines: clearly audible)
 # Owner: effects play exactly on the action and overlap the narration like normal SFX — never moved into pauses —
 # but they must not drown the voice. So under speech they are only gently ducked, thinned in the speech band, and capped.
 DUCK_DB = -4.0        # gentle reduction while the narrator is talking (starts 80 ms before each word)
-CEIL_DB = -11.0       # while talking, effects never get closer than this to the voice's moment-to-moment level
+CEIL_DB = -9.0        # while talking, effects never get closer than this to the voice's moment-to-moment level (owner 2026-11-27: was -11)
 def active_rms(x):
     a = np.abs(x); m = a > a.max() * 0.08; return float(np.sqrt(np.mean(x[m] ** 2))) if m.any() else 1e-6
 def db(v): return 10 ** (v / 20)
